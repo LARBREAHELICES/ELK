@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-label="Repere Kibana Discover">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="800" fill="url(#bg2)"/>
+  <rect x="20" y="20" width="1360" height="760" rx="14" fill="#0b1220" stroke="#334155" stroke-width="2"/>
+
+  <rect x="20" y="20" width="1360" height="48" rx="14" fill="#111827"/>
+  <text x="42" y="49" font-family="Arial, sans-serif" font-size="18" fill="#cbd5e1">Kibana - Discover (Data View: demo_env)</text>
+
+  <rect x="40" y="84" width="250" height="676" rx="10" fill="#0a0f1a" stroke="#263245"/>
+  <text x="58" y="120" font-family="Arial, sans-serif" font-size="20" fill="#93c5fd">Navigation</text>
+  <text x="58" y="168" font-family="Arial, sans-serif" font-size="18" fill="#94a3b8">Stack Management</text>
+  <text x="58" y="204" font-family="Arial, sans-serif" font-size="18" fill="#94a3b8">Data Views</text>
+  <rect x="48" y="236" width="234" height="42" rx="8" fill="#0284c7"/>
+  <text x="60" y="264" font-family="Arial, sans-serif" font-size="19" fill="#ecfeff">Discover (ici)</text>
+
+  <rect x="320" y="84" width="1040" height="90" rx="10" fill="#0a0f1a" stroke="#334155"/>
+  <text x="344" y="120" font-family="Arial, sans-serif" font-size="22" fill="#e2e8f0">Data view selectionnee: demo_env</text>
+  <text x="344" y="152" font-family="Arial, sans-serif" font-size="20" fill="#93c5fd">KQL: * (tous les documents)</text>
+
+  <rect x="320" y="194" width="1040" height="566" rx="10" fill="#0a0f1a" stroke="#334155"/>
+
+  <rect x="336" y="220" width="1008" height="52" rx="8" fill="#1e293b"/>
+  <text x="356" y="254" font-family="Arial, sans-serif" font-size="20" fill="#bfdbfe">@timestamp</text>
+  <text x="570" y="254" font-family="Arial, sans-serif" font-size="20" fill="#bfdbfe">app</text>
+  <text x="700" y="254" font-family="Arial, sans-serif" font-size="20" fill="#bfdbfe">level</text>
+  <text x="840" y="254" font-family="Arial, sans-serif" font-size="20" fill="#bfdbfe">message</text>
+
+  <rect x="336" y="286" width="1008" height="64" rx="8" fill="#111827" stroke="#334155"/>
+  <text x="356" y="324" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">2026-03-31T09:07:00Z</text>
+  <text x="570" y="324" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">worker-sync</text>
+  <text x="700" y="324" font-family="Arial, sans-serif" font-size="19" fill="#fca5a5">ERROR</text>
+  <text x="840" y="324" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">Timeout base externe</text>
+
+  <rect x="336" y="362" width="1008" height="64" rx="8" fill="#111827" stroke="#334155"/>
+  <text x="356" y="400" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">2026-03-31T09:05:00Z</text>
+  <text x="570" y="400" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">api-gateway</text>
+  <text x="700" y="400" font-family="Arial, sans-serif" font-size="19" fill="#fde68a">WARN</text>
+  <text x="840" y="400" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">Latence elevee sur endpoint /search</text>
+
+  <rect x="336" y="438" width="1008" height="64" rx="8" fill="#111827" stroke="#334155"/>
+  <text x="356" y="476" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">2026-03-31T09:00:00Z</text>
+  <text x="570" y="476" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">api-gateway</text>
+  <text x="700" y="476" font-family="Arial, sans-serif" font-size="19" fill="#86efac">INFO</text>
+  <text x="840" y="476" font-family="Arial, sans-serif" font-size="19" fill="#e5e7eb">Service demarre</text>
+
+  <rect x="336" y="534" width="1008" height="118" rx="10" fill="#052e16" stroke="#22c55e" stroke-width="2"/>
+  <text x="360" y="582" font-family="Arial, sans-serif" font-size="28" fill="#86efac">Validation visuelle: les 3 documents de demo_env sont presents.</text>
+  <text x="360" y="620" font-family="Arial, sans-serif" font-size="22" fill="#bbf7d0">Tu peux ensuite filtrer par level:ERROR ou app:api-gateway dans KQL.</text>
+</svg>
