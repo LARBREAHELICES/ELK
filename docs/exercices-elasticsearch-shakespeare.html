@@ -31,15 +31,17 @@
       padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03);
     }
     .sub { color: var(--muted); margin: 8px 0 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+    .section-title { margin: 24px 0 8px; color: #c7d2fe; font-size: 18px; }
     .exo {
+      margin: 12px 0;
       background: linear-gradient(180deg, var(--panel), var(--panel2));
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
     }
-    .exo h3 { margin: 0 0 8px; font-size: 16px; }
-    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    .exo h3 { margin: 0 0 8px; font-size: 17px; }
+    .hint { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+    .expect { margin: 0; color: #bfdbfe; font-size: 14px; }
     details {
       margin-top: 10px;
       border: 1px solid #2d3748;
@@ -60,7 +62,6 @@
       font-size: 12px;
     }
     code { font-family: "JetBrains Mono", Consolas, monospace; }
-    .section-title { margin: 22px 0 8px; color: #c7d2fe; font-size: 18px; }
   </style>
 </head>
 <body>
@@ -72,11 +73,15 @@
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Objectif: pratiquer la logique de requete Elasticsearch sur le dataset Shakespeare en mode full-text + analytique. Chaque correction est masquee (clic pour afficher).</p>
+    <p class="sub">Objectif: pratiquer un workflow complet Elasticsearch (setup, full-text, aggregations, niveau avance) avec des consignes explicites et un resultat attendu pour chaque exercice.</p>
 
     <h2 class="section-title">Bloc 1 - Setup et verification</h2>
-    <div class="grid">
-      <article class="exo"><h3>1) Creer l index <code>shakespeare</code></h3><p class="hint">Mapping avec <code>line_id</code>, <code>play_name</code>, <code>speech_number</code>, <code>line_number</code>, <code>speaker</code>, <code>text_entry</code>.</p><details><summary>Voir la solution</summary><pre><code>curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
+
+    <article class="exo">
+      <h3>1) Creer l index <code>shakespeare</code> avec un mapping explicite</h3>
+      <p class="hint">Objectif: verifier que tu sais preparer un schema propre avant ingestion (types numeriques, keyword et text).</p>
+      <p class="expect">Resultat attendu: l index existe et le mapping contient bien les 6 champs du cours.</p>
+      <details><summary>Voir la solution</summary><pre><code>curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
   "mappings": {
     "properties": {
       "line_id": { "type": "integer" },
@@ -87,40 +92,69 @@
       "text_entry": { "type": "text" }
     }
   }
-}'</code></pre></details></article>
+}'</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>2) Importer le dataset full</h3><p class="hint">Utiliser le fichier JSON propose (ou l echantillon local en fallback).</p><details><summary>Voir la solution</summary><pre><code>curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" -o sandbox/data/shakespeare.json
-
+    <article class="exo">
+      <h3>2) Importer le dataset Shakespeare (full dataset recommande)</h3>
+      <p class="hint">Objectif: charger des donnees reelles et non un mini mock, avec fallback local pour TP rapide.</p>
+      <p class="expect">Resultat attendu: la requete bulk retourne des creations sans erreur de parsing.</p>
+      <details><summary>Voir la solution</summary><pre><code># option full dataset
+curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" -o sandbox/data/shakespeare.json
 curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
   -H "Content-Type: application/x-ndjson" \
   --data-binary @sandbox/data/shakespeare.json
 
-# fallback rapide:
-# curl -X POST "http://localhost:9200/shakespeare/_bulk" -H "Content-Type: application/x-ndjson" --data-binary @sandbox/data/shakespeare_sample.ndjson</code></pre></details></article>
+# fallback rapide
+# curl -X POST "http://localhost:9200/shakespeare/_bulk" -H "Content-Type: application/x-ndjson" --data-binary @sandbox/data/shakespeare_sample.ndjson</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>3) Rendre les docs visibles et compter</h3><p class="hint">Executer <code>_refresh</code> puis <code>_count</code>.</p><details><summary>Voir la solution</summary><pre><code>curl -X POST "http://localhost:9200/shakespeare/_refresh"
-curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></article>
+    <article class="exo">
+      <h3>3) Forcer la visibilite des documents et compter le volume</h3>
+      <p class="hint">Objectif: valider le cycle near-real-time Elasticsearch.</p>
+      <p class="expect">Resultat attendu: <code>count</code> strictement superieur a 0 (et tres eleve si full dataset).</p>
+      <details><summary>Voir la solution</summary><pre><code>curl -X POST "http://localhost:9200/shakespeare/_refresh"
+curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>4) Verifier le mapping reel</h3><p class="hint">Afficher le mapping de l index.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/shakespeare/_mapping?pretty"</code></pre></details></article>
-    </div>
+    <article class="exo">
+      <h3>4) Controler le mapping reel stocke par Elasticsearch</h3>
+      <p class="hint">Objectif: verifier que le mapping final correspond a l intention initiale.</p>
+      <p class="expect">Resultat attendu: <code>text_entry</code> en <code>text</code> et <code>play_name</code>/<code>speaker</code> en <code>keyword</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/shakespeare/_mapping?pretty"</code></pre></details>
+    </article>
 
     <h2 class="section-title">Bloc 2 - Requetes full-text et filtrage</h2>
-    <div class="grid">
-      <article class="exo"><h3>5) Chercher les lignes contenant l idee de <code>question</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+
+    <article class="exo">
+      <h3>5) Retrouver les lignes liees a l idee de "question"</h3>
+      <p class="hint">Objectif: utiliser <code>match</code> pour une recherche linguistique de base.</p>
+      <p class="expect">Resultat attendu: des hits avec un <code>_score</code> non nul et des lignes pertinentes.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": { "match": { "text_entry": "question" } }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>6) Rechercher la phrase exacte <code>to be, or not to be</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>6) Chercher la phrase exacte "to be or not to be"</h3>
+      <p class="hint">Objectif: distinguer <code>match</code> de <code>match_phrase</code>.</p>
+      <p class="expect">Resultat attendu: moins de hits, mais plus precis semantiquement.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": {
     "match_phrase": {
       "text_entry": "to be or not to be"
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>7) Tolerance aux fautes sur <code>queston</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>7) Activer la tolerance aux fautes sur le terme <code>queston</code></h3>
+      <p class="hint">Objectif: tester la robustesse de recherche avec <code>fuzziness</code>.</p>
+      <p class="expect">Resultat attendu: des resultats meme avec faute de frappe.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": {
     "match": {
@@ -130,9 +164,14 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       }
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>8) Lignes de Macbeth parlant de <code>sleep</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>8) Combiner texte + filtre exact (Macbeth + sleep)</h3>
+      <p class="hint">Objectif: manipuler <code>bool.must</code> pour le texte et <code>bool.filter</code> pour le contexte metier.</p>
+      <p class="expect">Resultat attendu: uniquement des lignes de Macbeth contenant l idee de "sleep".</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": {
     "bool": {
@@ -140,41 +179,63 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       "filter": [{ "term": { "play_name": "Macbeth" } }]
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>9) Filtrer les lignes du speaker <code>HAMLET</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>9) Filtrer strictement les lignes du speaker HAMLET</h3>
+      <p class="hint">Objectif: utiliser un filtre exact sur un champ <code>keyword</code>.</p>
+      <p class="expect">Resultat attendu: tous les documents retournes ont <code>speaker = HAMLET</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
-  "query": {
-    "term": { "speaker": "HAMLET" }
-  }
-}</code></pre></details></article>
+  "query": { "term": { "speaker": "HAMLET" } }
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>10) Trier les lignes de Hamlet par <code>speech_number</code> decroissant</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>10) Trier les lignes de Hamlet par <code>speech_number</code> descendant</h3>
+      <p class="hint">Objectif: verifier le tri numerique dans un sous-ensemble de donnees.</p>
+      <p class="expect">Resultat attendu: les premiers hits ont les plus grandes valeurs de <code>speech_number</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": { "term": { "play_name": "Hamlet" } },
   "sort": [{ "speech_number": "desc" }]
-}</code></pre></details></article>
-    </div>
+}</code></pre></details>
+    </article>
 
-    <h2 class="section-title">Bloc 3 - Aggregations metier</h2>
-    <div class="grid">
-      <article class="exo"><h3>11) Compter les lignes par piece</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <h2 class="section-title">Bloc 3 - Aggregations analytiques</h2>
+
+    <article class="exo">
+      <h3>11) Compter le nombre de lignes par piece</h3>
+      <p class="hint">Objectif: produire une repartition globale du corpus.</p>
+      <p class="expect">Resultat attendu: une aggregation <code>by_play.buckets</code> avec les pieces principales.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "aggs": {
     "by_play": { "terms": { "field": "play_name", "size": 20 } }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>12) Top 10 speakers par volume de lignes</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>12) Identifier les 10 speakers les plus presents</h3>
+      <p class="hint">Objectif: construire un top N sur un champ categoriel.</p>
+      <p class="expect">Resultat attendu: 10 buckets tries par volume decroissant.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "aggs": {
     "top_speakers": { "terms": { "field": "speaker", "size": 10 } }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>13) Speech number moyen par piece</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>13) Calculer le <code>speech_number</code> moyen par piece</h3>
+      <p class="hint">Objectif: combiner bucket aggregation + metric aggregation.</p>
+      <p class="expect">Resultat attendu: chaque piece contient une metrique <code>avg_speech</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "aggs": {
@@ -185,9 +246,14 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       }
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>14) Nombre de speakers distincts par piece</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>14) Mesurer le nombre de speakers distincts par piece</h3>
+      <p class="hint">Objectif: utiliser <code>cardinality</code> pour estimer la diversite des personnages.</p>
+      <p class="expect">Resultat attendu: une metrique <code>unique_speakers</code> dans chaque bucket de piece.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "aggs": {
@@ -198,23 +264,30 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       }
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>15) Top 5 pieces contenant le terme <code>love</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>15) Trouver les 5 pieces les plus associees au terme "love"</h3>
+      <p class="hint">Objectif: filtrer par full-text puis agreger par piece.</p>
+      <p class="expect">Resultat attendu: top 5 des pieces dans le contexte de la requete "love".</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "query": { "match": { "text_entry": "love" } },
   "aggs": {
-    "plays_with_love": {
-      "terms": { "field": "play_name", "size": 5 }
-    }
+    "plays_with_love": { "terms": { "field": "play_name", "size": 5 } }
   }
-}</code></pre></details></article>
-    </div>
+}</code></pre></details>
+    </article>
 
     <h2 class="section-title">Bloc 4 - Niveau avance</h2>
-    <div class="grid">
-      <article class="exo"><h3>16) Highlight sur le terme <code>blood</code></h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+
+    <article class="exo">
+      <h3>16) Mettre en evidence le terme "blood" avec <code>highlight</code></h3>
+      <p class="hint">Objectif: visualiser directement les passages pertinents dans la reponse.</p>
+      <p class="expect">Resultat attendu: section <code>highlight.text_entry</code> presente sur les hits.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": { "match": { "text_entry": "blood" } },
   "highlight": {
@@ -222,9 +295,14 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       "text_entry": {}
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>17) Requete booleenne avec exclusion</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>17) Requete booleenne avec exclusion de piece</h3>
+      <p class="hint">Objectif: combiner <code>must</code> et <code>must_not</code> proprement.</p>
+      <p class="expect">Resultat attendu: lignes sur le theme "night" sans la piece exclue.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": {
     "bool": {
@@ -232,9 +310,14 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details></a
       "must_not": [{ "term": { "play_name": "A Midsummer Nights Dream" } }]
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>18) Pagination scalable avec <code>search_after</code></h3><details><summary>Voir la solution</summary><pre><code># page 1
+    <article class="exo">
+      <h3>18) Mettre en place une pagination scalable avec <code>search_after</code></h3>
+      <p class="hint">Objectif: paginer sans utiliser <code>from</code> sur un grand volume.</p>
+      <p class="expect">Resultat attendu: page 2 obtenue a partir du tuple de tri du dernier hit de la page 1.</p>
+      <details><summary>Voir la solution</summary><pre><code># page 1
 GET shakespeare/_search
 {
   "size": 3,
@@ -249,9 +332,14 @@ GET shakespeare/_search
   "sort": [{"speech_number":"asc"}, {"line_id":"asc"}],
   "search_after": [1, 45],
   "query": {"match_all": {}}
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>19) Runtime field <code>line_length</code> + moyenne par piece</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>19) Creer un runtime field <code>line_length</code> et calculer sa moyenne par piece</h3>
+      <p class="hint">Objectif: enrichir a la volée sans reindexation.</p>
+      <p class="expect">Resultat attendu: metrique <code>avg_line_length</code> disponible dans chaque bucket de piece.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "runtime_mappings": {
@@ -268,9 +356,14 @@ GET shakespeare/_search
       }
     }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-      <article class="exo"><h3>20) <code>significant_text</code> sur les lignes de Macbeth</h3><details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
+    <article class="exo">
+      <h3>20) Extraire les termes saillants de Macbeth via <code>significant_text</code></h3>
+      <p class="hint">Objectif: identifier des termes caracteristiques d un sous-corpus.</p>
+      <p class="expect">Resultat attendu: une liste de termes pertinents dans <code>key_terms.buckets</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "query": { "term": { "play_name": "Macbeth" } },
@@ -281,8 +374,8 @@ GET shakespeare/_search
       }
     }
   }
-}</code></pre></details></article>
-    </div>
+}</code></pre></details>
+    </article>
   </div>
 </body>
 </html>

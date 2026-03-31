@@ -35,7 +35,8 @@
       margin: 12px 0;
     }
     .exo h3 { margin: 0 0 8px; font-size: 17px; }
-    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    .hint { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+    .expect { margin: 0; color: #ddd6fe; font-size: 14px; }
     details { margin-top: 10px; border: 1px solid #40345e; border-radius: 8px; padding: 8px 10px; background: #120f1a; }
     summary { cursor: pointer; color: var(--ok); font-weight: 700; }
     pre {
@@ -60,11 +61,12 @@
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Exercices pratiques Kibana sur le dataset Shakespeare. Les solutions donnent les etapes UI et, quand utile, la requete Dev Tools de verification.</p>
+    <p class="sub">Objectif: passer d une exploration Discover a une analyse dashboard complete, en validant techniquement chaque visuel.</p>
 
     <article class="exo">
       <h3>1) Creer le Data View Shakespeare</h3>
-      <p class="hint">Objectif: creer un Data View sur <code>shakespeare</code>.</p>
+      <p class="hint">Objectif: connecter Kibana a l index <code>shakespeare</code> sans erreur de pattern.</p>
+      <p class="expect">Resultat attendu: Data View cree et visible dans la liste Stack Management.</p>
       <details><summary>Voir la solution</summary><pre><code>Stack Management -> Data Views -> Create data view
 Name: Shakespeare
 Index pattern: shakespeare
@@ -73,8 +75,9 @@ Save</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>2) Explorer dans Discover</h3>
-      <p class="hint">Afficher les colonnes <code>play_name</code>, <code>speaker</code>, <code>speech_number</code>, <code>text_entry</code>.</p>
+      <h3>2) Ouvrir Discover et configurer un affichage utile</h3>
+      <p class="hint">Objectif: lire rapidement la structure des documents via les bonnes colonnes.</p>
+      <p class="expect">Resultat attendu: tableau avec <code>play_name</code>, <code>speaker</code>, <code>speech_number</code>, <code>text_entry</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Discover -> choisir Data View Shakespeare
 Ajouter les champs en colonnes
 Trier par speech_number desc
@@ -82,20 +85,23 @@ Sauvegarder la recherche: "Shakespeare QA"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>3) Filtre KQL: lignes de HAMLET</h3>
-      <p class="hint">Ecrire le filtre KQL correspondant.</p>
+      <h3>3) Ecrire un filtre KQL pour HAMLET</h3>
+      <p class="hint">Objectif: appliquer un filtre exact sur un champ categoriel.</p>
+      <p class="expect">Resultat attendu: uniquement des lignes dont le speaker est HAMLET.</p>
       <details><summary>Voir la solution</summary><pre><code>speaker: "HAMLET"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>4) Filtre KQL: Macbeth + mot sleep</h3>
-      <p class="hint">Trouver les lignes de Macbeth avec le terme <code>sleep</code>.</p>
+      <h3>4) Ecrire un filtre KQL combine (piece + terme)</h3>
+      <p class="hint">Objectif: croiser contrainte de contexte et critere textuel.</p>
+      <p class="expect">Resultat attendu: lignes de Macbeth contenant le terme sleep.</p>
       <details><summary>Voir la solution</summary><pre><code>play_name: "Macbeth" and text_entry: "sleep"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>5) Lens: volume de lignes par piece</h3>
-      <p class="hint">Graphique barres: X=<code>play_name</code>, metric=<code>Count</code>.</p>
+      <h3>5) Creer un visuel Lens "Lines by play"</h3>
+      <p class="hint">Objectif: mesurer la repartition du corpus par piece.</p>
+      <p class="expect">Resultat attendu: graphique en barres avec <code>play_name</code> en axe X et <code>Count</code> en metrique.</p>
       <details><summary>Voir la solution</summary><pre><code>Visualize Library -> Create visualization -> Lens
 Drag play_name sur X
 Metric: Count
@@ -103,8 +109,9 @@ Save: "Lines by play"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>6) Lens: top speakers</h3>
-      <p class="hint">Construire un top 10 des speakers.</p>
+      <h3>6) Creer un visuel Lens "Top speakers"</h3>
+      <p class="hint">Objectif: identifier les personnages les plus presents.</p>
+      <p class="expect">Resultat attendu: top 10 speakers tries en decroissant.</p>
       <details><summary>Voir la solution</summary><pre><code>Create Lens chart
 Axis: speaker
 Metric: Count
@@ -114,15 +121,16 @@ Save: "Top speakers"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>7) Lens Formula: part de Macbeth</h3>
-      <p class="hint">Calculer la proportion de lignes appartenant a Macbeth.</p>
-      <details><summary>Voir la solution</summary><pre><code>Formula:
-count(kql='play_name: "Macbeth"') / count()</code></pre></details>
+      <h3>7) Ecrire une formule Lens pour la part de Macbeth</h3>
+      <p class="hint">Objectif: manipuler une proportion metier simple dans Kibana.</p>
+      <p class="expect">Resultat attendu: une valeur comprise entre 0 et 1 (ou pourcentage).</p>
+      <details><summary>Voir la solution</summary><pre><code>count(kql='play_name: "Macbeth"') / count()</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>8) Dashboard multi-panels</h3>
-      <p class="hint">Assembler 3 visuels dans un dashboard.</p>
+      <h3>8) Construire un dashboard de synthese</h3>
+      <p class="hint">Objectif: assembler plusieurs visuels dans une vue coherente.</p>
+      <p class="expect">Resultat attendu: dashboard sauvegarde avec au moins 3 panels.</p>
       <details><summary>Voir la solution</summary><pre><code>Create dashboard
 Add panels:
 - Lines by play
@@ -132,8 +140,9 @@ Save dashboard: "Shakespeare Overview"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>9) Ajouter des controls interactifs</h3>
-      <p class="hint">Ajouter controls sur <code>play_name</code> et <code>speaker</code>.</p>
+      <h3>9) Ajouter des controls interactifs de filtrage</h3>
+      <p class="hint">Objectif: permettre une exploration sans ecrire de KQL.</p>
+      <p class="expect">Resultat attendu: options list fonctionnelles sur <code>play_name</code> et <code>speaker</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Dashboard -> Controls
 Add options list: play_name
 Add options list: speaker
@@ -141,16 +150,18 @@ Apply to all panels</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>10) Inspect request d un panel</h3>
-      <p class="hint">Recuperer la requete exacte executee par Kibana.</p>
+      <h3>10) Inspecter la requete reelle d un panel</h3>
+      <p class="hint">Objectif: verifier que Kibana envoie bien le DSL attendu.</p>
+      <p class="expect">Resultat attendu: requete JSON copiable depuis <code>Inspect -> Requests</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Sur un panel -> menu (...) -> Inspect -> Requests
 Copier la requete
 Coller dans Dev Tools pour verification</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>11) Rejouer en Dev Tools</h3>
-      <p class="hint">Verifier le volume par piece en DSL.</p>
+      <h3>11) Rejouer en Dev Tools l aggregation "by_play"</h3>
+      <p class="hint">Objectif: comparer UI et resultat DSL brut.</p>
+      <p class="expect">Resultat attendu: les buckets Dev Tools correspondent aux valeurs du panel Lens.</p>
       <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
@@ -163,8 +174,9 @@ Coller dans Dev Tools pour verification</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>12) Exporter les objets Kibana</h3>
-      <p class="hint">Exporter Data View + visualisations + dashboard.</p>
+      <h3>12) Exporter les objets Kibana du TP</h3>
+      <p class="hint">Objectif: conserver et partager le travail (data view + visuels + dashboard).</p>
+      <p class="expect">Resultat attendu: fichier <code>.ndjson</code> exporte depuis Saved Objects.</p>
       <details><summary>Voir la solution</summary><pre><code>Stack Management -> Saved Objects -> Export
 Selectionner:
 - Data view Shakespeare

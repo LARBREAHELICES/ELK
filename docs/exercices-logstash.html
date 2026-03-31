@@ -15,18 +15,41 @@
       --ok: #34d399;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: radial-gradient(900px 550px at 10% -10%, #183738 0%, var(--bg) 56%), var(--bg); color: var(--text); font-family: Inter, Arial, sans-serif; }
+    body {
+      margin: 0;
+      background: radial-gradient(900px 550px at 10% -10%, #183738 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.55;
+    }
     .wrap { width: min(1080px, 92vw); margin: 28px auto 48px; }
-    .top { display: flex; justify-content: space-between; align-items: center; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     h1 { margin: 0; color: var(--accent); font-size: clamp(28px, 4vw, 44px); }
     .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
     .sub { color: var(--muted); margin: 8px 0 20px; }
-    .exo { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 12px 0; }
+    .exo {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px 0;
+    }
     .exo h3 { margin: 0 0 8px; font-size: 17px; }
-    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    .hint { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+    .expect { margin: 0; color: #99f6e4; font-size: 14px; }
     details { margin-top: 10px; border: 1px solid #345252; border-radius: 8px; padding: 8px 10px; background: #0e1717; }
     summary { cursor: pointer; color: var(--ok); font-weight: 700; }
-    pre { margin: 8px 0 0; padding: 10px; border: 1px solid #355252; border-radius: 8px; overflow-x: auto; background: #0a1212; color: #ccfbf1; font-family: "JetBrains Mono", Consolas, monospace; font-size: 12px; }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border: 1px solid #355252;
+      border-radius: 8px;
+      overflow-x: auto;
+      background: #0a1212;
+      color: #ccfbf1;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -38,56 +61,126 @@
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Exercices separes pour la partie ingestion/parsing Logstash.</p>
+    <p class="sub">Objectif: construire un pipeline Logstash robuste de bout en bout (input, parsing, enrichissement, sortie Elasticsearch, verification runtime).</p>
 
-    <article class="exo"><h3>1) Generer des logs de test</h3><p class="hint">Creer un fichier logs avec INFO/WARN/ERROR.</p><details><summary>Voir la solution</summary><pre><code>cat > logs/app.log &lt;&lt;'LOG'
+    <article class="exo">
+      <h3>1) Generer un fichier de logs de test</h3>
+      <p class="hint">Objectif: disposer d un jeu d entree deterministe avec plusieurs niveaux de logs.</p>
+      <p class="expect">Resultat attendu: un fichier <code>logs/app.log</code> avec des lignes ISO8601 parseables.</p>
+      <details><summary>Voir la solution</summary><pre><code>cat > logs/app.log <<'LOG'
 2026-03-30T10:15:00Z INFO api - User created order
 2026-03-30T10:16:45Z WARN billing - Payment retry
 2026-03-30T10:17:12Z ERROR worker - Timeout
-LOG</code></pre></details></article>
+LOG</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>2) Lire le fichier avec input file</h3><p class="hint">Configurer path/start_position/sincedb_path.</p><details><summary>Voir la solution</summary><pre><code>input {
+    <article class="exo">
+      <h3>2) Configurer un input <code>file</code> fiable pour le TP</h3>
+      <p class="hint">Objectif: relire le fichier depuis le debut a chaque run (pas d etat sincedb persistant).</p>
+      <p class="expect">Resultat attendu: les 3 lignes sont lues meme apres restart du pipeline.</p>
+      <details><summary>Voir la solution</summary><pre><code>input {
   file {
-    path =&gt; "/usr/share/logstash/logs/*.log"
-    start_position =&gt; "beginning"
-    sincedb_path =&gt; "/dev/null"
+    path => "/usr/share/logstash/logs/*.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>3) Parser avec grok</h3><p class="hint">Extraire timestamp, level, service, log_message.</p><details><summary>Voir la solution</summary><pre><code>filter {
+    <article class="exo">
+      <h3>3) Parser chaque ligne avec <code>grok</code></h3>
+      <p class="hint">Objectif: extraire <code>log_timestamp</code>, <code>level</code>, <code>service</code>, <code>log_message</code>.</p>
+      <p class="expect">Resultat attendu: plus de champ <code>message</code> brut uniquement; les champs metier existent.</p>
+      <details><summary>Voir la solution</summary><pre><code>filter {
   grok {
-    match =&gt; {
-      "message" =&gt; "%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:level} %{DATA:service} - %{GREEDYDATA:log_message}"
+    match => {
+      "message" => "%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:level} %{DATA:service} - %{GREEDYDATA:log_message}"
     }
-    tag_on_failure =&gt; ["_grokparsefailure_app"]
+    tag_on_failure => ["_grokparsefailure_app"]
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>4) Normaliser la date</h3><p class="hint">Mapper log_timestamp vers @timestamp.</p><details><summary>Voir la solution</summary><pre><code>date {
-  match =&gt; ["log_timestamp", "ISO8601"]
-}</code></pre></details></article>
+    <article class="exo">
+      <h3>4) Normaliser la date applicative vers <code>@timestamp</code></h3>
+      <p class="hint">Objectif: rendre les logs exploitables directement dans Discover et les visualisations temporelles.</p>
+      <p class="expect">Resultat attendu: <code>@timestamp</code> correspond a <code>log_timestamp</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>date {
+  match => ["log_timestamp", "ISO8601"]
+}</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>5) Sortir vers Elasticsearch</h3><p class="hint">Indexer dans app-logs-YYYY.MM.dd.</p><details><summary>Voir la solution</summary><pre><code>output {
+    <article class="exo">
+      <h3>5) Ajouter un enrichissement simple de severite</h3>
+      <p class="hint">Objectif: mapper le niveau de log vers une priorite numerique utile en tri/aggregation.</p>
+      <p class="expect">Resultat attendu: nouveau champ <code>severity_rank</code> present sur chaque evenement.</p>
+      <details><summary>Voir la solution</summary><pre><code>mutate {
+  add_field => { "severity_rank" => 1 }
+}
+if [level] == "WARN" {
+  mutate { replace => { "severity_rank" => 2 } }
+}
+if [level] == "ERROR" {
+  mutate { replace => { "severity_rank" => 3 } }
+}
+mutate {
+  convert => { "severity_rank" => "integer" }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>6) Sortir les evenements vers Elasticsearch</h3>
+      <p class="hint">Objectif: indexer quotidiennement dans <code>app-logs-YYYY.MM.dd</code>.</p>
+      <p class="expect">Resultat attendu: creation automatique d un index <code>app-logs-*</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>output {
   elasticsearch {
-    hosts =&gt; ["http://elasticsearch:9200"]
-    index =&gt; "app-logs-%{+YYYY.MM.dd}"
+    hosts => ["http://elasticsearch:9200"]
+    index => "app-logs-%{+YYYY.MM.dd}"
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>6) Verifier l ingestion</h3><p class="hint">Utiliser _cat/indices, _count, _search.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/_cat/indices?v"
+    <article class="exo">
+      <h3>7) Verifier l ingestion cote Elasticsearch</h3>
+      <p class="hint">Objectif: confirmer volume, structure et contenu avant de passer a Kibana.</p>
+      <p class="expect">Resultat attendu: count coherent avec le nombre de lignes injectees.</p>
+      <details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/_cat/indices?v"
 curl "http://localhost:9200/app-logs-*/_count?pretty"
-curl "http://localhost:9200/app-logs-*/_search?pretty"</code></pre></details></article>
+curl "http://localhost:9200/app-logs-*/_search?pretty"</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>7) Isoler les erreurs par service</h3><p class="hint">Query filter level=ERROR + agg terms sur service.keyword.</p><details><summary>Voir la solution</summary><pre><code>GET app-logs-*/_search
+    <article class="exo">
+      <h3>8) Isoler les erreurs par service avec aggregation</h3>
+      <p class="hint">Objectif: produire une vue exploitable pour prioriser les incidents.</p>
+      <p class="expect">Resultat attendu: buckets par service pour <code>level=ERROR</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET app-logs-*/_search
 {
   "query": { "term": { "level": "ERROR" } },
   "aggs": {
     "by_service": { "terms": { "field": "service.keyword" } }
   }
-}</code></pre></details></article>
+}</code></pre></details>
+    </article>
 
-    <article class="exo"><h3>8) Observer Logstash runtime</h3><p class="hint">Verifier que le pipeline tourne sans erreur.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9600"
-docker compose logs -f logstash</code></pre></details></article>
+    <article class="exo">
+      <h3>9) Detecter les lignes mal parsees</h3>
+      <p class="hint">Objectif: surveiller la qualite du parsing grok en production.</p>
+      <p class="expect">Resultat attendu: 0 hit sur le tag de parse failure si tout est correct.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET app-logs-*/_search
+{
+  "query": {
+    "term": { "tags.keyword": "_grokparsefailure_app" }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>10) Verifier la sante runtime de Logstash</h3>
+      <p class="hint">Objectif: valider que le pipeline tourne sans crash ni erreur bloquante.</p>
+      <p class="expect">Resultat attendu: endpoint 9600 repond et logs conteneur sans erreur critique.</p>
+      <details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9600"
+docker compose logs -f logstash</code></pre></details>
+    </article>
   </div>
 </body>
 </html>
