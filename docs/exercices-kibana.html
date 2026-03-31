@@ -60,63 +60,64 @@
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Exercices pratiques Kibana. Les solutions donnent les etapes UI et, quand utile, la requete Dev Tools de verification.</p>
+    <p class="sub">Exercices pratiques Kibana sur le dataset Shakespeare. Les solutions donnent les etapes UI et, quand utile, la requete Dev Tools de verification.</p>
 
     <article class="exo">
-      <h3>1) Creer le Data View Titanic</h3>
-      <p class="hint">Objectif: creer un Data View sur <code>titanic_data</code>.</p>
+      <h3>1) Creer le Data View Shakespeare</h3>
+      <p class="hint">Objectif: creer un Data View sur <code>shakespeare</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Stack Management -> Data Views -> Create data view
-Name: Titanic
-Index pattern: titanic_data
-Time field: none (si pas de date)
+Name: Shakespeare
+Index pattern: shakespeare
+Time field: none
 Save</code></pre></details>
     </article>
 
     <article class="exo">
       <h3>2) Explorer dans Discover</h3>
-      <p class="hint">Afficher les colonnes <code>class</code>, <code>sex</code>, <code>survived</code>, <code>fare</code>.</p>
-      <details><summary>Voir la solution</summary><pre><code>Discover -> choisir Data View Titanic
+      <p class="hint">Afficher les colonnes <code>play_name</code>, <code>speaker</code>, <code>speech_number</code>, <code>text_entry</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>Discover -> choisir Data View Shakespeare
 Ajouter les champs en colonnes
-Trier par fare desc
-Sauvegarder la recherche: "Titanic QA"</code></pre></details>
+Trier par speech_number desc
+Sauvegarder la recherche: "Shakespeare QA"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>3) Filtre KQL: femmes survivantes</h3>
+      <h3>3) Filtre KQL: lignes de HAMLET</h3>
       <p class="hint">Ecrire le filtre KQL correspondant.</p>
-      <details><summary>Voir la solution</summary><pre><code>sex: "female" and survived: 1</code></pre></details>
+      <details><summary>Voir la solution</summary><pre><code>speaker: "HAMLET"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>4) Filtre KQL: Third class et fare bas</h3>
-      <p class="hint">Trouver les passagers de 3e classe avec <code>fare &lt; 10</code>.</p>
-      <details><summary>Voir la solution</summary><pre><code>class: "Third" and fare &lt; 10</code></pre></details>
+      <h3>4) Filtre KQL: Macbeth + mot sleep</h3>
+      <p class="hint">Trouver les lignes de Macbeth avec le terme <code>sleep</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>play_name: "Macbeth" and text_entry: "sleep"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>5) Lens: taux de survie par classe</h3>
-      <p class="hint">Graphique barres: X=<code>class</code>, metric=<code>Average(survived)</code>.</p>
+      <h3>5) Lens: volume de lignes par piece</h3>
+      <p class="hint">Graphique barres: X=<code>play_name</code>, metric=<code>Count</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Visualize Library -> Create visualization -> Lens
-Drag class sur X
-Metric: Average of survived
-Format metric: Percent
-Save: "Survival rate by class"</code></pre></details>
+Drag play_name sur X
+Metric: Count
+Save: "Lines by play"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>6) Lens: breakdown par sexe</h3>
-      <p class="hint">Ajouter <code>sex</code> en breakdown pour segmenter le resultat.</p>
-      <details><summary>Voir la solution</summary><pre><code>Dans le visuel precedent:
-Break down by: sex
-Type: stacked bar
-Comparer les segments female/male par classe</code></pre></details>
+      <h3>6) Lens: top speakers</h3>
+      <p class="hint">Construire un top 10 des speakers.</p>
+      <details><summary>Voir la solution</summary><pre><code>Create Lens chart
+Axis: speaker
+Metric: Count
+Sort: Desc
+Size: 10
+Save: "Top speakers"</code></pre></details>
     </article>
 
     <article class="exo">
-      <h3>7) Lens Formula: part des femmes</h3>
-      <p class="hint">Calculer proportion de femmes dans l echantillon.</p>
+      <h3>7) Lens Formula: part de Macbeth</h3>
+      <p class="hint">Calculer la proportion de lignes appartenant a Macbeth.</p>
       <details><summary>Voir la solution</summary><pre><code>Formula:
-count(kql='sex: "female"') / count()</code></pre></details>
+count(kql='play_name: "Macbeth"') / count()</code></pre></details>
     </article>
 
     <article class="exo">
@@ -124,18 +125,18 @@ count(kql='sex: "female"') / count()</code></pre></details>
       <p class="hint">Assembler 3 visuels dans un dashboard.</p>
       <details><summary>Voir la solution</summary><pre><code>Create dashboard
 Add panels:
-- Survival rate by class
-- Count by sex
-- Fare histogram
-Save dashboard: "Titanic Overview"</code></pre></details>
+- Lines by play
+- Top speakers
+- Speech number distribution
+Save dashboard: "Shakespeare Overview"</code></pre></details>
     </article>
 
     <article class="exo">
       <h3>9) Ajouter des controls interactifs</h3>
-      <p class="hint">Ajouter controls sur <code>class</code> et <code>sex</code>.</p>
+      <p class="hint">Ajouter controls sur <code>play_name</code> et <code>speaker</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>Dashboard -> Controls
-Add options list: class
-Add options list: sex
+Add options list: play_name
+Add options list: speaker
 Apply to all panels</code></pre></details>
     </article>
 
@@ -149,16 +150,13 @@ Coller dans Dev Tools pour verification</code></pre></details>
 
     <article class="exo">
       <h3>11) Rejouer en Dev Tools</h3>
-      <p class="hint">Verifier le taux de survie par classe en DSL.</p>
-      <details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+      <p class="hint">Verifier le volume par piece en DSL.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "size": 0,
   "aggs": {
-    "by_class": {
-      "terms": { "field": "class" },
-      "aggs": {
-        "survival_rate": { "avg": { "field": "survived" } }
-      }
+    "by_play": {
+      "terms": { "field": "play_name", "size": 20 }
     }
   }
 }</code></pre></details>
@@ -169,9 +167,9 @@ Coller dans Dev Tools pour verification</code></pre></details>
       <p class="hint">Exporter Data View + visualisations + dashboard.</p>
       <details><summary>Voir la solution</summary><pre><code>Stack Management -> Saved Objects -> Export
 Selectionner:
-- Data view Titanic
+- Data view Shakespeare
 - Visualisations Lens creees
-- Dashboard Titanic Overview
+- Dashboard Shakespeare Overview
 Exporter en .ndjson</code></pre></details>
     </article>
   </div>

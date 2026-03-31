@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cours 2 - Elasticsearch avec Shakespeare</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="assets/theme.css">
+  <style>
+    .reveal section { text-align: left; }
+    .reveal h1, .reveal h2 { text-transform: none; }
+    .reveal pre code { max-height: 70vh; }
+    .top-nav {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .top-nav a {
+      background: rgba(10, 10, 10, 0.82);
+      border: 1px solid #2b2b2b;
+      color: #e5e7eb;
+      text-decoration: none;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(3px);
+    }
+    .top-nav a:hover {
+      border-color: #7c3aed;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav" aria-label="Navigation">
+    <a href="index.html">Accueil</a>
+    <a href="00-configuration-environnement.html">Setup env</a>
+    <a href="exercices.html">Exercices</a>
+  </div>
+
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
+        <textarea data-template>
+# Cours 2 - Elasticsearch avec Shakespeare
+## Du jeu de donnees classique aux requetes full-text explicables
+
+---
+
+## Objectif du chapitre
+
+- Construire un index full-text propre pour les lignes de Shakespeare
+- Importer un echantillon reproductible
+- Executer des requetes metier et comprendre leur resultat
+- Relier chaque requete a un repere theorique moteur
+
+---
+
+## Reperes theoriques (full-text)
+
+- Le champ `text_entry` doit etre en `text` pour la recherche linguistique
+- Les dimensions d analyse (`play_name`, `speaker`) doivent etre en `keyword`
+- Les champs numeriques (`line_id`, `speech_number`) servent aux tris et agregations
+- Elasticsearch est near-real-time: utiliser `_refresh` pour les demos
+
+---
+
+## Source de donnees (cours)
+
+Jeu de donnees cible:
+- Shakespeare (jeu classique de demo Elasticsearch)
+- Source full dataset: `https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json`
+
+Pour les demos rapides en cours:
+- Echantillon local: `sandbox/data/shakespeare_sample.ndjson`
+
+---
+
+## Creer l index Shakespeare
+
+```bash
+curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "line_id":       { "type": "integer" },
+      "play_name":     { "type": "keyword" },
+      "speech_number": { "type": "integer" },
+      "line_number":   { "type": "keyword" },
+      "speaker":       { "type": "keyword" },
+      "text_entry":    { "type": "text" }
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Cree un index dedie au corpus Shakespeare
+- Separe champs full-text et champs de filtrage exact
+- Prepare les analyses lexicales et analytiques
+
+---
+
+## Inserer un mini echantillon reproductible
+
+```bash
+# Option A - full dataset (recommande)
+curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" \
+  -o sandbox/data/shakespeare.json
+
+curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
+  -H "Content-Type: application/x-ndjson" \
+  --data-binary @sandbox/data/shakespeare.json
+
+# Option B - echantillon local rapide
+curl -X POST "http://localhost:9200/shakespeare/_bulk" \
+  -H "Content-Type: application/x-ndjson" \
+  --data-binary @sandbox/data/shakespeare_sample.ndjson
+
+curl -X POST "http://localhost:9200/shakespeare/_refresh"
+curl "http://localhost:9200/shakespeare/_count?pretty"
+```
+
+Ce que fait le code:
+- Charge l echantillon NDJSON
+- Force la visibilite immediate via `_refresh`
+- Verifie la quantite chargee
+
+---
+
+## Requete metier 1: retrouver une intention textuelle
+
+```bash
+curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "match": {
+      "text_entry": "question"
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Analyse linguistiquement le terme de recherche
+- Retourne les lignes les plus proches semantiquement
+
+Repere theorique:
+- `match` applique l analyseur du champ `text_entry`
+- Le resultat est trie par `_score`
+
+---
+
+## Requete metier 2: full-text + filtre piece
+
+```bash
+curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "sleep" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Macbeth" } }
+      ]
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- `must`: recherche textuelle dans les lignes
+- `filter`: restreint a une piece sans affecter le score
+
+---
+
+## Requete metier 3: tolerance aux fautes
+
+```bash
+curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "match": {
+      "text_entry": {
+        "query": "queston",
+        "fuzziness": "AUTO"
+      }
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Recupere aussi des variantes orthographiques proches
+- Ameliore la robustesse des recherches utilisateur
+
+---
+
+## Aggregations metier Shakespeare
+
+```bash
+curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+  "size": 0,
+  "aggs": {
+    "by_play": {
+      "terms": { "field": "play_name" }
+    },
+    "top_speakers": {
+      "terms": { "field": "speaker", "size": 5 }
+    },
+    "avg_speech_number": {
+      "avg": { "field": "speech_number" }
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Mesure la repartition des lignes par piece
+- Identifie les personnages les plus presents
+- Produit un indicateur numerique global
+
+---
+
+## Controle qualite technique
+
+```bash
+curl "http://localhost:9200/_cat/indices?v"
+curl "http://localhost:9200/shakespeare/_mapping?pretty"
+curl "http://localhost:9200/shakespeare/_search?size=3&pretty"
+```
+
+Ce que fait le code:
+- Controle l etat de l index
+- Verifie les types reels du mapping
+- Echantillonne des docs pour valider le format
+
+---
+
+## Recap operationnel
+
+- Tu sais creer un index full-text sur un corpus classique
+- Tu sais injecter un echantillon reproductible et l interroger
+- Tu sais combiner scoring textuel + filtres exacts
+- Tu sais produire des aggregations utiles a l interpretation
+
+Prochaine etape: optimisation avancee (pertinence, profiling, alias).
+        </textarea>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: 'slide',
+      backgroundTransition: 'fade',
+      width: 1920,
+      height: 1080,
+      margin: 0.06,
+      controls: true,
+      progress: true,
+      center: false,
+      plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+  </script>
+</body>
+</html>

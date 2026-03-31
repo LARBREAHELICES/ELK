@@ -51,11 +51,18 @@ curl http://localhost:9600
   - indexe ces donnees dans Elasticsearch (`products_demo`)
   - execute recherche full-text + filtres + aggregations
 
-## Module data Titanic (CSV local)
-- CSV local: `data/titanic_sample.csv`
-- Notebook: `notebooks/demo_titanic_elasticsearch.ipynb`
-- Index Elasticsearch cible: `titanic_data`
-- Data View Kibana a creer: `titanic_data`
+## Module data Shakespeare (full-text)
+- Source dataset: `https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json`
+- Echantillon local rapide: `data/shakespeare_sample.ndjson`
+- Index Elasticsearch cible: `shakespeare`
+- Data View Kibana a creer: `shakespeare`
+
+Import full dataset:
+```bash
+curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" -o data/shakespeare.json
+curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" -H "Content-Type: application/x-ndjson" --data-binary @data/shakespeare.json
+curl -X POST "http://localhost:9200/shakespeare/_refresh"
+```
 
 ## Supports de cours
 - Support ELK global: `supports/SUPPORT_COURS_ELK.md`
