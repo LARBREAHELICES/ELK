@@ -67,13 +67,223 @@
 <body>
   <div class="wrap">
     <div class="top">
-      <h1>20 Exercices Elasticsearch Shakespeare</h1>
+      <h1>Parcours Exercices Elasticsearch Shakespeare</h1>
       <div>
         <a href="index.html">Accueil</a>
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Objectif: pratiquer un workflow complet Elasticsearch (setup, full-text, aggregations, niveau avance) avec des consignes explicites et un resultat attendu pour chaque exercice.</p>
+    <p class="sub">Objectif: pratiquer un workflow complet Elasticsearch (intro, approfondissement, full-text, aggregations, niveau avance) avec des consignes explicites et un resultat attendu pour chaque exercice.</p>
+
+    <h2 class="section-title">Bloc 0 - Introduction (issus du Cours 02)</h2>
+
+    <article class="exo">
+      <h3>A) Creer l index <code>shakespeare</code> avec le mapping du cours</h3>
+      <p class="hint">Objectif: valider la base du modele (types exacts pour recherche textuelle + filtres).</p>
+      <p class="expect">Resultat attendu: index cree, champs numeriques en integer, champs exacts en keyword, texte en text.</p>
+      <details><summary>Voir la correction</summary><pre><code>PUT shakespeare
+{
+  "mappings": {
+    "properties": {
+      "line_id": { "type": "integer" },
+      "play_name": { "type": "keyword" },
+      "speech_number": { "type": "integer" },
+      "line_number": { "type": "keyword" },
+      "speaker": { "type": "keyword" },
+      "text_entry": { "type": "text" }
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>B) Charger les donnees avec la Bulk API</h3>
+      <p class="hint">Objectif: importer rapidement le dataset Shakespeare en format NDJSON.</p>
+      <p class="expect">Resultat attendu: import sans erreur, puis count &gt; 0 apres refresh.</p>
+      <details><summary>Voir la correction</summary><pre><code>curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" -o sandbox/data/shakespeare.json
+
+curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
+  -H "Content-Type: application/x-ndjson" \
+  --data-binary @sandbox/data/shakespeare.json
+
+curl -X POST "http://localhost:9200/shakespeare/_refresh"
+curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>C) Retrouver la citation contenant <code>question</code></h3>
+      <p class="hint">Objectif: utiliser <code>match</code> sur le champ <code>text_entry</code>.</p>
+      <p class="expect">Resultat attendu: la ligne \"To be, or not to be: that is the question.\" apparait dans les hits.</p>
+      <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
+{
+  "query": {
+    "match": {
+      "text_entry": "question"
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>D) Retrouver tous les documents prononces par <code>OTHELLO</code></h3>
+      <p class="hint">Objectif: utiliser un filtre exact via <code>term</code> sur un champ <code>keyword</code>.</p>
+      <p class="expect">Resultat attendu: tous les hits ont <code>speaker = OTHELLO</code>.</p>
+      <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
+{
+  "query": {
+    "term": {
+      "speaker": "OTHELLO"
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>E) Retrouver les citations de <code>Romeo and Juliet</code> qui parlent de <code>sun</code></h3>
+      <p class="hint">Objectif: combiner recherche textuelle (<code>match</code>) et filtre metier exact (<code>term</code>).</p>
+      <p class="expect">Resultat attendu: documents de la piece cible contenant l idee de \"sun\".</p>
+      <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "sun" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Romeo and Juliet" } }
+      ]
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <h2 class="section-title">Bloc 0B - Aller plus loin (issus du Cours 02B)</h2>
+
+    <article class="exo">
+      <h3>F) Identifier si une requete doit utiliser <code>match</code> ou <code>term</code></h3>
+      <p class="hint">Objectif: choisir le bon type de requete selon le type de champ et le besoin metier.</p>
+      <p class="expect">Resultat attendu: <code>match</code> pour <code>text_entry</code>, <code>term</code> pour <code>speaker</code> / <code>play_name</code>.</p>
+      <details><summary>Voir la correction</summary><pre><code># plein texte
+GET shakespeare/_search
+{
+  "query": { "match": { "text_entry": "question" } }
+}
+
+# exact
+GET shakespeare/_search
+{
+  "query": { "term": { "speaker": "HAMLET" } }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>G) Ecrire une requete <code>bool</code> avec <code>must</code> + <code>filter</code></h3>
+      <p class="hint">Objectif: separer la pertinence textuelle de la contrainte metier exacte.</p>
+      <p class="expect">Resultat attendu: match sur <code>text_entry</code> + filtre exact sur <code>play_name</code>.</p>
+      <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Othello" } }
+      ]
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>H) Ajouter une clause <code>should</code> pour booster certains resultats</h3>
+      <p class="hint">Objectif: comprendre qu une requete peut preferer certains documents sans les rendre obligatoires.</p>
+      <p class="expect">Resultat attendu: documents Hamlet favorisant ceux contenant <code>question</code> ou <code>time</code>.</p>
+      <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "term": { "play_name": "Hamlet" } }
+      ],
+      "should": [
+        { "match": { "text_entry": "question" } },
+        { "match": { "text_entry": "time" } }
+      ]
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>I) Tester une modelisation multi-fields pour <code>speaker</code></h3>
+      <p class="hint">Objectif: permettre recherche texte sur <code>speaker</code> et filtre exact sur <code>speaker.keyword</code>.</p>
+      <p class="expect">Resultat attendu: mapping avec <code>speaker</code> en text + sous-champ <code>keyword</code>.</p>
+      <details><summary>Voir la correction</summary><pre><code>PUT shakespeare_multifield
+{
+  "mappings": {
+    "properties": {
+      "speaker": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "text_entry": { "type": "text" }
+    }
+  }
+}
+
+GET shakespeare_multifield/_search
+{
+  "query": {
+    "term": { "speaker.keyword": "HAMLET" }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>J) Construire un index avec normalizer lowercase sur un champ <code>keyword</code></h3>
+      <p class="hint">Objectif: rendre les filtres exacts plus coherents sur les variations de casse.</p>
+      <p class="expect">Resultat attendu: index cree avec normalizer, puis requetes exactes plus robustes.</p>
+      <details><summary>Voir la correction</summary><pre><code>PUT shakespeare_norm
+{
+  "settings": {
+    "analysis": {
+      "normalizer": {
+        "lowercase_normalizer": {
+          "type": "custom",
+          "filter": ["lowercase"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "speaker": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "text_entry": { "type": "text" }
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>K) Choisir une strategie quand le mapping initial est mauvais</h3>
+      <p class="hint">Objectif: appliquer la bonne demarche quand un type de champ est inadapte.</p>
+      <p class="expect">Resultat attendu: creation d un nouvel index + reindexation + bascule applicative.</p>
+      <details><summary>Voir la correction</summary><pre><code># 1) creer un nouvel index avec le bon mapping
+# 2) copier les donnees
+POST _reindex
+{
+  "source": { "index": "shakespeare_bad" },
+  "dest":   { "index": "shakespeare_v2" }
+}
+
+# 3) faire pointer l application vers le nouvel index (alias recommande)</code></pre></details>
+    </article>
 
     <h2 class="section-title">Bloc 1 - Setup et verification</h2>
 

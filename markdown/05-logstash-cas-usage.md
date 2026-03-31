@@ -14,7 +14,7 @@
 
 ## Reperes theoriques (pipeline)
 
-- Logstash suit la chaine `input -> filter -> output`
+- Logstash suit la chaine <span class="glossary-term" data-definition="Architecture pipeline Logstash: lecture, transformation, puis envoi vers une destination.">`input -> filter -> output`</span>
 - La qualite de parsing conditionne la valeur metier en aval
 - Un pipeline robuste doit etre observable et testable
 
@@ -69,8 +69,8 @@ output {
 
 Ce que fait le code:
 - `input file`: lit les logs en entree
-- `grok`: extrait timestamp, niveau, service, message
-- `date`: aligne `@timestamp` pour analyses temporelles
+- <span class="glossary-term" data-definition="Filtre Logstash base sur des patterns pour extraire des champs structures depuis une ligne texte.">`grok`</span>: extrait timestamp, niveau, service, message
+- `date`: aligne <span class="glossary-term" data-definition="Champ temporel standard Elasticsearch/Kibana utilise pour tri et analyses chronologiques.">`@timestamp`</span> pour analyses temporelles
 - `output`: indexe les events dans Elasticsearch
 
 ---

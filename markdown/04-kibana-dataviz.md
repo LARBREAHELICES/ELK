@@ -63,7 +63,7 @@ Ce que fait le code:
 
 ---
 
-## Data View: contrat entre Kibana et les index
+## <span class="glossary-term" data-definition="Configuration Kibana qui decrit quels index lire et comment exposer leurs champs.">Data View</span>: contrat entre Kibana et les index
 
 Actions:
 - Stack Management -> Data Views -> Create
@@ -79,7 +79,7 @@ Repere theorique:
 
 ---
 
-## Discover: lecture analytique des lignes
+## <span class="glossary-term" data-definition="Ecran Kibana pour explorer les documents bruts et filtrer en KQL.">Discover</span>: lecture analytique des lignes
 
 Actions concretes:
 - Ajouter colonnes: `play_name`, `speaker`, `speech_number`, `text_entry`
@@ -128,7 +128,7 @@ Repere theorique:
 
 ---
 
-## Lens 1: volume de lignes par piece
+## <span class="glossary-term" data-definition="Editeur de visualisations Kibana qui construit des aggregations via une interface graphique.">Lens</span> 1: volume de lignes par piece
 
 Configuration Lens:
 - Horizontal axis: `play_name`
@@ -212,7 +212,7 @@ Ce que cela apporte:
 
 ---
 
-## Inspect et validation technique
+## <span class="glossary-term" data-definition="Fonction Kibana qui affiche la requete Elasticsearch exacte envoyee par un visuel.">Inspect</span> et validation technique
 
 Dans Kibana:
 - Sur un panel -> Inspect -> Requests

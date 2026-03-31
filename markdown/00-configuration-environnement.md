@@ -122,7 +122,7 @@ Resultat attendu: `count` = `3`.
 ## Ou retrouver ces donnees - Dev Tools
 
 1. Ouvrir Kibana: `http://localhost:5601`
-2. Menu gauche -> **Dev Tools**
+2. Menu gauche -> **<span class="glossary-term" data-definition="Console integree de Kibana pour executer des requetes Elasticsearch en DSL JSON.">Dev Tools</span>**
 3. Executer:
 
 ```http
@@ -138,9 +138,9 @@ GET demo_env/_search
 
 ## Ou retrouver ces donnees - Discover
 
-1. Ouvrir **Stack Management -> Data Views**
+1. Ouvrir **Stack Management -> <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer dans l interface.">Data Views</span>**
 2. Creer la data view `demo_env`
-3. Aller dans **Discover**
+3. Aller dans **<span class="glossary-term" data-definition="Vue Kibana pour explorer les documents indexes, filtrer en KQL et verifier rapidement la qualite des donnees.">Discover</span>**
 4. Selectionner `demo_env` puis verifier les 3 documents
 
 ![Repere Discover](assets/images/env-discover.svg)

@@ -64,7 +64,7 @@
 
 ## Reperes theoriques (pipeline)
 
-- Logstash suit la chaine `input -> filter -> output`
+- Logstash suit la chaine <span class="glossary-term" data-definition="Architecture pipeline Logstash: lecture, transformation, puis envoi vers une destination.">`input -> filter -> output`</span>
 - La qualite de parsing conditionne la valeur metier en aval
 - Un pipeline robuste doit etre observable et testable
 
@@ -119,8 +119,8 @@ output {
 
 Ce que fait le code:
 - `input file`: lit les logs en entree
-- `grok`: extrait timestamp, niveau, service, message
-- `date`: aligne `@timestamp` pour analyses temporelles
+- <span class="glossary-term" data-definition="Filtre Logstash base sur des patterns pour extraire des champs structures depuis une ligne texte.">`grok`</span>: extrait timestamp, niveau, service, message
+- `date`: aligne <span class="glossary-term" data-definition="Champ temporel standard Elasticsearch/Kibana utilise pour tri et analyses chronologiques.">`@timestamp`</span> pour analyses temporelles
 - `output`: indexe les events dans Elasticsearch
 
 ---
@@ -216,6 +216,7 @@ Trio final maitrise:
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
   <script>
     Reveal.initialize({
       hash: true,
@@ -228,6 +229,9 @@ Trio final maitrise:
       progress: true,
       center: false,
       plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
     });
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cours 2 - Elasticsearch avec Shakespeare</title>
+  <title>Cours 2 - Comprendre Elasticsearch pas a pas avec Shakespeare</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -48,210 +48,447 @@
     <div class="slides">
       <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
         <textarea data-template>
-# Cours 2 - Elasticsearch avec Shakespeare
-## Du jeu de donnees classique aux requetes full-text explicables
+# Cours 2 - Comprendre Elasticsearch pas a pas avec Shakespeare
+## Du vocabulaire fondamental aux requetes combinees
 
 ---
 
-## Objectif du chapitre
+## 1) Objectif du cours
 
-- Construire un index full-text propre pour les lignes de Shakespeare
-- Importer un echantillon reproductible
-- Executer des requetes metier et comprendre leur resultat
-- Relier chaque requete a un repere theorique moteur
+A la fin, vous devez comprendre:
 
----
-
-## Reperes theoriques (full-text)
-
-- Le champ `text_entry` doit etre en `text` pour la recherche linguistique
-- Les dimensions d analyse (`play_name`, `speaker`) doivent etre en `keyword`
-- Les champs numeriques (`line_id`, `speech_number`) servent aux tris et agregations
-- Elasticsearch est near-real-time: utiliser `_refresh` pour les demos
+- ce qu est un <span class="glossary-term" data-definition="Collection logique de documents JSON dans Elasticsearch.">index</span>
+- ce qu est un <span class="glossary-term" data-definition="Unite de donnees stockee dans un index, representee en JSON.">document</span>
+- ce qu est un <span class="glossary-term" data-definition="Propriete d un document JSON, avec un type et un usage de recherche.">champ</span>
+- la difference entre <span class="glossary-term" data-definition="Champ analyse pour la recherche plein texte.">`text`</span> et <span class="glossary-term" data-definition="Champ exact non analyse pour filtre, tri et aggregations.">`keyword`</span>
+- pourquoi on utilise <span class="glossary-term" data-definition="Requete full-text basee sur l analyse linguistique du texte.">`match`</span> pour le plein texte
+- pourquoi on utilise <span class="glossary-term" data-definition="Requete de correspondance exacte sur une valeur indexee telle quelle.">`term`</span> pour la recherche exacte
+- a quoi sert la <span class="glossary-term" data-definition="API d ingestion en masse basee sur le format NDJSON (action + document).">Bulk API</span>
+- comment combiner recherche textuelle et filtres structures
 
 ---
 
-## Source de donnees (cours)
+## 2) Le probleme que resout Elasticsearch
 
-Jeu de donnees cible:
-- Shakespeare (jeu classique de demo Elasticsearch)
-- Source full dataset: `https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json`
+Imaginons un gros corpus de citations litteraires.
 
-Pour les demos rapides en cours:
-- Echantillon local: `sandbox/data/shakespeare_sample.ndjson`
+Vous voulez pouvoir:
+
+- retrouver les phrases qui parlent de `love`
+- retrouver les phrases prononcees par `HAMLET`
+- retrouver les phrases de `Othello` qui parlent d amour
+- classer les resultats par pertinence
+
+Une base relationnelle peut aider, mais Elasticsearch est concu pour chercher efficacement dans du texte.
 
 ---
 
-## Creer l index Shakespeare
+## 3) Premiere idee: Elasticsearch travaille avec des documents JSON
 
-```bash
-curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
-  "settings": {
-    "number_of_shards": 1,
-    "number_of_replicas": 0
-  },
+Exemple de donnee:
+
+```json
+{
+  "line_id": 2,
+  "play_name": "Hamlet",
+  "speech_number": 2,
+  "line_number": "3.1.64",
+  "speaker": "HAMLET",
+  "text_entry": "To be, or not to be: that is the question."
+}
+```
+
+A retenir:
+
+- un document = un objet JSON
+- un champ = une propriete du JSON
+- un ensemble de documents = un index
+
+---
+
+## 4) Vocabulaire fondamental
+
+- Index: collection de documents (ex: `shakespeare`)
+- Document: une unite d information (une replique)
+- Champ: attribut du document (`speaker`, `play_name`, `text_entry`, ...)
+
+Modele metier simple:
+
+- 1 citation = 1 document
+- toutes les citations = 1 index
+
+---
+
+## 5) Grande distinction: `text` vs `keyword`
+
+- `text` = texte humain analyse
+- `keyword` = valeur brute exacte
+
+Exemples:
+
+- `text_entry` doit etre en `text`
+- `speaker` et `play_name` doivent etre en `keyword`
+
+---
+
+## 6) Pourquoi `text_entry` doit etre en `text`
+
+Parce que c est le contenu litteraire recherche en langage naturel.
+
+Requetes attendues:
+
+- `question`
+- `to be`
+- `cursed spite`
+
+Elasticsearch doit analyser le texte pour retrouver ces intentions.
+
+---
+
+## 7) Pourquoi `speaker` et `play_name` doivent etre en `keyword`
+
+Ces champs servent surtout de filtres exacts:
+
+- `speaker = HAMLET`
+- `play_name = Macbeth`
+
+Ici on veut une egalite stricte, pas une recherche approximee.
+
+---
+
+## 8) Le mapping
+
+Le mapping definit les types des champs.
+
+```json
+PUT shakespeare
+{
   "mappings": {
     "properties": {
-      "line_id":       { "type": "integer" },
-      "play_name":     { "type": "keyword" },
+      "line_id": { "type": "integer" },
+      "play_name": { "type": "keyword" },
       "speech_number": { "type": "integer" },
-      "line_number":   { "type": "keyword" },
-      "speaker":       { "type": "keyword" },
-      "text_entry":    { "type": "text" }
+      "line_number": { "type": "keyword" },
+      "speaker": { "type": "keyword" },
+      "text_entry": { "type": "text" }
+    }
+  }
+}
+```
+
+---
+
+## 9) Ce que fait Elasticsearch sur un champ `text`
+
+Lors de l indexation d une phrase, Elasticsearch la prepare pour la recherche:
+
+- decoupage en tokens
+- normalisation
+- indexation optimisee
+
+Exemple idee:
+
+`To be, or not to be: that is the question.`
+
+devient une suite de tokens exploitables (`to`, `be`, `question`, ...).
+
+---
+
+## 10) Format des donnees pour Bulk API
+
+Principe NDJSON (2 lignes par document):
+
+1. ligne d action
+2. ligne de document
+
+```json
+{"index":{"_id":"1"}}
+{"line_id":1,"play_name":"Hamlet","speaker":"BERNARDO","text_entry":"Whos there?"}
+{"index":{"_id":"2"}}
+{"line_id":2,"play_name":"Hamlet","speaker":"HAMLET","text_entry":"To be, or not to be: that is the question."}
+```
+
+---
+
+## 11) Pourquoi utiliser le Bulk API
+
+Quand on a beaucoup de documents, on evite une requete HTTP par document.
+
+Avantages:
+
+- plus rapide
+- plus realiste
+- ideal pour un dataset de cours
+
+---
+
+## 12) Charger les donnees Shakespeare
+
+Option dataset complet:
+
+```bash
+curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" \
+  -o sandbox/data/shakespeare.json
+
+curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
+  "mappings": {
+    "properties": {
+      "line_id": { "type": "integer" },
+      "play_name": { "type": "keyword" },
+      "speech_number": { "type": "integer" },
+      "line_number": { "type": "keyword" },
+      "speaker": { "type": "keyword" },
+      "text_entry": { "type": "text" }
     }
   }
 }'
-```
-
-Ce que fait le code:
-- Cree un index dedie au corpus Shakespeare
-- Separe champs full-text et champs de filtrage exact
-- Prepare les analyses lexicales et analytiques
-
----
-
-## Inserer un mini echantillon reproductible
-
-```bash
-# Option A - full dataset (recommande)
-curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" \
-  -o sandbox/data/shakespeare.json
 
 curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
   -H "Content-Type: application/x-ndjson" \
   --data-binary @sandbox/data/shakespeare.json
 
-# Option B - echantillon local rapide
-curl -X POST "http://localhost:9200/shakespeare/_bulk" \
-  -H "Content-Type: application/x-ndjson" \
-  --data-binary @sandbox/data/shakespeare_sample.ndjson
-
 curl -X POST "http://localhost:9200/shakespeare/_refresh"
 curl "http://localhost:9200/shakespeare/_count?pretty"
 ```
 
-Ce que fait le code:
-- Charge l echantillon NDJSON
-- Force la visibilite immediate via `_refresh`
-- Verifie la quantite chargee
-
 ---
 
-## Requete metier 1: retrouver une intention textuelle
+## 13) Premiere requete: chercher dans le texte
 
-```bash
-curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+On veut les citations liees a `question`.
+
+```json
+GET shakespeare/_search
+{
   "query": {
     "match": {
       "text_entry": "question"
     }
   }
-}'
+}
 ```
 
-Ce que fait le code:
-- Analyse linguistiquement le terme de recherche
-- Retourne les lignes les plus proches semantiquement
+Pourquoi `match`?
 
-Repere theorique:
-- `match` applique l analyseur du champ `text_entry`
-- Le resultat est trie par `_score`
+- `text_entry` est un champ `text`
+- `match` est fait pour le langage naturel
 
 ---
 
-## Requete metier 2: full-text + filtre piece
+## 14) Pourquoi ne pas utiliser `term` sur `text_entry`
 
-```bash
-curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+Erreur classique debutant:
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "term": {
+      "text_entry": "question"
+    }
+  }
+}
+```
+
+Regle simple:
+
+- `match` sur `text`
+- `term` sur `keyword`
+
+---
+
+## 15) Requete exacte sur un champ `keyword`
+
+On veut toutes les citations de `HAMLET`.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "term": {
+      "speaker": "HAMLET"
+    }
+  }
+}
+```
+
+Ici `term` est correct car `speaker` est un champ `keyword`.
+
+---
+
+## 16) Filtre exact par piece
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "term": {
+      "play_name": "Macbeth"
+    }
+  }
+}
+```
+
+Resultat: uniquement des citations de `Macbeth`.
+
+---
+
+## 17) Requete combinee avec `bool`
+
+On veut les citations prononcees par HAMLET dans la piece Hamlet.
+
+```json
+GET shakespeare/_search
+{
   "query": {
     "bool": {
       "must": [
-        { "match": { "text_entry": "sleep" } }
-      ],
-      "filter": [
-        { "term": { "play_name": "Macbeth" } }
+        { "term": { "play_name": "Hamlet" } },
+        { "term": { "speaker": "HAMLET" } }
       ]
     }
   }
-}'
+}
 ```
 
-Ce que fait le code:
-- `must`: recherche textuelle dans les lignes
-- `filter`: restreint a une piece sans affecter le score
+Lecture logique: les deux conditions sont obligatoires.
 
 ---
 
-## Requete metier 3: tolerance aux fautes
+## 18) Combiner plein texte et filtre exact
 
-```bash
-curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
+On veut: citations qui parlent de `love`, seulement dans `Othello`.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Othello" } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 19) Pourquoi separer `must` et `filter`
+
+- `must`: participe a la pertinence textuelle
+- `filter`: restreint le perimetre sans recalcul de score
+
+Pedagogiquement: on separe la pertinence du texte et la contrainte metier.
+
+---
+
+## 20) Le score `_score`
+
+Avec `match`, Elasticsearch calcule un score de pertinence.
+
+```json
+GET shakespeare/_search
+{
   "query": {
     "match": {
-      "text_entry": {
-        "query": "queston",
-        "fuzziness": "AUTO"
-      }
+      "text_entry": "love"
     }
   }
-}'
+}
 ```
 
-Ce que fait le code:
-- Recupere aussi des variantes orthographiques proches
-- Ameliore la robustesse des recherches utilisateur
+Interpretation simple:
+
+- plus `_score` est eleve, plus le document est juge pertinent.
 
 ---
 
-## Aggregations metier Shakespeare
+## 21) Ce que cela change par rapport a SQL
 
-```bash
-curl -X GET "http://localhost:9200/shakespeare/_search?pretty" -H "Content-Type: application/json" -d '{
-  "size": 0,
-  "aggs": {
-    "by_play": {
-      "terms": { "field": "play_name" }
-    },
-    "top_speakers": {
-      "terms": { "field": "speaker", "size": 5 }
-    },
-    "avg_speech_number": {
-      "avg": { "field": "speech_number" }
-    }
-  }
-}'
-```
+SQL renvoie surtout vrai/faux sur des conditions.
 
-Ce que fait le code:
-- Mesure la repartition des lignes par piece
-- Identifie les personnages les plus presents
-- Produit un indicateur numerique global
+Elasticsearch renvoie aussi un ordre de pertinence.
+
+C est une difference de logique centrale pour la recherche.
 
 ---
 
-## Controle qualite technique
+## 22) Trois familles d usage sur ce dataset
 
-```bash
-curl "http://localhost:9200/_cat/indices?v"
-curl "http://localhost:9200/shakespeare/_mapping?pretty"
-curl "http://localhost:9200/shakespeare/_search?size=3&pretty"
-```
-
-Ce que fait le code:
-- Controle l etat de l index
-- Verifie les types reels du mapping
-- Echantillonne des docs pour valider le format
+1. Recherche textuelle (`match` sur `text_entry`)
+2. Filtre exact (`term` sur `speaker` ou `play_name`)
+3. Combinaison (`bool` avec `match` + `filter`)
 
 ---
 
-## Recap operationnel
+## 23) Plan pedagogique en 6 etapes
 
-- Tu sais creer un index full-text sur un corpus classique
-- Tu sais injecter un echantillon reproductible et l interroger
-- Tu sais combiner scoring textuel + filtres exacts
-- Tu sais produire des aggregations utiles a l interpretation
+1. Comprendre index / document / champ
+2. Lire un JSON concret
+3. Distinguer `text` et `keyword`
+4. Creer le mapping
+5. Charger les donnees avec `_bulk`
+6. Executer 3 requetes pivots (`match`, `term`, `bool`)
 
-Prochaine etape: optimisation avancee (pertinence, profiling, alias).
+---
+
+## 24) Ce qu un etudiant doit absolument retenir
+
+- Un index contient des documents JSON
+- Un document contient des champs
+- `text` sert au plein texte
+- `keyword` sert a l exact
+- `match` va avec `text`
+- `term` va avec `keyword`
+- `_bulk` charge vite beaucoup de documents
+
+---
+
+## 25) Mini sequence d exercices
+
+Exercice 1:
+- Creer l index `shakespeare` avec le bon mapping
+
+Exercice 2:
+- Indexer les documents avec `_bulk`
+
+Exercice 3:
+- Retrouver la citation contenant `question`
+
+Exercice 4:
+- Retrouver tous les documents de `OTHELLO`
+
+Exercice 5:
+- Retrouver les citations de `Romeo and Juliet` qui parlent de `sun`
+
+---
+
+## 26) Erreurs classiques a eviter
+
+- Utiliser `term` sur `text_entry`
+- Mettre `speaker` en `text` alors qu on filtre exactement
+- Indexer sans mapping explicite
+- Confondre recherche plein texte et filtrage exact
+
+---
+
+## 27) Synthese finale
+
+Avec ce dataset Shakespeare:
+
+- index = `shakespeare`
+- document = une citation
+- champs = `speaker`, `play_name`, `text_entry`, ...
+- `text_entry` doit etre en `text`
+- `speaker` et `play_name` doivent etre en `keyword`
+- `match` pour le texte
+- `term` pour l exact
+- `_bulk` pour charger vite
+- `bool` pour combiner texte et filtres
         </textarea>
       </section>
     </div>
@@ -260,6 +497,7 @@ Prochaine etape: optimisation avancee (pertinence, profiling, alias).
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
   <script>
     Reveal.initialize({
       hash: true,
@@ -272,6 +510,9 @@ Prochaine etape: optimisation avancee (pertinence, profiling, alias).
       progress: true,
       center: false,
       plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
     });
   </script>
 </body>

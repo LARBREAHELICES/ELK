@@ -49,7 +49,7 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 
 ---
 
-## Analyze API: comprendre la tokenisation
+## Analyze API: comprendre la <span class="glossary-term" data-definition="Decoupage d un texte en tokens utilises par le moteur pour indexer et rechercher.">tokenisation</span>
 
 ```bash
 curl -X GET "http://localhost:9200/catalogue_demo/_analyze?pretty" -H "Content-Type: application/json" -d '{
@@ -92,7 +92,7 @@ Repere theorique:
 
 ---
 
-## Expliquer un score (`_explain`)
+## Expliquer un score (<span class="glossary-term" data-definition="API Elasticsearch qui detaille la construction du score d un document pour une requete.">`_explain`</span>)
 
 ```bash
 curl -X GET "http://localhost:9200/catalogue_demo/_explain/1?pretty" -H "Content-Type: application/json" -d '{
@@ -130,7 +130,7 @@ Ce que fait le code:
 
 ---
 
-## Pagination scalable avec `search_after`
+## Pagination scalable avec <span class="glossary-term" data-definition="Methode de pagination profonde basee sur le tri du dernier document retourne.">`search_after`</span>
 
 Repere theorique:
 - Eviter `from + size` sur gros offsets
@@ -165,7 +165,7 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 
 ---
 
-## Migration de schema sans downtime (alias)
+## Migration de schema sans downtime (<span class="glossary-term" data-definition="Nom logique pointant vers un index, utile pour basculer de version sans couper l application.">alias</span>)
 
 ```bash
 curl -X POST "http://localhost:9200/_reindex" -H "Content-Type: application/json" -d '{

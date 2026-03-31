@@ -179,7 +179,7 @@ Resultat attendu: `count` = `3`.
 ## Ou retrouver ces donnees - Dev Tools
 
 1. Ouvrir Kibana: `http://localhost:5601`
-2. Menu gauche -> **Dev Tools**
+2. Menu gauche -> **<span class="glossary-term" data-definition="Console integree de Kibana pour executer des requetes Elasticsearch en DSL JSON.">Dev Tools</span>**
 3. Executer:
 
 ```http
@@ -195,9 +195,9 @@ GET demo_env/_search
 
 ## Ou retrouver ces donnees - Discover
 
-1. Ouvrir **Stack Management -> Data Views**
+1. Ouvrir **Stack Management -> <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer dans l interface.">Data Views</span>**
 2. Creer la data view `demo_env`
-3. Aller dans **Discover**
+3. Aller dans **<span class="glossary-term" data-definition="Vue Kibana pour explorer les documents indexes, filtrer en KQL et verifier rapidement la qualite des donnees.">Discover</span>**
 4. Selectionner `demo_env` puis verifier les 3 documents
 
 ![Repere Discover](assets/images/env-discover.svg)
@@ -220,6 +220,7 @@ L environnement est pret pour les modules de requetage et dataviz.
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
   <script>
     Reveal.initialize({
       hash: true,
@@ -232,6 +233,9 @@ L environnement est pret pour les modules de requetage et dataviz.
       progress: true,
       center: false,
       plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
     });
   </script>
 </body>

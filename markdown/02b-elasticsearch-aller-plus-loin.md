@@ -1,0 +1,404 @@
+# Cours 2B - Aller plus loin avec Elasticsearch
+## Comprendre la modelisation et la pertinence en profondeur
+
+---
+
+## 1) Le vrai modele mental
+
+Quand on debute, on pense souvent:
+
+- Elasticsearch = une base JSON avec recherche
+
+Le modele correct est plutot:
+
+- Elasticsearch = un moteur qui transforme les documents en structures optimisees pour la recherche texte, les filtres et les aggregations
+
+Point d entree principal:
+
+- API <span class="glossary-term" data-definition="API Elasticsearch principale pour interroger les index avec le Query DSL.">`_search`</span>
+- langage <span class="glossary-term" data-definition="Langage JSON d Elasticsearch pour composer des requetes de recherche, filtre et aggregation.">Query DSL</span>
+
+---
+
+## 2) Ce qui change par rapport a SQL
+
+SQL raisonne surtout en:
+
+- tables, lignes, colonnes
+- jointures
+- filtres exacts
+
+Elasticsearch raisonne surtout en:
+
+- index, documents, champs
+- analyse de texte
+- pertinence et score
+- filtres + aggregations
+
+---
+
+## 3) Ce que devient un champ `text`
+
+Exemple:
+
+```json
+{
+  "text_entry": "To be, or not to be: that is the question."
+}
+```
+
+Avec un type `text`, Elasticsearch prepare la valeur pour le plein texte:
+
+- decoupage en tokens
+- normalisation
+- indexation des termes
+
+Conclusion:
+
+- la phrase n est pas seulement stockee, elle devient cherchable efficacement
+
+---
+
+## 4) Pourquoi `match` et `term` ne repondent pas au meme besoin
+
+`match`:
+
+- requete plein texte
+- a utiliser sur des champs `text`
+
+`term`:
+
+- correspondance exacte
+- a utiliser sur des champs `keyword`
+
+Regle d or:
+
+- `match` sur `text`
+- `term` sur `keyword`
+
+---
+
+## 5) Choix de modelisation: `text`, `keyword`, ou les deux
+
+Un meme champ peut etre expose en <span class="glossary-term" data-definition="Sous-champs d un meme champ principal pour supporter plusieurs usages (ex: text + keyword).">multi-fields</span>.
+
+Exemple:
+
+```json
+"speaker": {
+  "type": "text",
+  "fields": {
+    "keyword": { "type": "keyword" }
+  }
+}
+```
+
+Usages:
+
+- `speaker` pour recherche textuelle
+- `speaker.keyword` pour filtre exact, tri et aggregations
+
+---
+
+## 6) Deux modeles utiles pour Shakespeare
+
+Modele simple (pedagogique):
+
+- `play_name` en `keyword`
+- `speaker` en `keyword`
+- `text_entry` en `text`
+
+Modele pro (plus flexible):
+
+- `play_name` en `text + keyword`
+- `speaker` en `text + keyword`
+- `text_entry` en `text`
+
+---
+
+## 7) Le role de `bool`
+
+La requete <span class="glossary-term" data-definition="Requete de composition qui combine must, filter, should et must_not.">`bool`</span> sert a construire des recherches realistes.
+
+Exemple:
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Othello" } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 8) Difference fine: `must`, `filter`, `should`
+
+- `must`: obligatoire, logique de recherche
+- `filter`: obligatoire, contrainte structuree
+- `should`: souhaitable, peut booster certains documents
+
+Exemple:
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "term": { "play_name": "Hamlet" } }
+      ],
+      "should": [
+        { "match": { "text_entry": "question" } },
+        { "match": { "text_entry": "time" } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 9) La notion de score
+
+Avec une requete full-text (`match`), chaque hit recoit un `_score`.
+
+Interpretation:
+
+- plus le score est eleve, plus la pertinence estimee est forte
+
+Conclusion:
+
+- Elasticsearch n est pas juste un moteur de filtre
+- c est un moteur de classement par pertinence
+
+---
+
+## 10) Penser cas d usage avant requete
+
+Cas A: retrouver une phrase connue
+
+- champ `text`
+- requete `match`
+
+Cas B: filtrer sur une piece precise
+
+- champ `keyword`
+- requete `term`
+
+Cas C: recherche metier
+
+- `match` + `term`
+- composition avec `bool`
+
+---
+
+## 11) Le Bulk API n est pas un detail
+
+Le <span class="glossary-term" data-definition="API d indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
+
+Format:
+
+```json
+{"index":{"_id":"1"}}
+{"line_id":1,"play_name":"Hamlet", ...}
+{"index":{"_id":"2"}}
+{"line_id":2,"play_name":"Hamlet", ...}
+```
+
+A retenir:
+
+- ce n est pas du JSON classique
+- c est du NDJSON operationnel
+
+---
+
+## 12) Pourquoi mapping explicite au debut
+
+Le mapping dynamique peut aider, mais pour apprendre il vaut mieux definir explicitement les types.
+
+Pourquoi:
+
+- forcer les bons choix `text` vs `keyword`
+- eviter les surprises de requetage
+- apprendre a modeliser la recherche (pas seulement stocker du JSON)
+
+---
+
+## 13) Ce qu on peut changer et ce qu on change difficilement
+
+On peut generalement:
+
+- ajouter des champs
+- ajouter des multi-fields
+
+On change difficilement:
+
+- le type d un champ deja peuple
+
+Consequence:
+
+- en cas d erreur de type, strategie standard = <span class="glossary-term" data-definition="Copie des donnees vers un nouvel index avec un nouveau mapping, puis bascule applicative.">reindexation</span>
+
+---
+
+## 14) Version plus pro avec normalizer
+
+Exemple:
+
+```json
+PUT shakespeare
+{
+  "settings": {
+    "analysis": {
+      "normalizer": {
+        "lowercase_normalizer": {
+          "type": "custom",
+          "filter": ["lowercase"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "line_id": { "type": "integer" },
+      "play_name": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "speech_number": { "type": "integer" },
+      "line_number": { "type": "keyword" },
+      "speaker": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "text_entry": { "type": "text" }
+    }
+  }
+}
+```
+
+---
+
+## 15) Pourquoi apprendre Query DSL tot
+
+Bonne habitude:
+
+- utiliser `_search` avec corps JSON
+- exprimer clairement les clauses
+
+Mauvaise habitude:
+
+- rester en recherche URL simplifiee (`q=...`) pour des cas complexes
+
+---
+
+## 16) Niveaux de maturite Elasticsearch
+
+Niveau 1:
+
+- stockage + recherche simple (`match`, `term`)
+
+Niveau 2:
+
+- mapping reflechi (`text`, `keyword`, multi-fields)
+
+Niveau 3:
+
+- composition de requetes (`bool`, `must`, `filter`, `should`)
+
+Niveau 4:
+
+- conception de moteur (pertinence, qualite, reindexation)
+
+---
+
+## 17) Les 3 decisions de conception a prendre
+
+A. Quel type de champ?
+
+- `text`, `keyword`, ou les deux
+
+B. Quel type de requete?
+
+- `match`, `term`, `bool`
+
+C. Quel besoin metier reel?
+
+- retrouver un mot
+- filtrer une entite
+- classer par pertinence
+
+---
+
+## 18) Progression intellectuelle recommandee
+
+1. Quel champ est concerne?
+2. Champ analyse ou exact?
+3. Requete adaptee?
+4. Contrainte metier supplementaire?
+5. Combinaison dans `bool`?
+
+---
+
+## 19) Exemple raisonne complet
+
+Besoin:
+
+- "je veux les repliques de Lady Macbeth qui parlent de spot"
+
+Traduction:
+
+- `speaker` exact -> `term`
+- `text_entry` plein texte -> `match`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "spot" } }
+      ],
+      "filter": [
+        { "term": { "speaker": "LADY MACBETH" } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 20) Point cle pour un developpeur
+
+Elasticsearch, ce n est pas seulement "ecrire une requete JSON".
+
+C est surtout:
+
+- un probleme de modelisation
+- un probleme d indexation
+- un probleme de strategie de requete
+
+La qualite des resultats depend d abord de ces choix.
+
+---
+
+## References conseillees (Docs Elastic)
+
+- Search API
+- Query DSL
+- Match query
+- Term query
+- Bool query
+- Bulk API
+- Mapping
+- Normalizer

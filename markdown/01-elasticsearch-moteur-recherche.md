@@ -14,10 +14,10 @@
 
 ## Reperes theoriques indispensables (moteur)
 
-- Elasticsearch est un moteur de recherche distribue base sur Lucene
+- Elasticsearch est un moteur de recherche distribue base sur <span class="glossary-term" data-definition="Bibliotheque de recherche plein texte utilisee comme coeur d Elasticsearch.">Lucene</span>
 - Les documents JSON sont indexes dans un index inverse (terme -> ids de documents)
 - Le full-text passe par un pipeline d analyse: tokenizer + filtres
-- Le score de pertinence est base sur BM25
+- Le score de pertinence est base sur <span class="glossary-term" data-definition="Algorithme de ranking par defaut qui estime la pertinence d un document pour une requete.">BM25</span>
 - `query` context calcule un score, `filter` context ne score pas et peut etre mis en cache
 - Le moteur est near-real-time: les docs deviennent visibles apres refresh
 
@@ -226,7 +226,7 @@ Repere theorique:
 - Tu sais lancer les requetes de base et lire ce qu elles font
 - Tu sais expliquer les specificites du moteur
 - Analyse textuelle
-- Scoring BM25
+- Scoring <span class="glossary-term" data-definition="Mecanisme de calcul du score de pertinence par defaut dans Elasticsearch.">BM25</span>
 - Difference `must` vs `filter`
 - Impact des mappings sur le comportement des requetes
 
