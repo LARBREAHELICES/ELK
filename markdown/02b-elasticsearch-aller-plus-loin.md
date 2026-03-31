@@ -3,7 +3,7 @@
 
 ---
 
-## 1) Le vrai modele mental
+## Le vrai modele mental
 
 Quand on debute, on pense souvent:
 
@@ -20,7 +20,7 @@ Point d entree principal:
 
 ---
 
-## 2) Ce qui change par rapport a SQL
+## Ce qui change par rapport a SQL
 
 SQL raisonne surtout en:
 
@@ -37,7 +37,7 @@ Elasticsearch raisonne surtout en:
 
 ---
 
-## 3) Ce que devient un champ `text`
+## Ce que devient un champ `text`
 
 Exemple:
 
@@ -59,7 +59,7 @@ Conclusion:
 
 ---
 
-## 4) Pourquoi `match` et `term` ne repondent pas au meme besoin
+## Pourquoi `match` et `term` ne repondent pas au meme besoin
 
 `match`:
 
@@ -78,7 +78,7 @@ Regle d or:
 
 ---
 
-## 5) Choix de modelisation: `text`, `keyword`, ou les deux
+## Choix de modelisation: `text`, `keyword`, ou les deux
 
 Un meme champ peut etre expose en <span class="glossary-term" data-definition="Sous-champs d un meme champ principal pour supporter plusieurs usages (ex: text + keyword).">multi-fields</span>.
 
@@ -100,7 +100,7 @@ Usages:
 
 ---
 
-## 6) Deux modeles utiles pour Shakespeare
+## Deux modeles utiles pour Shakespeare
 
 Modele simple (pedagogique):
 
@@ -116,7 +116,7 @@ Modele pro (plus flexible):
 
 ---
 
-## 7) Le role de `bool`
+## Le role de `bool`
 
 La requete <span class="glossary-term" data-definition="Requete de composition qui combine must, filter, should et must_not.">`bool`</span> sert a construire des recherches realistes.
 
@@ -140,7 +140,7 @@ GET shakespeare/_search
 
 ---
 
-## 8) Difference fine: `must`, `filter`, `should`
+## Difference fine: `must`, `filter`, `should`
 
 - `must`: obligatoire, logique de recherche
 - `filter`: obligatoire, contrainte structuree
@@ -167,7 +167,7 @@ GET shakespeare/_search
 
 ---
 
-## 9) La notion de score
+## La notion de score
 
 Avec une requete full-text (`match`), chaque hit recoit un `_score`.
 
@@ -182,7 +182,7 @@ Conclusion:
 
 ---
 
-## 10) Penser cas d usage avant requete
+## Penser cas d usage avant requete
 
 Cas A: retrouver une phrase connue
 
@@ -201,7 +201,7 @@ Cas C: recherche metier
 
 ---
 
-## 11) Le Bulk API n est pas un detail
+## Le Bulk API n est pas un detail
 
 Le <span class="glossary-term" data-definition="API d indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
 
@@ -221,7 +221,7 @@ A retenir:
 
 ---
 
-## 12) Pourquoi mapping explicite au debut
+## Pourquoi mapping explicite au debut
 
 Le mapping dynamique peut aider, mais pour apprendre il vaut mieux definir explicitement les types.
 
@@ -233,7 +233,7 @@ Pourquoi:
 
 ---
 
-## 13) Ce qu on peut changer et ce qu on change difficilement
+## Ce qu on peut changer et ce qu on change difficilement
 
 On peut generalement:
 
@@ -250,7 +250,7 @@ Consequence:
 
 ---
 
-## 14) Version plus pro avec normalizer
+## Version plus pro avec normalizer
 
 Exemple:
 
@@ -288,7 +288,7 @@ PUT shakespeare
 
 ---
 
-## 15) Pourquoi apprendre Query DSL tot
+## Pourquoi apprendre Query DSL tot
 
 Bonne habitude:
 
@@ -301,7 +301,7 @@ Mauvaise habitude:
 
 ---
 
-## 16) Niveaux de maturite Elasticsearch
+## Niveaux de maturite Elasticsearch
 
 Niveau 1:
 
@@ -321,7 +321,7 @@ Niveau 4:
 
 ---
 
-## 17) Les 3 decisions de conception a prendre
+## Les 3 decisions de conception a prendre
 
 A. Quel type de champ?
 
@@ -339,7 +339,7 @@ C. Quel besoin metier reel?
 
 ---
 
-## 18) Progression intellectuelle recommandee
+## Progression intellectuelle recommandee
 
 1. Quel champ est concerne?
 2. Champ analyse ou exact?
@@ -349,7 +349,7 @@ C. Quel besoin metier reel?
 
 ---
 
-## 19) Exemple raisonne complet
+## Exemple raisonne complet
 
 Besoin:
 
@@ -378,7 +378,7 @@ GET shakespeare/_search
 
 ---
 
-## 20) Point cle pour un developpeur
+## Point cle pour un developpeur
 
 Elasticsearch, ce n est pas seulement "ecrire une requete JSON".
 

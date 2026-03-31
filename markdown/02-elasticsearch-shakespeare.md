@@ -3,7 +3,7 @@
 
 ---
 
-## 1) Objectif du cours
+## Objectif du cours
 
 A la fin, vous devez comprendre:
 
@@ -18,7 +18,7 @@ A la fin, vous devez comprendre:
 
 ---
 
-## 2) Le probleme que resout Elasticsearch
+## Le probleme que resout Elasticsearch
 
 Imaginons un gros corpus de citations litteraires.
 
@@ -33,7 +33,7 @@ Une base relationnelle peut aider, mais Elasticsearch est concu pour chercher ef
 
 ---
 
-## 3) Premiere idee: Elasticsearch travaille avec des documents JSON
+## Premiere idee: Elasticsearch travaille avec des documents JSON
 
 Exemple de donnee:
 
@@ -56,7 +56,7 @@ A retenir:
 
 ---
 
-## 4) Vocabulaire fondamental
+## Vocabulaire fondamental
 
 - Index: collection de documents (ex: `shakespeare`)
 - Document: une unite d information (une replique)
@@ -69,7 +69,7 @@ Modele metier simple:
 
 ---
 
-## 5) Grande distinction: `text` vs `keyword`
+## Grande distinction: `text` vs `keyword`
 
 - `text` = texte humain analyse
 - `keyword` = valeur brute exacte
@@ -81,7 +81,7 @@ Exemples:
 
 ---
 
-## 6) Pourquoi `text_entry` doit etre en `text`
+## Pourquoi `text_entry` doit etre en `text`
 
 Parce que c est le contenu litteraire recherche en langage naturel.
 
@@ -95,7 +95,7 @@ Elasticsearch doit analyser le texte pour retrouver ces intentions.
 
 ---
 
-## 7) Pourquoi `speaker` et `play_name` doivent etre en `keyword`
+## Pourquoi `speaker` et `play_name` doivent etre en `keyword`
 
 Ces champs servent surtout de filtres exacts:
 
@@ -106,7 +106,7 @@ Ici on veut une egalite stricte, pas une recherche approximee.
 
 ---
 
-## 8) Le mapping
+## Le mapping
 
 Le mapping definit les types des champs.
 
@@ -128,7 +128,7 @@ PUT shakespeare
 
 ---
 
-## 9) Ce que fait Elasticsearch sur un champ `text`
+## Ce que fait Elasticsearch sur un champ `text`
 
 Lors de l indexation d une phrase, Elasticsearch la prepare pour la recherche:
 
@@ -144,7 +144,7 @@ devient une suite de tokens exploitables (`to`, `be`, `question`, ...).
 
 ---
 
-## 10) Format des donnees pour Bulk API
+## Format des donnees pour Bulk API
 
 Principe NDJSON (2 lignes par document):
 
@@ -160,7 +160,7 @@ Principe NDJSON (2 lignes par document):
 
 ---
 
-## 11) Pourquoi utiliser le Bulk API
+## Pourquoi utiliser le Bulk API
 
 Quand on a beaucoup de documents, on evite une requete HTTP par document.
 
@@ -172,7 +172,7 @@ Avantages:
 
 ---
 
-## 12) Charger les donnees Shakespeare
+## Charger les donnees Shakespeare
 
 Option dataset complet:
 
@@ -203,7 +203,7 @@ curl "http://localhost:9200/shakespeare/_count?pretty"
 
 ---
 
-## 13) Premiere requete: chercher dans le texte
+## Premiere requete: chercher dans le texte
 
 On veut les citations liees a `question`.
 
@@ -225,7 +225,7 @@ Pourquoi `match`?
 
 ---
 
-## 14) Pourquoi ne pas utiliser `term` sur `text_entry`
+## Pourquoi ne pas utiliser `term` sur `text_entry`
 
 Erreur classique debutant:
 
@@ -247,7 +247,7 @@ Regle simple:
 
 ---
 
-## 15) Requete exacte sur un champ `keyword`
+## Requete exacte sur un champ `keyword`
 
 On veut toutes les citations de `HAMLET`.
 
@@ -266,7 +266,7 @@ Ici `term` est correct car `speaker` est un champ `keyword`.
 
 ---
 
-## 16) Filtre exact par piece
+## Filtre exact par piece
 
 ```json
 GET shakespeare/_search
@@ -283,7 +283,7 @@ Resultat: uniquement des citations de `Macbeth`.
 
 ---
 
-## 17) Requete combinee avec `bool`
+## Requete combinee avec `bool`
 
 On veut les citations prononcees par HAMLET dans la piece Hamlet.
 
@@ -305,7 +305,7 @@ Lecture logique: les deux conditions sont obligatoires.
 
 ---
 
-## 18) Combiner plein texte et filtre exact
+## Combiner plein texte et filtre exact
 
 On veut: citations qui parlent de `love`, seulement dans `Othello`.
 
@@ -327,7 +327,7 @@ GET shakespeare/_search
 
 ---
 
-## 19) Pourquoi separer `must` et `filter`
+## Pourquoi separer `must` et `filter`
 
 - `must`: participe a la pertinence textuelle
 - `filter`: restreint le perimetre sans recalcul de score
@@ -336,7 +336,7 @@ Pedagogiquement: on separe la pertinence du texte et la contrainte metier.
 
 ---
 
-## 20) Le score `_score`
+## Le score `_score`
 
 Avec `match`, Elasticsearch calcule un score de pertinence.
 
@@ -357,7 +357,7 @@ Interpretation simple:
 
 ---
 
-## 21) Ce que cela change par rapport a SQL
+## Ce que cela change par rapport a SQL
 
 SQL renvoie surtout vrai/faux sur des conditions.
 
@@ -367,7 +367,7 @@ C est une difference de logique centrale pour la recherche.
 
 ---
 
-## 22) Trois familles d usage sur ce dataset
+## Trois familles d usage sur ce dataset
 
 1. Recherche textuelle (`match` sur `text_entry`)
 2. Filtre exact (`term` sur `speaker` ou `play_name`)
@@ -375,7 +375,7 @@ C est une difference de logique centrale pour la recherche.
 
 ---
 
-## 23) Plan pedagogique en 6 etapes
+## Plan pedagogique en 6 etapes
 
 1. Comprendre index / document / champ
 2. Lire un JSON concret
@@ -386,7 +386,7 @@ C est une difference de logique centrale pour la recherche.
 
 ---
 
-## 24) Ce qu un etudiant doit absolument retenir
+## Ce qu un etudiant doit absolument retenir
 
 - Un index contient des documents JSON
 - Un document contient des champs
@@ -398,7 +398,7 @@ C est une difference de logique centrale pour la recherche.
 
 ---
 
-## 25) Mini sequence d exercices
+## Mini sequence d exercices
 
 Exercice 1:
 - Creer l index `shakespeare` avec le bon mapping
@@ -417,7 +417,7 @@ Exercice 5:
 
 ---
 
-## 26) Erreurs classiques a eviter
+## Erreurs classiques a eviter
 
 - Utiliser `term` sur `text_entry`
 - Mettre `speaker` en `text` alors qu on filtre exactement
@@ -426,7 +426,7 @@ Exercice 5:
 
 ---
 
-## 27) Synthese finale
+## Synthese finale
 
 Avec ce dataset Shakespeare:
 
