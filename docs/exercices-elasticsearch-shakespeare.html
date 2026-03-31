@@ -197,7 +197,7 @@ GET shakespeare/_search
 
     <article class="exo">
       <h3>H) Ajouter une clause <code>should</code> pour booster certains resultats</h3>
-      <p class="hint">Objectif: comprendre qu une requete peut preferer certains documents sans les rendre obligatoires.</p>
+      <p class="hint">Objectif: comprendre qu'une requete peut preferer certains documents sans les rendre obligatoires.</p>
       <p class="expect">Resultat attendu: documents Hamlet favorisant ceux contenant <code>question</code> ou <code>time</code>.</p>
       <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
 {
@@ -329,7 +329,7 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
 
     <article class="exo">
       <h3>4) Controler le mapping reel stocke par Elasticsearch</h3>
-      <p class="hint">Objectif: verifier que le mapping final correspond a l intention initiale.</p>
+      <p class="hint">Objectif: verifier que le mapping final correspond a l'intention initiale.</p>
       <p class="expect">Resultat attendu: <code>text_entry</code> en <code>text</code> et <code>play_name</code>/<code>speaker</code> en <code>keyword</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/shakespeare/_mapping?pretty"</code></pre></details>
     </article>

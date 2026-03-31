@@ -1,4 +1,4 @@
-# Cours 5 - Logstash Cas d usage
+# Cours 5 - Logstash Cas d'usage
 ## Ingestion, parsing et enrichissement expliques
 
 ---
@@ -7,8 +7,8 @@
 
 - Generer un flux de logs de demo
 - Transformer du texte brut en champs exploitables
-- Verifier techniquement l ingestion dans Elasticsearch
-- Comprendre les points de fragilite d un pipeline
+- Verifier techniquement l'ingestion dans Elasticsearch
+- Comprendre les points de fragilite d'un pipeline
 
 ---
 
@@ -20,7 +20,7 @@
 
 ---
 
-## Generer des logs d exemple
+## Generer des logs d'exemple
 
 ```bash
 cat > logs/app.log <<'LOG'
@@ -87,13 +87,13 @@ curl -X GET "http://localhost:9200/app-logs-*/_search?pretty" -H "Content-Type: 
 ```
 
 Ce que fait le code:
-- Verifie que l index journalier existe
-- Controle le volume d events ingeres
+- Verifie que l'index journalier existe
+- Controle le volume d'events ingeres
 - Lit un echantillon recent pour valider les champs parsees
 
 ---
 
-## Requete metier d exemple (niveau ERROR)
+## Requete metier d'exemple (niveau ERROR)
 
 ```bash
 curl -X GET "http://localhost:9200/app-logs-*/_search?pretty" -H "Content-Type: application/json" -d '{
@@ -141,16 +141,16 @@ docker compose logs -f logstash
 ```
 
 Ce que fait le code:
-- Lit l etat runtime de Logstash (API monitor)
+- Lit l'etat runtime de Logstash (API monitor)
 - Suit les erreurs de parsing en temps reel
 
 ---
 
 ## Recap operationnel
 
-- Tu sais produire des logs d exemple
+- Tu sais produire des logs d'exemple
 - Tu sais parser et indexer proprement avec Logstash
-- Tu sais verifier l ingestion par requetes Elasticsearch
+- Tu sais verifier l'ingestion par requetes Elasticsearch
 - Tu sais relier la qualite du parsing a la qualite des analyses
 
 Trio final maitrise:

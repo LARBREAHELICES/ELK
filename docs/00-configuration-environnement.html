@@ -55,7 +55,7 @@
     <div class="slides">
       <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
         <textarea data-template>
-# Module 0 - Configuration de l environnement ELK
+# Module 0 - Configuration de l'environnement ELK
 ## Installation locale et test de bout en bout
 
 ---
@@ -80,9 +80,9 @@ sandbox/docker-compose.yml
 Services de la stack:
 
 - `elasticsearch` (port 9200): moteur de recherche
-- `kibana` (port 5601): interface d exploration et visualisation
+- `kibana` (port 5601): interface d'exploration et visualisation
 - `postgres` (port 5432): base relationnelle pour le fil rouge
-- `logstash` (port 9600): pipeline d ingestion/transform
+- `logstash` (port 9600): pipeline d'ingestion/transform
 - `jupyter` (port 8888): notebooks de demo
 
 ---
@@ -92,21 +92,21 @@ Services de la stack:
 Points importants dans `sandbox/docker-compose.yml`:
 
 - `discovery.type=single-node`: mode local mono-noeud
-- `xpack.security.enabled=false`: pas d authentification en local
+- `xpack.security.enabled=false`: pas d'authentification en local
 - `depends_on ... condition: service_healthy`: ordre de demarrage fiable
 - `healthcheck`: verification automatique de disponibilite
 - `volumes`: persistance (`es_data`, `postgres_data`)
 
 ---
 
-## Demarrage de l environnement
+## Demarrage de l'environnement
 
 ```bash
 cd sandbox
 docker compose up -d
 ```
 
-Verifier l etat:
+Verifier l'etat:
 
 ```bash
 docker compose ps
@@ -135,7 +135,7 @@ Kibana:
 curl http://localhost:5601/api/status
 ```
 
-Si les endpoints repondent, l environnement est operationnel.
+Si les endpoints repondent, l'environnement est operationnel.
 
 ---
 
@@ -195,7 +195,7 @@ GET demo_env/_search
 
 ## Ou retrouver ces donnees - Discover
 
-1. Ouvrir **Stack Management -> <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer dans l interface.">Data Views</span>**
+1. Ouvrir **Stack Management -> <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer dans l'interface.">Data Views</span>**
 2. Creer la data view `demo_env`
 3. Aller dans **<span class="glossary-term" data-definition="Vue Kibana pour explorer les documents indexes, filtrer en KQL et verifier rapidement la qualite des donnees.">Discover</span>**
 4. Selectionner `demo_env` puis verifier les 3 documents
@@ -211,7 +211,7 @@ GET demo_env/_search
 - La recherche Dev Tools retourne les documents
 - Discover affiche bien les memes donnees
 
-L environnement est pret pour les modules de requetage et dataviz.
+L'environnement est pret pour les modules de requetage et dataviz.
         </textarea>
       </section>
     </div>

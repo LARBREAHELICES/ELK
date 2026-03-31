@@ -49,7 +49,7 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 
 ---
 
-## Analyze API: comprendre la <span class="glossary-term" data-definition="Decoupage d un texte en tokens utilises par le moteur pour indexer et rechercher.">tokenisation</span>
+## Analyze API: comprendre la <span class="glossary-term" data-definition="Decoupage d'un texte en tokens utilises par le moteur pour indexer et rechercher.">tokenisation</span>
 
 ```bash
 curl -X GET "http://localhost:9200/catalogue_demo/_analyze?pretty" -H "Content-Type: application/json" -d '{
@@ -92,7 +92,7 @@ Repere theorique:
 
 ---
 
-## Expliquer un score (<span class="glossary-term" data-definition="API Elasticsearch qui detaille la construction du score d un document pour une requete.">`_explain`</span>)
+## Expliquer un score (<span class="glossary-term" data-definition="API Elasticsearch qui detaille la construction du score d'un document pour une requete.">`_explain`</span>)
 
 ```bash
 curl -X GET "http://localhost:9200/catalogue_demo/_explain/1?pretty" -H "Content-Type: application/json" -d '{
@@ -165,7 +165,7 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 
 ---
 
-## Migration de schema sans downtime (<span class="glossary-term" data-definition="Nom logique pointant vers un index, utile pour basculer de version sans couper l application.">alias</span>)
+## Migration de schema sans downtime (<span class="glossary-term" data-definition="Nom logique pointant vers un index, utile pour basculer de version sans couper l'application.">alias</span>)
 
 ```bash
 curl -X POST "http://localhost:9200/_reindex" -H "Content-Type: application/json" -d '{
@@ -182,8 +182,8 @@ curl -X POST "http://localhost:9200/_aliases" -H "Content-Type: application/json
 ```
 
 Ce que fait le code:
-- Copie les donnees vers une nouvelle version d index
-- Bascule l alias applicatif en une operation atomique
+- Copie les donnees vers une nouvelle version d'index
+- Bascule l'alias applicatif en une operation atomique
 
 ---
 
@@ -201,6 +201,6 @@ Ce que fait le code:
 
 - Tu peux diagnostiquer pertinence et performance
 - Tu peux paginer correctement a grande echelle
-- Tu peux faire evoluer un index sans interrompre l application
+- Tu peux faire evoluer un index sans interrompre l'application
 
 Prochaine etape: exploiter les resultats dans Kibana.

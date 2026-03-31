@@ -16,7 +16,7 @@ Le modele correct est plutot:
 Point d'entree principal:
 
 - API <span class="glossary-term" data-definition="API Elasticsearch principale pour interroger les index avec le Query DSL.">`_search`</span>
-- langage <span class="glossary-term" data-definition="Langage JSON d Elasticsearch pour composer des requetes de recherche, filtre et aggregation.">Query DSL</span>
+- langage <span class="glossary-term" data-definition="Langage JSON d'Elasticsearch pour composer des requetes de recherche, filtre et aggregation.">Query DSL</span>
 
 ---
 
@@ -71,7 +71,7 @@ Conclusion:
 - correspondance exacte
 - a utiliser sur des champs `keyword`
 
-Regle d or:
+Regle d'or:
 
 - `match` sur `text`
 - `term` sur `keyword`
@@ -182,7 +182,7 @@ Conclusion:
 
 ---
 
-## Penser cas d usage avant requete
+## Penser cas d'usage avant requete
 
 Cas A: retrouver une phrase connue
 
@@ -203,7 +203,7 @@ Cas C: recherche metier
 
 ## Le Bulk API n'est pas un detail
 
-Le <span class="glossary-term" data-definition="API d indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
+Le <span class="glossary-term" data-definition="API d'indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
 
 Format:
 
@@ -246,7 +246,7 @@ On change difficilement:
 
 Consequence:
 
-- en cas d erreur de type, strategie standard = <span class="glossary-term" data-definition="Copie des donnees vers un nouvel index avec un nouveau mapping, puis bascule applicative.">reindexation</span>
+- en cas d'erreur de type, strategie standard = <span class="glossary-term" data-definition="Copie des donnees vers un nouvel index avec un nouveau mapping, puis bascule applicative.">reindexation</span>
 
 ---
 
@@ -385,10 +385,10 @@ Elasticsearch, ce n'est pas seulement "ecrire une requete JSON".
 C'est surtout:
 
 - un probleme de modelisation
-- un probleme d indexation
+- un probleme d'indexation
 - un probleme de strategie de requete
 
-La qualite des resultats depend d abord de ces choix.
+La qualite des resultats depend d'abord de ces choix.
 
 ---
 

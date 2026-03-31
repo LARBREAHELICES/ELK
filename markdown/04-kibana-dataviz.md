@@ -16,7 +16,7 @@
 
 - Kibana est une interface de requetage/visualisation, pas une base de donnees
 - Elasticsearch execute les requetes et calcule les aggregations
-- Un visuel Lens est une traduction UI d un DSL Elasticsearch
+- Un visuel Lens est une traduction UI d'un DSL Elasticsearch
 - Sans mapping coherent (`text`, `keyword`, numerique), un dashboard peut mentir
 
 ---
@@ -102,7 +102,7 @@ Ce que fait le code (KQL):
 
 ## KQL vs DSL: quand utiliser quoi
 
-- KQL: rapide pour l exploration interactive
+- KQL: rapide pour l'exploration interactive
 - DSL JSON: indispensable pour validation technique et partage precis
 
 Exemple DSL equivalent a un filtre Discover:
@@ -177,7 +177,7 @@ Exemple de formule Lens:
 
 Interet:
 - Exprimer une proportion dans le visuel
-- Evaluer rapidement le poids relatif d une piece
+- Evaluer rapidement le poids relatif d'une piece
 
 Verification DSL (idee):
 - `filter` agg sur Macbeth + total global
@@ -245,4 +245,4 @@ Repere theorique:
 - Tu sais verifier chaque visuel via Inspect + Dev Tools
 - Tu sais appliquer des regles de qualite analytique
 
-Prochaine etape: industrialiser l ingestion avec Logstash.
+Prochaine etape: industrialiser l'ingestion avec Logstash.

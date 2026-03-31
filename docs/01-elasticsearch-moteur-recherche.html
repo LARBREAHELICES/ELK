@@ -64,16 +64,16 @@
 
 ## Reperes theoriques indispensables (moteur)
 
-- Elasticsearch est un moteur de recherche distribue base sur <span class="glossary-term" data-definition="Bibliotheque de recherche plein texte utilisee comme coeur d Elasticsearch.">Lucene</span>
+- Elasticsearch est un moteur de recherche distribue base sur <span class="glossary-term" data-definition="Bibliotheque de recherche plein texte utilisee comme coeur d'Elasticsearch.">Lucene</span>
 - Les documents JSON sont indexes dans un index inverse (terme -> ids de documents)
-- Le full-text passe par un pipeline d analyse: tokenizer + filtres
-- Le score de pertinence est base sur <span class="glossary-term" data-definition="Algorithme de ranking par defaut qui estime la pertinence d un document pour une requete.">BM25</span>
+- Le full-text passe par un pipeline d'analyse: tokenizer + filtres
+- Le score de pertinence est base sur <span class="glossary-term" data-definition="Algorithme de ranking par defaut qui estime la pertinence d'un document pour une requete.">BM25</span>
 - `query` context calcule un score, `filter` context ne score pas et peut etre mis en cache
 - Le moteur est near-real-time: les docs deviennent visibles apres refresh
 
 ---
 
-## Creer l index et son schema
+## Creer l'index et son schema
 
 ```bash
 curl -X PUT "http://localhost:9200/catalogue_demo" -H "Content-Type: application/json" -d '{
@@ -102,7 +102,7 @@ Ce que fait le code:
 
 ---
 
-## Inserer des donnees d exemple (bulk NDJSON)
+## Inserer des donnees d'exemple (bulk NDJSON)
 
 ```bash
 curl -X POST "http://localhost:9200/catalogue_demo/_bulk" -H "Content-Type: application/x-ndjson" -d '
@@ -141,8 +141,8 @@ Ce que fait le code:
 - Retourne des documents tries par `_score`
 
 Repere theorique:
-- `match` depend de l analyseur du champ `text`
-- Ce n est pas un match exact caractere par caractere
+- `match` depend de l'analyseur du champ `text`
+- Ce n'est pas un match exact caractere par caractere
 
 ---
 
@@ -204,7 +204,7 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 
 Ce que fait le code:
 - Cherche le terme sur plusieurs champs
-- Donne 3x plus de poids a `title` qu a `description`
+- Donne 3x plus de poids a `title` qu'a `description`
 
 Repere theorique:
 - `_score` sert a ordonner des resultats relatifs a une requete
@@ -232,7 +232,7 @@ Ce que fait le code:
 - Utile pour barre de recherche utilisateur
 
 Repere theorique:
-- `fuzziness` s appuie sur la distance d edition (Levenshtein)
+- `fuzziness` s'appuie sur la distance d'edition (Levenshtein)
 - A utiliser avec controle (precision/performance)
 
 ---
@@ -255,7 +255,7 @@ Ce que fait le code:
 - `avg` calcule une metrique (prix moyen)
 
 Repere theorique:
-- Les aggregations s appuient surtout sur des champs `keyword` ou numeriques
+- Les aggregations s'appuient surtout sur des champs `keyword` ou numeriques
 - Elles servent a construire filtres UI, dashboards, analytics
 
 ---
@@ -266,14 +266,14 @@ Repere theorique:
 - `hits.hits[*]._source`: documents retournes
 - `hits.hits[*]._score`: ordre de pertinence
 - `aggregations`: donnees de facettes/statistiques
-- `took`: temps d execution cote moteur (ms)
+- `took`: temps d'execution cote moteur (ms)
 
 ---
 
 ## Recap operationnel
 
 - Tu as un jeu de donnees exemple pret a reutiliser
-- Tu sais lancer les requetes de base et lire ce qu elles font
+- Tu sais lancer les requetes de base et lire ce qu'elles font
 - Tu sais expliquer les specificites du moteur
 - Analyse textuelle
 - Scoring <span class="glossary-term" data-definition="Mecanisme de calcul du score de pertinence par defaut dans Elasticsearch.">BM25</span>
