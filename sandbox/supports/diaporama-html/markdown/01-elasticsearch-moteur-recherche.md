@@ -1,0 +1,233 @@
+# Cours 1 - Elasticsearch Introduction
+## Comprendre ce que fait chaque requete
+
+---
+
+## Objectif du cours
+
+- Creer un index avec un mapping explicite
+- Inserer des donnees de demo reutilisables
+- Lire et expliquer le comportement des requetes
+- Comprendre les particularites moteur (analyse, score, filter context)
+
+---
+
+## Reperes theoriques indispensables (moteur)
+
+- Elasticsearch est un moteur de recherche distribue base sur Lucene
+- Les documents JSON sont indexes dans un index inverse (terme -> ids de documents)
+- Le full-text passe par un pipeline d analyse: tokenizer + filtres
+- Le score de pertinence est base sur BM25
+- `query` context calcule un score, `filter` context ne score pas et peut etre mis en cache
+- Le moteur est near-real-time: les docs deviennent visibles apres refresh
+
+---
+
+## Creer l index et son schema
+
+```bash
+curl -X PUT "http://localhost:9200/catalogue_demo" -H "Content-Type: application/json" -d '{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "title":       { "type": "text" },
+      "description": { "type": "text" },
+      "brand":       { "type": "keyword" },
+      "category":    { "type": "keyword" },
+      "price":       { "type": "float" },
+      "in_stock":    { "type": "boolean" }
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Cree un index `catalogue_demo`
+- Definit les types de champs (important pour requetes et performance)
+- `text` sert a la recherche linguistique
+- `keyword` sert au filtrage exact et aux aggregations
+
+---
+
+## Inserer des donnees d exemple (bulk NDJSON)
+
+```bash
+curl -X POST "http://localhost:9200/catalogue_demo/_bulk" -H "Content-Type: application/x-ndjson" -d '
+{"index":{"_id":"1"}}
+{"title":"Casque audio bluetooth","description":"Casque sans fil reduction de bruit","brand":"Acme","category":"audio","price":99.9,"in_stock":true}
+{"index":{"_id":"2"}}
+{"title":"Ecouteurs sport","description":"Ecouteurs bluetooth etanche","brand":"Acme","category":"audio","price":59.0,"in_stock":true}
+{"index":{"_id":"3"}}
+{"title":"Clavier mecanique","description":"Clavier gaming switch rouge","brand":"KeyPro","category":"informatique","price":129.0,"in_stock":false}
+'
+```
+
+```bash
+curl -X POST "http://localhost:9200/catalogue_demo/_refresh"
+curl "http://localhost:9200/catalogue_demo/_count?pretty"
+```
+
+Ce que fait le code:
+- Envoie 3 documents via `_bulk` (format NDJSON)
+- Force un refresh pour rendre les docs visibles tout de suite
+- Verifie le nombre de documents indexes
+
+---
+
+## Recherche full-text avec `match`
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": { "match": { "description": "bluetooth sans fil" } }
+}'
+```
+
+Ce que fait le code:
+- Analyse la requete texte (`bluetooth`, `sans`, `fil`)
+- Compare les tokens au contenu du champ `description`
+- Retourne des documents tries par `_score`
+
+Repere theorique:
+- `match` depend de l analyseur du champ `text`
+- Ce n est pas un match exact caractere par caractere
+
+---
+
+## Filtrage exact avec `term`
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": { "term": { "brand": "Acme" } }
+}'
+```
+
+Ce que fait le code:
+- Filtre les docs dont `brand` vaut exactement `Acme`
+- Fonctionne car `brand` est de type `keyword`
+
+Repere theorique:
+- `term` sur un champ `text` donne souvent des surprises
+- Pour un filtre exact, utiliser un champ `keyword`
+
+---
+
+## Combiner texte + contraintes metier (`bool`)
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "description": "bluetooth" } }
+      ],
+      "filter": [
+        { "term": { "in_stock": true } },
+        { "range": { "price": { "lte": 120 } } }
+      ]
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- `must`: partie full-text qui influence `_score`
+- `filter`: contraintes booleennes et numeriques sans impact sur le score
+- Renvoie des resultats pertinents et filtrables en production
+
+---
+
+## Piloter la pertinence (boost de champ)
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "multi_match": {
+      "query": "bluetooth",
+      "fields": ["title^3", "description"]
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Cherche le terme sur plusieurs champs
+- Donne 3x plus de poids a `title` qu a `description`
+
+Repere theorique:
+- `_score` sert a ordonner des resultats relatifs a une requete
+- Le boost est un levier metier pour controler le ranking
+
+---
+
+## Tolerance aux fautes (`fuzziness`)
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "match": {
+      "title": {
+        "query": "bluetoth",
+        "fuzziness": "AUTO"
+      }
+    }
+  }
+}'
+```
+
+Ce que fait le code:
+- Accepte des variations orthographiques proches
+- Utile pour barre de recherche utilisateur
+
+Repere theorique:
+- `fuzziness` s appuie sur la distance d edition (Levenshtein)
+- A utiliser avec controle (precision/performance)
+
+---
+
+## Facettes et stats avec aggregations
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
+  "size": 0,
+  "aggs": {
+    "brands":    { "terms": { "field": "brand" } },
+    "avg_price": { "avg":   { "field": "price" } }
+  }
+}'
+```
+
+Ce que fait le code:
+- `size: 0` ignore les hits, renvoie uniquement les agregations
+- `terms` construit une facette par marque
+- `avg` calcule une metrique (prix moyen)
+
+Repere theorique:
+- Les aggregations s appuient surtout sur des champs `keyword` ou numeriques
+- Elles servent a construire filtres UI, dashboards, analytics
+
+---
+
+## Lecture de reponse: quoi regarder en premier
+
+- `hits.total.value`: volume total de resultats
+- `hits.hits[*]._source`: documents retournes
+- `hits.hits[*]._score`: ordre de pertinence
+- `aggregations`: donnees de facettes/statistiques
+- `took`: temps d execution cote moteur (ms)
+
+---
+
+## Recap operationnel
+
+- Tu as un jeu de donnees exemple pret a reutiliser
+- Tu sais lancer les requetes de base et lire ce qu elles font
+- Tu sais expliquer les specificites du moteur
+- Analyse textuelle
+- Scoring BM25
+- Difference `must` vs `filter`
+- Impact des mappings sur le comportement des requetes
+
+Prochaine etape: appliquer exactement le meme schema sur un dataset plus grand.

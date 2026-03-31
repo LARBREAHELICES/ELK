@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub Exercices ELK</title>
+  <style>
+    :root {
+      --bg: #08090d;
+      --panel: #121520;
+      --line: #2a3142;
+      --text: #f1f5f9;
+      --muted: #aab4c6;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 14% -10%, #1a2540 0%, var(--bg) 58%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+    }
+    .wrap { width: min(1080px, 92vw); margin: 30px auto 50px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0; color: var(--accent); font-size: clamp(30px, 4vw, 46px); }
+    .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: linear-gradient(180deg, var(--panel), #0f131b);
+    }
+    .card h2 { margin: 0 0 10px; font-size: 20px; }
+    .meta { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+    .card a {
+      display: inline-block;
+      text-decoration: none;
+      color: #fff;
+      border: 1px solid #3b4b6b;
+      background: rgba(96,165,250,0.15);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .card a:hover { border-color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Hub Exercices ELK</h1>
+      <a href="index.html">Retour accueil</a>
+    </div>
+    <p class="sub">Tous les exercices sont separes par technologie. Les corrections sont masquees et s affichent au clic dans chaque page.</p>
+
+    <div class="cards">
+      <article class="card">
+        <h2>Elasticsearch Titanic</h2>
+        <p class="meta">20 exercices progressifs: mapping, requetes, aggregations, niveau avance.</p>
+        <a href="exercices-elasticsearch-titanic.html">Ouvrir les exos Elasticsearch</a>
+      </article>
+
+      <article class="card">
+        <h2>Kibana</h2>
+        <p class="meta">Exercices dedies: Discover, KQL, Lens, Dashboard, Inspect, verification DSL.</p>
+        <a href="exercices-kibana.html">Ouvrir les exos Kibana</a>
+      </article>
+
+      <article class="card">
+        <h2>Logstash</h2>
+        <p class="meta">Exercices dedies: generation de logs, grok, date, output, verification ingestion.</p>
+        <a href="exercices-logstash.html">Ouvrir les exos Logstash</a>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

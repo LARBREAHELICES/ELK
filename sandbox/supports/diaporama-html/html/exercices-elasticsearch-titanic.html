@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercices Elasticsearch Titanic</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --panel2: #10141d;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --line: #263043;
+      --accent: #22d3ee;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17223b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap { width: min(1120px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text); text-decoration: none; border: 1px solid var(--line);
+      padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+    .exo {
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .exo h3 { margin: 0 0 8px; font-size: 16px; }
+    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    details {
+      margin-top: 10px;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      background: #0c111b;
+      padding: 8px 10px;
+    }
+    summary { cursor: pointer; color: var(--ok); font-weight: 700; }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border: 1px solid #243049;
+      border-radius: 8px;
+      overflow-x: auto;
+      background: #0a0e16;
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    code { font-family: "JetBrains Mono", Consolas, monospace; }
+    .section-title { margin: 22px 0 8px; color: #c7d2fe; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>20 Exercices Elasticsearch Titanic</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+      </div>
+    </div>
+    <p class="sub">Objectif: pratiquer la logique de requete Elasticsearch sur le dataset Titanic. Chaque correction est masquee (clic pour afficher).</p>
+
+    <h2 class="section-title">Bloc 1 - Setup et verification</h2>
+    <div class="grid">
+      <article class="exo"><h3>1) Creer l index <code>titanic_data</code></h3><p class="hint">Mapping avec <code>survived</code>, <code>pclass</code>, <code>sex</code>, <code>age</code>, <code>fare</code>, <code>class</code>, <code>embark_town</code>.</p><details><summary>Voir la solution</summary><pre><code>curl -X PUT "http://localhost:9200/titanic_data" -H "Content-Type: application/json" -d '{
+  "mappings": {
+    "properties": {
+      "survived": { "type": "integer" },
+      "pclass": { "type": "integer" },
+      "sex": { "type": "keyword" },
+      "age": { "type": "float" },
+      "fare": { "type": "float" },
+      "class": { "type": "keyword" },
+      "embark_town": { "type": "keyword" }
+    }
+  }
+}'</code></pre></details></article>
+      <article class="exo"><h3>2) Inserer un echantillon de 6 docs</h3><p class="hint">Utiliser <code>_bulk</code> NDJSON.</p><details><summary>Voir la solution</summary><pre><code>curl -X POST "http://localhost:9200/titanic_data/_bulk" -H "Content-Type: application/x-ndjson" -d '
+{"index":{"_id":"1"}}
+{"survived":0,"pclass":3,"sex":"male","age":22,"fare":7.25,"class":"Third","embark_town":"Southampton"}
+{"index":{"_id":"2"}}
+{"survived":1,"pclass":1,"sex":"female","age":38,"fare":71.2833,"class":"First","embark_town":"Cherbourg"}
+{"index":{"_id":"3"}}
+{"survived":1,"pclass":3,"sex":"female","age":26,"fare":7.925,"class":"Third","embark_town":"Southampton"}
+{"index":{"_id":"4"}}
+{"survived":1,"pclass":1,"sex":"female","age":35,"fare":53.1,"class":"First","embark_town":"Southampton"}
+{"index":{"_id":"5"}}
+{"survived":0,"pclass":3,"sex":"male","age":35,"fare":8.05,"class":"Third","embark_town":"Southampton"}
+{"index":{"_id":"6"}}
+{"survived":0,"pclass":2,"sex":"male","age":54,"fare":51.8625,"class":"Second","embark_town":"Southampton"}
+'</code></pre></details></article>
+      <article class="exo"><h3>3) Rendre les docs visibles et compter</h3><p class="hint">Executer <code>_refresh</code> puis <code>_count</code>.</p><details><summary>Voir la solution</summary><pre><code>curl -X POST "http://localhost:9200/titanic_data/_refresh"
+curl "http://localhost:9200/titanic_data/_count?pretty"</code></pre></details></article>
+      <article class="exo"><h3>4) Verifier le mapping reel</h3><p class="hint">Afficher le mapping de l index.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/titanic_data/_mapping?pretty"</code></pre></details></article>
+    </div>
+
+    <h2 class="section-title">Bloc 2 - Requetes de filtrage</h2>
+    <div class="grid">
+      <article class="exo"><h3>5) Lister tous les docs tries par <code>fare</code> desc</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "sort": [{"fare": "desc"}],
+  "query": {"match_all": {}}
+}'</code></pre></details></article>
+      <article class="exo"><h3>6) Recuperer uniquement les femmes</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": { "term": { "sex": "female" } }
+}'</code></pre></details></article>
+      <article class="exo"><h3>7) Femmes de moins de 30 ans</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "sex": "female" } },
+        { "range": { "age": { "lt": 30 } } }
+      ]
+    }
+  }
+}'</code></pre></details></article>
+      <article class="exo"><h3>8) Passagers de First ou Second class</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": { "terms": { "class": ["First", "Second"] } }
+}'</code></pre></details></article>
+      <article class="exo"><h3>9) Exclure les passagers de Third class</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "bool": {
+      "must_not": [
+        { "term": { "class": "Third" } }
+      ]
+    }
+  }
+}'</code></pre></details></article>
+      <article class="exo"><h3>10) Passagers avec <code>fare</code> entre 10 et 60</h3><details><summary>Voir la solution</summary><pre><code>curl -X GET "http://localhost:9200/titanic_data/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "range": { "fare": { "gte": 10, "lte": 60 } }
+  }
+}'</code></pre></details></article>
+    </div>
+
+    <h2 class="section-title">Bloc 3 - Aggregations metier</h2>
+    <div class="grid">
+      <article class="exo"><h3>11) Calculer le taux de survie global</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "survival_rate": { "avg": { "field": "survived" } }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>12) Compter les passagers par sexe</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_sex": { "terms": { "field": "sex" } }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>13) Taux de survie par classe</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_class": {
+      "terms": { "field": "class" },
+      "aggs": {
+        "survival_rate": { "avg": { "field": "survived" } }
+      }
+    }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>14) Age moyen par sexe</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_sex": {
+      "terms": { "field": "sex" },
+      "aggs": {
+        "avg_age": { "avg": { "field": "age" } }
+      }
+    }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>15) Histogramme des fares (pas 10)</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "fare_histogram": {
+      "histogram": { "field": "fare", "interval": 10 }
+    }
+  }
+}</code></pre></details></article>
+    </div>
+
+    <h2 class="section-title">Bloc 4 - Niveau avance</h2>
+    <div class="grid">
+      <article class="exo"><h3>16) Top 2 classes par nombre de passagers</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_class": {
+      "terms": {
+        "field": "class",
+        "size": 2,
+        "order": { "_count": "desc" }
+      }
+    }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>17) Plus age par classe (<code>top_hits</code>)</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_class": {
+      "terms": { "field": "class" },
+      "aggs": {
+        "oldest_passenger": {
+          "top_hits": {
+            "sort": [{ "age": { "order": "desc" } }],
+            "size": 1,
+            "_source": ["sex", "age", "fare", "survived"]
+          }
+        }
+      }
+    }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>18) Percentiles de <code>fare</code> (50, 90, 99)</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "fare_percentiles": {
+      "percentiles": {
+        "field": "fare",
+        "percents": [50, 90, 99]
+      }
+    }
+  }
+}</code></pre></details></article>
+      <article class="exo"><h3>19) Pagination scalable avec <code>search_after</code></h3><p class="hint">Page 1 puis page suivante avec le <code>sort</code> du dernier hit.</p><details><summary>Voir la solution</summary><pre><code># page 1
+GET titanic_data/_search
+{
+  "size": 2,
+  "sort": [{"fare":"asc"}, {"_id":"asc"}],
+  "query": {"match_all": {}}
+}
+
+# page 2 (exemple)
+GET titanic_data/_search
+{
+  "size": 2,
+  "sort": [{"fare":"asc"}, {"_id":"asc"}],
+  "search_after": [7.25, "1"],
+  "query": {"match_all": {}}
+}</code></pre></details></article>
+      <article class="exo"><h3>20) Runtime field <code>is_child</code> + aggregation</h3><details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "runtime_mappings": {
+    "is_child": {
+      "type": "keyword",
+      "script": "emit(doc['age'].size()!=0 && doc['age'].value &lt; 18 ? 'yes' : 'no')"
+    }
+  },
+  "aggs": {
+    "children_split": {
+      "terms": { "field": "is_child" }
+    }
+  }
+}</code></pre></details></article>
+    </div>
+  </div>
+</body>
+</html>

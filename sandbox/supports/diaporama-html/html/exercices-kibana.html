@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercices Kibana</title>
+  <style>
+    :root {
+      --bg: #0b0a10;
+      --panel: #171320;
+      --line: #302844;
+      --text: #f3f4f6;
+      --muted: #b9b2cc;
+      --accent: #c084fc;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #22183a 0%, var(--bg) 58%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0; color: var(--accent); font-size: clamp(28px, 4vw, 44px); }
+    .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .exo {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 12px;
+      margin: 12px 0;
+    }
+    .exo h3 { margin: 0 0 8px; font-size: 17px; }
+    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    details { margin-top: 10px; border: 1px solid #40345e; border-radius: 8px; padding: 8px 10px; background: #120f1a; }
+    summary { cursor: pointer; color: var(--ok); font-weight: 700; }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border: 1px solid #3f335a;
+      border-radius: 8px;
+      overflow-x: auto;
+      background: #0d0a14;
+      color: #e9d5ff;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Exercices Kibana</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+      </div>
+    </div>
+    <p class="sub">Exercices pratiques Kibana. Les solutions donnent les etapes UI et, quand utile, la requete Dev Tools de verification.</p>
+
+    <article class="exo">
+      <h3>1) Creer le Data View Titanic</h3>
+      <p class="hint">Objectif: creer un Data View sur <code>titanic_data</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>Stack Management -> Data Views -> Create data view
+Name: Titanic
+Index pattern: titanic_data
+Time field: none (si pas de date)
+Save</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>2) Explorer dans Discover</h3>
+      <p class="hint">Afficher les colonnes <code>class</code>, <code>sex</code>, <code>survived</code>, <code>fare</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>Discover -> choisir Data View Titanic
+Ajouter les champs en colonnes
+Trier par fare desc
+Sauvegarder la recherche: "Titanic QA"</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>3) Filtre KQL: femmes survivantes</h3>
+      <p class="hint">Ecrire le filtre KQL correspondant.</p>
+      <details><summary>Voir la solution</summary><pre><code>sex: "female" and survived: 1</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>4) Filtre KQL: Third class et fare bas</h3>
+      <p class="hint">Trouver les passagers de 3e classe avec <code>fare &lt; 10</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>class: "Third" and fare &lt; 10</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>5) Lens: taux de survie par classe</h3>
+      <p class="hint">Graphique barres: X=<code>class</code>, metric=<code>Average(survived)</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>Visualize Library -> Create visualization -> Lens
+Drag class sur X
+Metric: Average of survived
+Format metric: Percent
+Save: "Survival rate by class"</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>6) Lens: breakdown par sexe</h3>
+      <p class="hint">Ajouter <code>sex</code> en breakdown pour segmenter le resultat.</p>
+      <details><summary>Voir la solution</summary><pre><code>Dans le visuel precedent:
+Break down by: sex
+Type: stacked bar
+Comparer les segments female/male par classe</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>7) Lens Formula: part des femmes</h3>
+      <p class="hint">Calculer proportion de femmes dans l echantillon.</p>
+      <details><summary>Voir la solution</summary><pre><code>Formula:
+count(kql='sex: "female"') / count()</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>8) Dashboard multi-panels</h3>
+      <p class="hint">Assembler 3 visuels dans un dashboard.</p>
+      <details><summary>Voir la solution</summary><pre><code>Create dashboard
+Add panels:
+- Survival rate by class
+- Count by sex
+- Fare histogram
+Save dashboard: "Titanic Overview"</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>9) Ajouter des controls interactifs</h3>
+      <p class="hint">Ajouter controls sur <code>class</code> et <code>sex</code>.</p>
+      <details><summary>Voir la solution</summary><pre><code>Dashboard -> Controls
+Add options list: class
+Add options list: sex
+Apply to all panels</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>10) Inspect request d un panel</h3>
+      <p class="hint">Recuperer la requete exacte executee par Kibana.</p>
+      <details><summary>Voir la solution</summary><pre><code>Sur un panel -> menu (...) -> Inspect -> Requests
+Copier la requete
+Coller dans Dev Tools pour verification</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>11) Rejouer en Dev Tools</h3>
+      <p class="hint">Verifier le taux de survie par classe en DSL.</p>
+      <details><summary>Voir la solution</summary><pre><code>GET titanic_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_class": {
+      "terms": { "field": "class" },
+      "aggs": {
+        "survival_rate": { "avg": { "field": "survived" } }
+      }
+    }
+  }
+}</code></pre></details>
+    </article>
+
+    <article class="exo">
+      <h3>12) Exporter les objets Kibana</h3>
+      <p class="hint">Exporter Data View + visualisations + dashboard.</p>
+      <details><summary>Voir la solution</summary><pre><code>Stack Management -> Saved Objects -> Export
+Selectionner:
+- Data view Titanic
+- Visualisations Lens creees
+- Dashboard Titanic Overview
+Exporter en .ndjson</code></pre></details>
+    </article>
+  </div>
+</body>
+</html>

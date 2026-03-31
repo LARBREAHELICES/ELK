@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: public
+    description: "Tables brutes chargées depuis Elasticsearch / scripts Python"
+    tables:
+      - name: arxiv_papers_raw
+        description: "Articles ArXiv bruts (miroir de l'index ES arxiv-papers-raw)"
+        columns:
+          - name: arxiv_id
+            tests: [not_null, unique]
+          - name: abstract
+            tests: [not_null]
+          - name: title
+            tests: [not_null]
+
+models:
+  - name: stg_arxiv_papers
+    description: "Articles ArXiv nettoyés et normalisés"
+    columns:
+      - name: arxiv_id
+        tests: [not_null, unique]
+      - name: primary_category
+        tests: [not_null]
+      - name: abstract_length
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 50
+
+  - name: fct_publications_par_mois
+    description: "Volume de publications agrégé par mois et catégorie"
+    columns:
+      - name: mois
+        tests: [not_null]
+      - name: nb_publications
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1

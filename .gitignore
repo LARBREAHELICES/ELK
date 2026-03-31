@@ -1,0 +1,69 @@
+# OS / filesystems
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.Python
+.eggs/
+*.egg-info/
+build/
+dist/
+pip-wheel-metadata/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs and runtime files
+*.pid
+*.out
+*.err
+sandbox/logs/
+
+# Airflow local runtime
+scipulse/airflow/logs/
+scipulse/airflow/airflow.db
+scipulse/airflow/airflow-webserver.pid
+scipulse/airflow/airflow-scheduler.pid
+scipulse/airflow/airflow.cfg
+
+# dbt generated artifacts
+scipulse/dbt/target/
+scipulse/dbt/dbt_packages/
+scipulse/dbt/logs/
+scipulse/dbt/profiles.yml
+
+# Local Docker bind-mounted data (if created)
+scipulse/docker/postgres/data/

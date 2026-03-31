@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercices Logstash</title>
+  <style>
+    :root {
+      --bg: #0a1010;
+      --panel: #121c1c;
+      --line: #284141;
+      --text: #ecfeff;
+      --muted: #a3c5c5;
+      --accent: #2dd4bf;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(900px 550px at 10% -10%, #183738 0%, var(--bg) 56%), var(--bg); color: var(--text); font-family: Inter, Arial, sans-serif; }
+    .wrap { width: min(1080px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; color: var(--accent); font-size: clamp(28px, 4vw, 44px); }
+    .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .exo { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 12px 0; }
+    .exo h3 { margin: 0 0 8px; font-size: 17px; }
+    .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    details { margin-top: 10px; border: 1px solid #345252; border-radius: 8px; padding: 8px 10px; background: #0e1717; }
+    summary { cursor: pointer; color: var(--ok); font-weight: 700; }
+    pre { margin: 8px 0 0; padding: 10px; border: 1px solid #355252; border-radius: 8px; overflow-x: auto; background: #0a1212; color: #ccfbf1; font-family: "JetBrains Mono", Consolas, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Exercices Logstash</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+      </div>
+    </div>
+    <p class="sub">Exercices separes pour la partie ingestion/parsing Logstash.</p>
+
+    <article class="exo"><h3>1) Generer des logs de test</h3><p class="hint">Creer un fichier logs avec INFO/WARN/ERROR.</p><details><summary>Voir la solution</summary><pre><code>cat > logs/app.log &lt;&lt;'LOG'
+2026-03-30T10:15:00Z INFO api - User created order
+2026-03-30T10:16:45Z WARN billing - Payment retry
+2026-03-30T10:17:12Z ERROR worker - Timeout
+LOG</code></pre></details></article>
+
+    <article class="exo"><h3>2) Lire le fichier avec input file</h3><p class="hint">Configurer path/start_position/sincedb_path.</p><details><summary>Voir la solution</summary><pre><code>input {
+  file {
+    path =&gt; "/usr/share/logstash/logs/*.log"
+    start_position =&gt; "beginning"
+    sincedb_path =&gt; "/dev/null"
+  }
+}</code></pre></details></article>
+
+    <article class="exo"><h3>3) Parser avec grok</h3><p class="hint">Extraire timestamp, level, service, log_message.</p><details><summary>Voir la solution</summary><pre><code>filter {
+  grok {
+    match =&gt; {
+      "message" =&gt; "%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:level} %{DATA:service} - %{GREEDYDATA:log_message}"
+    }
+    tag_on_failure =&gt; ["_grokparsefailure_app"]
+  }
+}</code></pre></details></article>
+
+    <article class="exo"><h3>4) Normaliser la date</h3><p class="hint">Mapper log_timestamp vers @timestamp.</p><details><summary>Voir la solution</summary><pre><code>date {
+  match =&gt; ["log_timestamp", "ISO8601"]
+}</code></pre></details></article>
+
+    <article class="exo"><h3>5) Sortir vers Elasticsearch</h3><p class="hint">Indexer dans app-logs-YYYY.MM.dd.</p><details><summary>Voir la solution</summary><pre><code>output {
+  elasticsearch {
+    hosts =&gt; ["http://elasticsearch:9200"]
+    index =&gt; "app-logs-%{+YYYY.MM.dd}"
+  }
+}</code></pre></details></article>
+
+    <article class="exo"><h3>6) Verifier l ingestion</h3><p class="hint">Utiliser _cat/indices, _count, _search.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/_cat/indices?v"
+curl "http://localhost:9200/app-logs-*/_count?pretty"
+curl "http://localhost:9200/app-logs-*/_search?pretty"</code></pre></details></article>
+
+    <article class="exo"><h3>7) Isoler les erreurs par service</h3><p class="hint">Query filter level=ERROR + agg terms sur service.keyword.</p><details><summary>Voir la solution</summary><pre><code>GET app-logs-*/_search
+{
+  "query": { "term": { "level": "ERROR" } },
+  "aggs": {
+    "by_service": { "terms": { "field": "service.keyword" } }
+  }
+}</code></pre></details></article>
+
+    <article class="exo"><h3>8) Observer Logstash runtime</h3><p class="hint">Verifier que le pipeline tourne sans erreur.</p><details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9600"
+docker compose logs -f logstash</code></pre></details></article>
+  </div>
+</body>
+</html>
