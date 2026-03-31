@@ -65,7 +65,7 @@
 
     <article class="exo">
       <h3>1) Generer un fichier de logs de test</h3>
-      <p class="hint">Objectif: disposer d un jeu d entree deterministe avec plusieurs niveaux de logs.</p>
+      <p class="hint">Objectif: disposer d'un jeu d'entree deterministe avec plusieurs niveaux de logs.</p>
       <p class="expect">Resultat attendu: un fichier <code>logs/app.log</code> avec des lignes ISO8601 parseables.</p>
       <details><summary>Voir la solution</summary><pre><code>cat > logs/app.log <<'LOG'
 2026-03-30T10:15:00Z INFO api - User created order
@@ -131,7 +131,7 @@ mutate {
     <article class="exo">
       <h3>6) Sortir les evenements vers Elasticsearch</h3>
       <p class="hint">Objectif: indexer quotidiennement dans <code>app-logs-YYYY.MM.dd</code>.</p>
-      <p class="expect">Resultat attendu: creation automatique d un index <code>app-logs-*</code>.</p>
+      <p class="expect">Resultat attendu: creation automatique d'un index <code>app-logs-*</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>output {
   elasticsearch {
     hosts => ["http://elasticsearch:9200"]
@@ -141,7 +141,7 @@ mutate {
     </article>
 
     <article class="exo">
-      <h3>7) Verifier l ingestion cote Elasticsearch</h3>
+      <h3>7) Verifier l'ingestion cote Elasticsearch</h3>
       <p class="hint">Objectif: confirmer volume, structure et contenu avant de passer a Kibana.</p>
       <p class="expect">Resultat attendu: count coherent avec le nombre de lignes injectees.</p>
       <details><summary>Voir la solution</summary><pre><code>curl "http://localhost:9200/_cat/indices?v"

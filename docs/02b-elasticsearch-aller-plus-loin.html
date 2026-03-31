@@ -63,7 +63,7 @@ Le modele correct est plutot:
 
 - Elasticsearch = un moteur qui transforme les documents en structures optimisees pour la recherche texte, les filtres et les aggregations
 
-Point d entree principal:
+Point d'entree principal:
 
 - API <span class="glossary-term" data-definition="API Elasticsearch principale pour interroger les index avec le Query DSL.">`_search`</span>
 - langage <span class="glossary-term" data-definition="Langage JSON d Elasticsearch pour composer des requetes de recherche, filtre et aggregation.">Query DSL</span>
@@ -105,7 +105,7 @@ Avec un type `text`, Elasticsearch prepare la valeur pour le plein texte:
 
 Conclusion:
 
-- la phrase n est pas seulement stockee, elle devient cherchable efficacement
+- la phrase n'est pas seulement stockee, elle devient cherchable efficacement
 
 ---
 
@@ -130,7 +130,7 @@ Regle d or:
 
 ## Choix de modelisation: `text`, `keyword`, ou les deux
 
-Un meme champ peut etre expose en <span class="glossary-term" data-definition="Sous-champs d un meme champ principal pour supporter plusieurs usages (ex: text + keyword).">multi-fields</span>.
+Un meme champ peut etre expose en <span class="glossary-term" data-definition="Sous-champs d'un meme champ principal pour supporter plusieurs usages (ex: text + keyword).">multi-fields</span>.
 
 Exemple:
 
@@ -227,8 +227,8 @@ Interpretation:
 
 Conclusion:
 
-- Elasticsearch n est pas juste un moteur de filtre
-- c est un moteur de classement par pertinence
+- Elasticsearch n'est pas juste un moteur de filtre
+- c'est un moteur de classement par pertinence
 
 ---
 
@@ -251,7 +251,7 @@ Cas C: recherche metier
 
 ---
 
-## Le Bulk API n est pas un detail
+## Le Bulk API n'est pas un detail
 
 Le <span class="glossary-term" data-definition="API d indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
 
@@ -266,8 +266,8 @@ Format:
 
 A retenir:
 
-- ce n est pas du JSON classique
-- c est du NDJSON operationnel
+- ce n'est pas du JSON classique
+- c'est du NDJSON operationnel
 
 ---
 
@@ -283,7 +283,7 @@ Pourquoi:
 
 ---
 
-## Ce qu on peut changer et ce qu on change difficilement
+## Ce qu'on peut changer et ce qu'on change difficilement
 
 On peut generalement:
 
@@ -292,7 +292,7 @@ On peut generalement:
 
 On change difficilement:
 
-- le type d un champ deja peuple
+- le type d'un champ deja peuple
 
 Consequence:
 
@@ -430,15 +430,33 @@ GET shakespeare/_search
 
 ## Point cle pour un developpeur
 
-Elasticsearch, ce n est pas seulement "ecrire une requete JSON".
+Elasticsearch, ce n'est pas seulement "ecrire une requete JSON".
 
-C est surtout:
+C'est surtout:
 
 - un probleme de modelisation
 - un probleme d indexation
 - un probleme de strategie de requete
 
 La qualite des resultats depend d abord de ces choix.
+
+---
+
+## Exercices associes (partie Exos)
+
+Pour pratiquer ce module, allez dans:
+
+- `Exercices Elasticsearch Shakespeare` (Hub exos)
+
+Bloc recommande:
+
+- Bloc 0B - Aller plus loin (issus du Cours 02B)
+- Exercice F: choisir `match` vs `term`
+- Exercice G: combiner `must` et `filter`
+- Exercice H: utiliser `should` pour booster
+- Exercice I: tester une modelisation multi-fields
+- Exercice J: utiliser un normalizer sur `keyword`
+- Exercice K: strategie de correction par reindexation
 
 ---
 

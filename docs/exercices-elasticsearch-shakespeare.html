@@ -78,7 +78,7 @@
     <h2 class="section-title">Bloc 0 - Introduction (issus du Cours 02)</h2>
 
     <article class="exo">
-      <h3>A) Creer l index <code>shakespeare</code> avec le mapping du cours</h3>
+      <h3>A) Creer l'index <code>shakespeare</code> avec le mapping du cours</h3>
       <p class="hint">Objectif: valider la base du modele (types exacts pour recherche textuelle + filtres).</p>
       <p class="expect">Resultat attendu: index cree, champs numeriques en integer, champs exacts en keyword, texte en text.</p>
       <details><summary>Voir la correction</summary><pre><code>PUT shakespeare
@@ -141,7 +141,7 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
     <article class="exo">
       <h3>E) Retrouver les citations de <code>Romeo and Juliet</code> qui parlent de <code>sun</code></h3>
       <p class="hint">Objectif: combiner recherche textuelle (<code>match</code>) et filtre metier exact (<code>term</code>).</p>
-      <p class="expect">Resultat attendu: documents de la piece cible contenant l idee de \"sun\".</p>
+      <p class="expect">Resultat attendu: documents de la piece cible contenant l'idee de \"sun\".</p>
       <details><summary>Voir la correction</summary><pre><code>GET shakespeare/_search
 {
   "query": {
@@ -273,7 +273,7 @@ GET shakespeare_multifield/_search
     <article class="exo">
       <h3>K) Choisir une strategie quand le mapping initial est mauvais</h3>
       <p class="hint">Objectif: appliquer la bonne demarche quand un type de champ est inadapte.</p>
-      <p class="expect">Resultat attendu: creation d un nouvel index + reindexation + bascule applicative.</p>
+      <p class="expect">Resultat attendu: creation d'un nouvel index + reindexation + bascule applicative.</p>
       <details><summary>Voir la correction</summary><pre><code># 1) creer un nouvel index avec le bon mapping
 # 2) copier les donnees
 POST _reindex
@@ -282,15 +282,15 @@ POST _reindex
   "dest":   { "index": "shakespeare_v2" }
 }
 
-# 3) faire pointer l application vers le nouvel index (alias recommande)</code></pre></details>
+# 3) faire pointer l'application vers le nouvel index (alias recommande)</code></pre></details>
     </article>
 
     <h2 class="section-title">Bloc 1 - Setup et verification</h2>
 
     <article class="exo">
-      <h3>1) Creer l index <code>shakespeare</code> avec un mapping explicite</h3>
+      <h3>1) Creer l'index <code>shakespeare</code> avec un mapping explicite</h3>
       <p class="hint">Objectif: verifier que tu sais preparer un schema propre avant ingestion (types numeriques, keyword et text).</p>
-      <p class="expect">Resultat attendu: l index existe et le mapping contient bien les 6 champs du cours.</p>
+      <p class="expect">Resultat attendu: l'index existe et le mapping contient bien les 6 champs du cours.</p>
       <details><summary>Voir la solution</summary><pre><code>curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
   "mappings": {
     "properties": {
@@ -337,7 +337,7 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
     <h2 class="section-title">Bloc 2 - Requetes full-text et filtrage</h2>
 
     <article class="exo">
-      <h3>5) Retrouver les lignes liees a l idee de "question"</h3>
+      <h3>5) Retrouver les lignes liees a l'idee de "question"</h3>
       <p class="hint">Objectif: utiliser <code>match</code> pour une recherche linguistique de base.</p>
       <p class="expect">Resultat attendu: des hits avec un <code>_score</code> non nul et des lignes pertinentes.</p>
       <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
@@ -380,7 +380,7 @@ curl "http://localhost:9200/shakespeare/_count?pretty"</code></pre></details>
     <article class="exo">
       <h3>8) Combiner texte + filtre exact (Macbeth + sleep)</h3>
       <p class="hint">Objectif: manipuler <code>bool.must</code> pour le texte et <code>bool.filter</code> pour le contexte metier.</p>
-      <p class="expect">Resultat attendu: uniquement des lignes de Macbeth contenant l idee de "sleep".</p>
+      <p class="expect">Resultat attendu: uniquement des lignes de Macbeth contenant l'idee de "sleep".</p>
       <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
   "query": {
@@ -571,7 +571,7 @@ GET shakespeare/_search
 
     <article class="exo">
       <h3>20) Extraire les termes saillants de Macbeth via <code>significant_text</code></h3>
-      <p class="hint">Objectif: identifier des termes caracteristiques d un sous-corpus.</p>
+      <p class="hint">Objectif: identifier des termes caracteristiques d'un sous-corpus.</p>
       <p class="expect">Resultat attendu: une liste de termes pertinents dans <code>key_terms.buckets</code>.</p>
       <details><summary>Voir la solution</summary><pre><code>GET shakespeare/_search
 {
