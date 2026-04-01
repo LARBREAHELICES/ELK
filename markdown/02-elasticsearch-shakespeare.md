@@ -1,5 +1,5 @@
 # Cours 2 - Comprendre Elasticsearch pas a pas avec Shakespeare
-## Du vocabulaire fondamental aux requetes combinees
+## Du vocabulaire fondamental aux requêtes combinees
 
 ---
 
@@ -8,35 +8,35 @@
 A la fin, vous devez comprendre:
 
 - ce qu'est un <span class="glossary-term" data-definition="Collection logique de documents JSON dans Elasticsearch.">index</span>
-- ce qu'est un <span class="glossary-term" data-definition="Unite de donnees stockee dans un index, representee en JSON.">document</span>
-- ce qu'est un <span class="glossary-term" data-definition="Propriete d'un document JSON, avec un type et un usage de recherche.">champ</span>
-- la difference entre <span class="glossary-term" data-definition="Champ analyse pour la recherche plein texte.">`text`</span> et <span class="glossary-term" data-definition="Champ exact non analyse pour filtre, tri et aggregations.">`keyword`</span>
-- pourquoi on utilise <span class="glossary-term" data-definition="Requete full-text basee sur l'analyse linguistique du texte.">`match`</span> pour le plein texte
-- pourquoi on utilise <span class="glossary-term" data-definition="Requete de correspondance exacte sur une valeur indexee telle quelle.">`term`</span> pour la recherche exacte
-- a quoi sert la <span class="glossary-term" data-definition="API d'ingestion en masse basee sur le format NDJSON (action + document).">Bulk API</span>
+- ce qu'est un <span class="glossary-term" data-definition="Unité de données stockee dans un index, représentée en JSON.">document</span>
+- ce qu'est un <span class="glossary-term" data-definition="Propriété d'un document JSON, avec un type et un usage de recherche.">champ</span>
+- la différence entre <span class="glossary-term" data-definition="Champ analyse pour la recherche plein texte.">`text`</span> et <span class="glossary-term" data-definition="Champ exact non analyse pour filtre, tri et aggregations.">`keyword`</span>
+- pourquoi on utilise <span class="glossary-term" data-definition="Requête full-text basée sur l'analyse linguistique du texte.">`match`</span> pour le plein texte
+- pourquoi on utilise <span class="glossary-term" data-definition="Requête de correspondance exacte sur une valeur indexée telle quelle.">`term`</span> pour la recherche exacte
+- à quoi sert la <span class="glossary-term" data-definition="API d'ingestion en masse basée sur le format NDJSON (action + document).">Bulk API</span>
 - comment combiner recherche textuelle et filtres structures
 
 ---
 
 
-## Le probleme que resout Elasticsearch
+## Le problème que resout Elasticsearch
 
-Imaginons un gros corpus de citations litteraires.
+Imaginons un gros corpus de citations littéraires.
 
 Vous voulez pouvoir:
 
 - retrouver les phrases qui parlent de `love`
-- retrouver les phrases prononcees par `HAMLET`
+- retrouver les phrases prononcées par `HAMLET`
 - retrouver les phrases de `Othello` qui parlent d'amour
-- classer les resultats par pertinence
+- classer les résultats par pertinence
 
-Une base relationnelle peut aider, mais Elasticsearch est concu pour chercher efficacement dans du texte.
+Une base relationnelle peut aider, mais Elasticsearch est conçu pour chercher efficacement dans du texte.
 
 ---
 
-## Premiere idee: Elasticsearch travaille avec des documents JSON
+## Première idée: Elasticsearch travaille avec des documents JSON
 
-Exemple de donnee:
+Exemple de donnée:
 
 ```json
 {
@@ -52,7 +52,7 @@ Exemple de donnee:
 A retenir:
 
 - un document = un objet JSON
-- un champ = une propriete du JSON
+- un champ = une propriété du JSON
 - un ensemble de documents = un index
 
 ---
@@ -60,10 +60,10 @@ A retenir:
 ## Vocabulaire fondamental
 
 - Index: collection de documents (ex: `shakespeare`)
-- Document: une unite d'information (une replique)
+- Document: une unité d'information (une replique)
 - Champ: attribut du document (`speaker`, `play_name`, `text_entry`, ...)
 
-Modele metier simple:
+Modele métier simple:
 
 - 1 citation = 1 document
 - toutes les citations = 1 index
@@ -77,16 +77,16 @@ Modele metier simple:
 
 Exemples:
 
-- `text_entry` doit etre en `text`
+- `text_entry` doit être en `text`
 - `speaker` et `play_name` doivent etre en `keyword`
 
 ---
 
-## Pourquoi `text_entry` doit etre en `text`
+## Pourquoi `text_entry` doit être en `text`
 
-Parce que c'est le contenu litteraire recherche en langage naturel.
+Parce que c'est le contenu littéraire recherche en langage naturel.
 
-Requetes attendues:
+Requêtes attendues:
 
 - `question`
 - `to be`
@@ -103,13 +103,13 @@ Ces champs servent surtout de filtres exacts:
 - `speaker = HAMLET`
 - `play_name = Macbeth`
 
-Ici on veut une egalite stricte, pas une recherche approximee.
+Ici on veut une égalité stricte, pas une recherche approximée.
 
 ---
 
 ## Le mapping
 
-Le mapping definit les types des champs.
+Le mapping définit les types des champs.
 
 ```json
 PUT shakespeare
@@ -131,13 +131,13 @@ PUT shakespeare
 
 ## Ce que fait Elasticsearch sur un champ `text`
 
-Lors de l'indexation d'une phrase, Elasticsearch la prepare pour la recherche:
+Lors de l'indexation d'une phrase, Elasticsearch la prépare pour la recherche:
 
-- decoupage en tokens
+- découpage en tokens
 - normalisation
-- indexation optimisee
+- indexation optimisée
 
-Exemple idee:
+Exemple idée:
 
 `To be, or not to be: that is the question.`
 
@@ -145,7 +145,7 @@ devient une suite de tokens exploitables (`to`, `be`, `question`, ...).
 
 ---
 
-## Format des donnees pour Bulk API
+## Format des données pour Bulk API
 
 Principe NDJSON (2 lignes par document):
 
@@ -163,17 +163,17 @@ Principe NDJSON (2 lignes par document):
 
 ## Pourquoi utiliser le Bulk API
 
-Quand on a beaucoup de documents, on evite une requete HTTP par document.
+Quand on a beaucoup de documents, on évite une requête HTTP par document.
 
 Avantages:
 
 - plus rapide
-- plus realiste
-- ideal pour un dataset de cours
+- plus réaliste
+- idéal pour un dataset de cours
 
 ---
 
-## Charger les donnees Shakespeare
+## Charger les données Shakespeare
 
 Option dataset complet:
 
@@ -204,9 +204,9 @@ curl "http://localhost:9200/shakespeare/_count?pretty"
 
 ---
 
-## Premiere requete: chercher dans le texte
+## Première requête: chercher dans le texte
 
-On veut les citations liees a `question`.
+On veut les citations liées a `question`.
 
 ```json
 GET shakespeare/_search
@@ -228,7 +228,7 @@ Pourquoi `match`?
 
 ## Pourquoi ne pas utiliser `term` sur `text_entry`
 
-Erreur classique debutant:
+Erreur classique débutant:
 
 ```json
 GET shakespeare/_search
@@ -248,7 +248,7 @@ Regle simple:
 
 ---
 
-## Requete exacte sur un champ `keyword`
+## Requête exacte sur un champ `keyword`
 
 On veut toutes les citations de `HAMLET`.
 
@@ -280,13 +280,13 @@ GET shakespeare/_search
 }
 ```
 
-Resultat: uniquement des citations de `Macbeth`.
+Résultat: uniquement des citations de `Macbeth`.
 
 ---
 
-## Requete combinee avec `bool`
+## Requête combinee avec `bool`
 
-On veut les citations prononcees par HAMLET dans la piece Hamlet.
+On veut les citations prononcées par HAMLET dans la piece Hamlet.
 
 ```json
 GET shakespeare/_search
@@ -331,9 +331,9 @@ GET shakespeare/_search
 ## Pourquoi separer `must` et `filter`
 
 - `must`: participe a la pertinence textuelle
-- `filter`: restreint le perimetre sans recalcul de score
+- `filter`: restreint le périmètre sans recalcul de score
 
-Pedagogiquement: on separe la pertinence du texte et la contrainte metier.
+Pedagogiquement: on separe la pertinence du texte et la contrainte métier.
 
 ---
 
@@ -364,7 +364,7 @@ SQL renvoie surtout vrai/faux sur des conditions.
 
 Elasticsearch renvoie aussi un ordre de pertinence.
 
-C'est une difference de logique centrale pour la recherche.
+C'est une différence de logique centrale pour la recherche.
 
 ---
 
@@ -381,13 +381,13 @@ C'est une difference de logique centrale pour la recherche.
 1. Comprendre index / document / champ
 2. Lire un JSON concret
 3. Distinguer `text` et `keyword`
-4. Creer le mapping
-5. Charger les donnees avec `_bulk`
-6. Executer 3 requetes pivots (`match`, `term`, `bool`)
+4. Créer le mapping
+5. Charger les données avec `_bulk`
+6. Executer 3 requêtes pivots (`match`, `term`, `bool`)
 
 ---
 
-## Ce qu'un etudiant doit absolument retenir
+## Ce qu'un étudiant doit absolument retenir
 
 - Un index contient des documents JSON
 - Un document contient des champs
@@ -402,7 +402,7 @@ C'est une difference de logique centrale pour la recherche.
 ## Mini sequence d'exercices
 
 Exercice 1:
-- Creer l'index `shakespeare` avec le bon mapping
+- Créer l'index `shakespeare` avec le bon mapping
 
 Exercice 2:
 - Indexer les documents avec `_bulk`
@@ -418,7 +418,7 @@ Exercice 5:
 
 ---
 
-## Erreurs classiques a eviter
+## Erreurs classiques a éviter
 
 - Utiliser `term` sur `text_entry`
 - Mettre `speaker` en `text` alors qu'on filtre exactement
@@ -434,7 +434,7 @@ Avec ce dataset Shakespeare:
 - index = `shakespeare`
 - document = une citation
 - champs = `speaker`, `play_name`, `text_entry`, ...
-- `text_entry` doit etre en `text`
+- `text_entry` doit être en `text`
 - `speaker` et `play_name` doivent etre en `keyword`
 - `match` pour le texte
 - `term` pour l'exact
