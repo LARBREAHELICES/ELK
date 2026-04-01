@@ -108,6 +108,59 @@ Cas support client:
 
 ---
 
+## Definitions precises a retenir
+
+| Terme | Definition precise | Exemple |
+| --- | --- | --- |
+| `index` | Espace logique qui regroupe des documents partageant une meme intention de recherche | `catalogue_demo` |
+| `document` | Unite de donnee stockee en JSON | un produit avec `title`, `price`, `brand` |
+| `champ` | Propriete d un document, avec un type de mapping | `description` (text), `brand` (keyword) |
+| `mapping` | Schema qui definit le type et le comportement de chaque champ | `description: text`, `in_stock: boolean` |
+| `query` | Expression JSON de recherche | `match`, `term`, `range`, `bool` |
+| `analyzer` | Pipeline linguistique applique aux champs `text` et a la requete full-text | tokenizer + filtres |
+| `token` | Unite textuelle issue de l analyse | `bluetooth`, `casque` |
+| `_score` | Valeur de pertinence relative pour classer les hits | doc A devant doc B pour une meme requete |
+
+---
+
+## Exemple minimal relie aux definitions
+
+Document indexe:
+
+```json
+{
+  "title": "Casque audio bluetooth",
+  "description": "Casque sans fil reduction de bruit",
+  "brand": "Acme",
+  "price": 99.9,
+  "in_stock": true
+}
+```
+
+Lecture:
+
+- ce JSON est un document
+- il vit dans un index (ex: `catalogue_demo`)
+- `description` est un champ `text` (full-text)
+- `brand` est un champ `keyword` (exact)
+
+---
+
+## Exemple de raisonnement avant ecriture de requete
+
+Question metier:
+
+- retrouver des produits qui parlent de bluetooth
+- limiter aux produits en stock
+
+Traduction technique:
+
+- besoin textuel -> `match` sur `description`
+- besoin exact -> `term` sur `in_stock`
+- combinaison logique -> `bool` avec `must` + `filter`
+
+---
+
 
 ## Reperes theoriques indispensables (moteur)
 
