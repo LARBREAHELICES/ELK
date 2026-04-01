@@ -516,6 +516,161 @@ Ce que fait le code:
 
 ---
 
+## `match` vs `must`: difference fondamentale
+
+| Element | Role |
+| --- | --- |
+| `match` | type de requete full-text |
+| `must` | operateur logique (condition obligatoire) |
+
+Lecture simple:
+
+- `match` dit comment chercher
+- `must` dit si c est obligatoire
+
+---
+
+## Exemple direct sans `bool`
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "match": {
+      "description": "bluetooth"
+    }
+  }
+}
+```
+
+Ici:
+
+- `match` est la requete
+- il n y a pas encore de composition logique complexe
+
+---
+
+## Meme idee avec `bool` et `must`
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "description": "bluetooth" } }
+      ]
+    }
+  }
+}
+```
+
+Ici:
+
+- `bool` construit la logique
+- `must` impose une condition obligatoire
+- `match` reste le mecanisme full-text
+
+---
+
+## Correspondance mentale SQL
+
+| Elasticsearch | Idee SQL |
+| --- | --- |
+| `match` | LIKE / full-text |
+| `term` | `=` |
+| `must` | AND |
+| `should` | OR (avec bonus de pertinence) |
+| `filter` | WHERE exact (sans score) |
+
+Cette table est une analogie pedagogique utile, pas une equivalence parfaite.
+
+---
+
+## Ce que `must` peut contenir
+
+`must` ne recherche pas par lui-meme.
+Il peut contenir plusieurs types de requetes:
+
+- `match` (texte)
+- `term` (exact)
+- `range` (intervalle)
+
+Exemple:
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "description": "bluetooth" } },
+        { "range": { "price": { "lte": 100 } } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## Schema mental a retenir
+
+```text
+query
+ └── bool
+      ├── must
+      │     ├── match
+      │     ├── term
+      │     └── range
+      ├── filter
+      └── should
+```
+
+Idee cle:
+
+- `bool/must/filter/should` = logique
+- `match/term/range` = types de requetes
+
+---
+
+## Exemple complet (`must` + `filter` + `should`)
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "description": "bluetooth casque" } }
+      ],
+      "filter": [
+        { "term": { "in_stock": true } },
+        { "range": { "price": { "lte": 150 } } }
+      ],
+      "should": [
+        { "term": { "brand": "Acme" } }
+      ]
+    }
+  }
+}
+```
+
+Lecture:
+
+- `must`: la recherche texte est obligatoire
+- `filter`: les contraintes metier sont obligatoires
+- `should`: bonus de ranking si la marque correspond
+
+---
+
+## Phrase de reference
+
+`match` est une requete.
+`must` est une condition logique.
+
+---
+
 ## Piloter la pertinence (boost de champ)
 
 ```bash
