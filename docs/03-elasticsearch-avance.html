@@ -62,6 +62,20 @@
 
 ---
 
+## Glossaire du module
+
+- <span class="glossary-term" data-definition="Technique qui combine text et keyword sur un meme champ pour couvrir recherche et tri exact.">Multi-fields</span>
+- <span class="glossary-term" data-definition="API Elasticsearch qui montre les tokens produits par l'analyse d'un texte.">Analyze API (`_analyze`)</span>
+- <span class="glossary-term" data-definition="Unite issue de l'analyse d'un texte et utilisee dans l'index inverse.">Token</span>
+- <span class="glossary-term" data-definition="API qui explique en detail le calcul du score pour un document et une requete.">Explain API (`_explain`)</span>
+- <span class="glossary-term" data-definition="Mode de profiling qui detaille le cout de chaque clause de requete.">Search profile (`profile: true`)</span>
+- <span class="glossary-term" data-definition="Pagination profonde basee sur les valeurs de tri du dernier document retourne.">`search_after`</span>
+- <span class="glossary-term" data-definition="Nom logique stable qui permet de basculer d'un index a un autre sans downtime.">Alias</span>
+- <span class="glossary-term" data-definition="Operation de migration de donnees vers un nouvel index avec schema adapte.">`_reindex`</span>
+- <span class="glossary-term" data-definition="Temps de traitement moteur expose dans les reponses Elasticsearch, en millisecondes.">`took`</span>
+
+---
+
 ## Reperes theoriques (moteur prod)
 
 - Le schema influence precision, agregations et cout CPU
@@ -254,7 +268,6 @@ Ce que fait le code:
 - Tu peux faire evoluer un index sans interrompre l'application
 
 Prochaine etape: exploiter les resultats dans Kibana.
-
         </textarea>
       </section>
     </div>

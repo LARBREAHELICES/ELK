@@ -20,6 +20,21 @@ Point d'entree principal:
 
 ---
 
+## Glossaire du module
+
+- <span class="glossary-term" data-definition="Correspondance exacte sur une valeur, adaptee aux champs keyword.">`term` query</span>
+- <span class="glossary-term" data-definition="Recherche plein texte avec analyse de la requete avant correspondance.">`match` query</span>
+- <span class="glossary-term" data-definition="Possibilite d'exposer plusieurs representations d'un meme champ (ex: text et keyword).">Multi-fields</span>
+- <span class="glossary-term" data-definition="Clause optionnelle qui peut booster la pertinence selon le nombre de correspondances.">`should`</span>
+- <span class="glossary-term" data-definition="Mecanisme de classement des documents par pertinence dans les hits.">Scoring</span>
+- <span class="glossary-term" data-definition="Score numerique de pertinence calcule pour chaque document retourne.">`_score`</span>
+- <span class="glossary-term" data-definition="Normalisation appliquee aux champs keyword pour homogener les valeurs (ex: lowercase).">Normalizer</span>
+- <span class="glossary-term" data-definition="Copie des documents vers un nouvel index pour corriger schema ou strategie de recherche.">Reindexation</span>
+- <span class="glossary-term" data-definition="Nom logique qui pointe vers un index et facilite les bascules de version.">Alias</span>
+- <span class="glossary-term" data-definition="Schema deduit automatiquement par Elasticsearch si aucun mapping explicite n'est fourni.">Mapping dynamique</span>
+
+---
+
 ## Ce qui change par rapport a SQL
 
 SQL raisonne surtout en:

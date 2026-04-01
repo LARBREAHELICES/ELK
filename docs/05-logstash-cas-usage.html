@@ -62,6 +62,22 @@
 
 ---
 
+## Glossaire du module
+
+- <span class="glossary-term" data-definition="Etape d'entree Logstash qui collecte les evenements depuis une source (fichier, socket, queue).">Input</span>
+- <span class="glossary-term" data-definition="Etape de transformation Logstash pour parser, enrichir et normaliser les evenements.">Filter</span>
+- <span class="glossary-term" data-definition="Etape de sortie Logstash qui envoie les evenements vers Elasticsearch ou autre destination.">Output</span>
+- <span class="glossary-term" data-definition="Plugin Logstash qui lit les lignes d'un fichier comme flux d'evenements.">`file` input</span>
+- <span class="glossary-term" data-definition="Etat de lecture de fichier utilise par Logstash pour reprendre un flux sans doublons.">`sincedb`</span>
+- <span class="glossary-term" data-definition="Filtre base sur des patterns pour extraire des champs structures depuis un message texte.">`grok`</span>
+- <span class="glossary-term" data-definition="Filtre qui convertit une date applicative en champ temporel standard `@timestamp`.">`date` filter</span>
+- <span class="glossary-term" data-definition="Filtre de transformation pour ajouter, renommer, remplacer ou convertir des champs.">`mutate` filter</span>
+- <span class="glossary-term" data-definition="Champ temporel de reference dans Elastic pour tri et analyses chronologiques.">`@timestamp`</span>
+- <span class="glossary-term" data-definition="Tag ajoute lorsqu'une ligne ne correspond pas au pattern grok attendu.">`_grokparsefailure`</span>
+- <span class="glossary-term" data-definition="API HTTP Logstash exposee sur le port 9600 pour l'etat runtime et le monitoring.">Monitoring API (port 9600)</span>
+
+---
+
 ## Reperes theoriques (pipeline)
 
 - Logstash suit la chaine <span class="glossary-term" data-definition="Architecture pipeline Logstash: lecture, transformation, puis envoi vers une destination.">`input -> filter -> output`</span>
@@ -207,7 +223,6 @@ Trio final maitrise:
 1. Elasticsearch
 2. Kibana
 3. Logstash
-
         </textarea>
       </section>
     </div>

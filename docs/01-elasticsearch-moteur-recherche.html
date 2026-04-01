@@ -53,12 +53,73 @@
 
 ---
 
+## Elasticsearch, c est quoi concretement
+
+- <span class="glossary-term" data-definition="Moteur distribue de recherche et d'analyse qui indexe des donnees pour repondre vite a des requetes texte et structurees.">Elasticsearch</span> est un moteur de recherche et d analytics distribue
+- Il stocke des <span class="glossary-term" data-definition="Objet JSON unitaire stocke dans un index Elasticsearch.">documents JSON</span> dans des <span class="glossary-term" data-definition="Collection logique de documents partageant un meme schema general.">index</span>
+- Il expose une <span class="glossary-term" data-definition="Interface HTTP qui permet d'interroger le moteur avec des requetes JSON.">API REST</span> pour indexer, chercher, filtrer et aggreger
+- Il est optimise pour la recherche <span class="glossary-term" data-definition="Recherche dans du langage naturel avec analyse du texte et classement par pertinence.">full-text</span> et les analytics quasi temps reel
+
+---
+
+## Base documentaire ou moteur de recherche
+
+- Oui, Elasticsearch stocke des documents JSON
+- Non, son objectif principal n est pas de remplacer une base transactionnelle relationnelle
+- Sa force principale: recherche pertinente, filtres rapides, aggregations et classement par score
+- Bon modele mental: base orientee recherche plutot que base orientee transactions
+
+---
+
+## Repere historique rapide
+
+- 2010: premiere version publique d Elasticsearch
+- 2012: creation d Elastic autour de l ecosysteme Elasticsearch
+- Aujourd hui: stack ELK tres utilisee pour search applicatif, observabilite et analyse de logs
+
+---
+
+## Pourquoi les entreprises l utilisent aujourd hui
+
+- Moteur de recherche produit (e commerce, catalogues, FAQ)
+- Observabilite (logs, traces, metriques) avec dashboards Kibana
+- Investigation securite (detection, correlation, analyse d evenements)
+- Recherche transverse dans des donnees heterogenes via une API unique
+
+---
+
+## Exemple metier concret
+
+Cas support client:
+
+- On indexe chaque ticket en document JSON (`titre`, `description`, `priorite`, `service`, `date`)
+- On cherche en full-text (`match` sur la description)
+- On filtre par contrainte metier (`term` sur service, `range` sur date)
+- On priorise les resultats par pertinence (`_score`) et urgence metier
+
+---
+
 ## Objectif du cours
 
 - Creer un index avec un mapping explicite
 - Inserer des donnees de demo reutilisables
 - Lire et expliquer le comportement des requetes
 - Comprendre les particularites moteur (analyse, score, filter context)
+
+---
+
+## Glossaire du module
+
+- <span class="glossary-term" data-definition="Moteur open-source de recherche plein texte qui sert de coeur interne a Elasticsearch.">Lucene</span>
+- <span class="glossary-term" data-definition="Structure de donnees qui mappe chaque terme vers la liste des documents qui le contiennent.">Index inverse</span>
+- <span class="glossary-term" data-definition="Phase d'analyse qui transforme un texte en tokens exploitables pour la recherche.">Tokenisation</span>
+- <span class="glossary-term" data-definition="Algorithme de scoring par defaut dans Elasticsearch pour classer les resultats par pertinence.">BM25</span>
+- <span class="glossary-term" data-definition="Contexte de requete qui calcule un score de pertinence pour chaque document.">Query context</span>
+- <span class="glossary-term" data-definition="Contexte de filtrage exact sans calcul de score, optimise pour la performance.">Filter context</span>
+- <span class="glossary-term" data-definition="Score de pertinence renvoye dans les hits Elasticsearch.">`_score`</span>
+- <span class="glossary-term" data-definition="Operation Elasticsearch qui rend visibles les documents indexes recemment.">Refresh (`_refresh`)</span>
+- <span class="glossary-term" data-definition="API d'indexation en masse au format NDJSON (ligne action + ligne document).">Bulk API (`_bulk`)</span>
+- <span class="glossary-term" data-definition="Aggregation qui groupe les documents par valeur exacte d'un champ keyword.">`terms` aggregation</span>
 
 ---
 
@@ -281,7 +342,6 @@ Repere theorique:
 - Impact des mappings sur le comportement des requetes
 
 Prochaine etape: appliquer exactement le meme schema sur un dataset plus grand.
-
         </textarea>
       </section>
     </div>
