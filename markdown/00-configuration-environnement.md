@@ -12,20 +12,6 @@
 
 ---
 
-## Glossaire du module
-
-- <span class="glossary-term" data-definition="Outil permettant de decrire et lancer plusieurs conteneurs Docker avec un fichier YAML unique.">Docker Compose</span>
-- <span class="glossary-term" data-definition="Composant applicatif declare dans docker-compose (ex: elasticsearch, kibana, logstash).">Service</span>
-- <span class="glossary-term" data-definition="Verification periodique de sante d'un conteneur pour savoir s'il est pret.">Healthcheck</span>
-- <span class="glossary-term" data-definition="Espace de stockage persistant monte dans un conteneur Docker.">Volume</span>
-- <span class="glossary-term" data-definition="Collection logique de documents dans Elasticsearch.">Index</span>
-- <span class="glossary-term" data-definition="API d'indexation en masse en format NDJSON (action + document).">Bulk API (`_bulk`)</span>
-- <span class="glossary-term" data-definition="Operation Elasticsearch qui force la visibilite des documents recemment indexes.">Refresh (`_refresh`)</span>
-- <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer.">Data View</span>
-- <span class="glossary-term" data-definition="Console Kibana pour executer des requetes Elasticsearch en DSL JSON.">Dev Tools</span>
-- <span class="glossary-term" data-definition="Vue Kibana pour explorer les documents et controler rapidement la qualite des donnees.">Discover</span>
-
----
 
 ## Fichier a connaitre
 

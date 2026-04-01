@@ -108,20 +108,6 @@ Cas support client:
 
 ---
 
-## Glossaire du module
-
-- <span class="glossary-term" data-definition="Moteur open-source de recherche plein texte qui sert de coeur interne a Elasticsearch.">Lucene</span>
-- <span class="glossary-term" data-definition="Structure de donnees qui mappe chaque terme vers la liste des documents qui le contiennent.">Index inverse</span>
-- <span class="glossary-term" data-definition="Phase d'analyse qui transforme un texte en tokens exploitables pour la recherche.">Tokenisation</span>
-- <span class="glossary-term" data-definition="Algorithme de scoring par defaut dans Elasticsearch pour classer les resultats par pertinence.">BM25</span>
-- <span class="glossary-term" data-definition="Contexte de requete qui calcule un score de pertinence pour chaque document.">Query context</span>
-- <span class="glossary-term" data-definition="Contexte de filtrage exact sans calcul de score, optimise pour la performance.">Filter context</span>
-- <span class="glossary-term" data-definition="Score de pertinence renvoye dans les hits Elasticsearch.">`_score`</span>
-- <span class="glossary-term" data-definition="Operation Elasticsearch qui rend visibles les documents indexes recemment.">Refresh (`_refresh`)</span>
-- <span class="glossary-term" data-definition="API d'indexation en masse au format NDJSON (ligne action + ligne document).">Bulk API (`_bulk`)</span>
-- <span class="glossary-term" data-definition="Aggregation qui groupe les documents par valeur exacte d'un champ keyword.">`terms` aggregation</span>
-
----
 
 ## Reperes theoriques indispensables (moteur)
 
@@ -131,6 +117,81 @@ Cas support client:
 - Le score de pertinence est base sur <span class="glossary-term" data-definition="Algorithme de ranking par defaut qui estime la pertinence d'un document pour une requete.">BM25</span>
 - `query` context calcule un score, `filter` context ne score pas et peut etre mis en cache
 - Le moteur est near-real-time: les docs deviennent visibles apres refresh
+
+---
+
+## Pourquoi l index inverse est le coeur d Elasticsearch
+
+Dans une base classique, on parcourt souvent les lignes pour trouver une valeur.
+
+Dans Elasticsearch, on construit plutot une structure:
+
+- terme -> liste des documents qui contiennent ce terme
+
+Cette structure s appelle l index inverse.
+
+---
+
+## Exemple concret (3 documents)
+
+Document `1`:
+
+- `text_entry`: "to be or not to be"
+
+Document `2`:
+
+- `text_entry`: "be brave and bold"
+
+Document `3`:
+
+- `text_entry`: "not today"
+
+---
+
+## A quoi ressemble l index inverse
+
+Representation simplifiee:
+
+- `to` -> [1]
+- `be` -> [1, 2]
+- `or` -> [1]
+- `not` -> [1, 3]
+- `brave` -> [2]
+- `bold` -> [2]
+- `today` -> [3]
+
+Idee cle:
+
+- Elasticsearch ne cherche pas d abord dans les documents
+- il cherche d abord dans la table des termes
+
+---
+
+## Ce qui se passe pendant une requete `match`
+
+Requete:
+
+```json
+{
+  "query": { "match": { "text_entry": "be not" } }
+}
+```
+
+Execution simplifiee:
+
+- la requete est analysee en tokens (`be`, `not`)
+- Elasticsearch lit rapidement les postings de l index inverse
+- il combine les listes de documents
+- il calcule un score de pertinence (`_score`)
+
+---
+
+## Pourquoi c est important pour la suite du cours
+
+- `text` + `match`: logique linguistique via index inverse
+- `keyword` + `term`: logique exacte via valeur brute
+- Un bon mapping decide comment chaque champ sera indexe
+- Donc la qualite de recherche depend d abord de l indexation, ensuite de la requete
 
 ---
 
@@ -163,6 +224,50 @@ Ce que fait le code:
 
 ---
 
+## Bulk API et NDJSON, c est quoi exactement
+
+`_bulk` permet d envoyer plusieurs operations en une seule requete HTTP.
+
+Le corps n est pas un JSON unique.
+C est du NDJSON (Newline Delimited JSON):
+
+- 1 ligne JSON pour l action (`index`, `create`, `update`, `delete`)
+- 1 ligne JSON pour la source du document (sauf `delete`)
+- puis on recommence pour chaque document
+
+---
+
+## Structure minimale attendue par `_bulk`
+
+```ndjson
+{"index":{"_index":"catalogue_demo","_id":"1"}}
+{"title":"Casque audio bluetooth","brand":"Acme"}
+{"index":{"_index":"catalogue_demo","_id":"2"}}
+{"title":"Ecouteurs sport","brand":"Acme"}
+```
+
+Points obligatoires:
+
+- header `Content-Type: application/x-ndjson`
+- un retour a la ligne entre chaque objet
+- une fin de fichier terminee par newline
+
+---
+
+## Pourquoi utiliser Bulk en pratique
+
+- beaucoup plus rapide que 1 requete HTTP par document
+- moins de surcharge reseau
+- format standard pour charger un dataset de cours ou de preproduction
+
+Erreurs frequentes:
+
+- envoyer un tableau JSON `[{...},{...}]` au lieu de NDJSON
+- oublier la ligne d action avant un document
+- utiliser `application/json` au lieu de `application/x-ndjson`
+
+---
+
 ## Inserer des donnees d'exemple (bulk NDJSON)
 
 ```bash
@@ -188,7 +293,68 @@ Ce que fait le code:
 
 ---
 
-## Recherche full-text avec `match`
+## Recherche plein texte: ce que cela veut dire
+
+Une recherche plein texte ne cherche pas une chaine exacte caractere par caractere.
+
+Elle cherche des termes et leur pertinence dans du langage naturel.
+
+Exemple intention utilisateur:
+
+- "casque bluetooth"
+- "casque sans fil"
+- "bluetooth filaire" (requete imparfaite)
+
+Le moteur doit quand meme retrouver les documents les plus proches de l intention.
+
+---
+
+## Comment Elasticsearch traite une recherche plein texte
+
+Pipeline simplifie:
+
+- analyser le texte indexe (au moment de l indexation)
+- analyser la requete utilisateur (au moment de la recherche)
+- comparer les tokens dans l index inverse
+- classer les hits par `_score`
+
+Donc la recherche plein texte depend a la fois:
+
+- du mapping (`text`)
+- de l analyse linguistique
+- de la requete (`match`, `multi_match`, etc.)
+
+---
+
+## Voir concretement les tokens avec `_analyze`
+
+```bash
+curl -X GET "http://localhost:9200/catalogue_demo/_analyze?pretty" -H "Content-Type: application/json" -d '{
+  "field": "description",
+  "text": "Casque sans fil bluetooth"
+}'
+```
+
+Ce test montre la representation interne du texte en tokens.
+Ces tokens sont la base reelle du matching full-text.
+
+---
+
+## Plein texte vs recherche exacte
+
+- plein texte: champ `text` + requete `match`
+- recherche exacte: champ `keyword` + requete `term`
+
+Regle pratique:
+
+- si vous cherchez une idee dans une phrase -> `match`
+- si vous cherchez une valeur exacte (marque, code, statut) -> `term`
+
+---
+
+## Recherche full-text avec `match`: pas a pas
+
+Requete de base:
 
 ```bash
 curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
@@ -196,14 +362,114 @@ curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Ty
 }'
 ```
 
-Ce que fait le code:
-- Analyse la requete texte (`bluetooth`, `sans`, `fil`)
-- Compare les tokens au contenu du champ `description`
-- Retourne des documents tries par `_score`
+---
 
-Repere theorique:
-- `match` depend de l'analyseur du champ `text`
-- Ce n'est pas un match exact caractere par caractere
+## Ce que fait `match` en interne
+
+`match` ne compare pas une phrase brute.
+Le moteur suit ce pipeline:
+
+- il analyse la requete (`bluetooth`, `sans`, `fil`)
+- il lit l index inverse du champ `description`
+- il retrouve les documents qui contiennent ces termes
+- il calcule un `_score` de pertinence (BM25)
+
+Conclusion:
+
+- `match` = recherche linguistique, pas egalite stricte
+
+---
+
+## Resultat attendu sur nos 3 documents
+
+Avec les donnees de demo:
+
+- doc 1 (`Casque sans fil reduction de bruit`) matche fort
+- doc 2 (`Ecouteurs bluetooth etanche`) peut matcher partiellement
+- doc 3 (clavier gaming) ne match pas
+
+Pourquoi:
+
+- par defaut, `match` utilise une logique OR (au moins un terme)
+- plus il y a de termes utiles, plus le score monte
+
+---
+
+## Notion de score (`_score`): comment l interpreter
+
+`_score` represente la pertinence estimee d un document pour la requete courante.
+
+Important:
+
+- ce n est pas un pourcentage
+- ce n est pas une note metier absolue
+- c est surtout une valeur relative pour trier les hits d une meme requete
+
+---
+
+## Pourquoi un document a un meilleur `_score`
+
+BM25 favorise en general:
+
+- un document qui contient plus de termes de la requete
+- des termes plus discriminants dans le corpus
+- une bonne densite de termes utiles dans le champ
+
+Exemple d interpretation:
+
+- doc A: `_score = 2.9` (deux termes tres pertinents)
+- doc B: `_score = 1.4` (un seul terme faible)
+
+Ici A est classe avant B pour cette requete, sur cet index.
+
+---
+
+## Rendre la recherche plus stricte
+
+Option 1: tous les termes doivent etre presents (`operator: and`)
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "match": {
+      "description": {
+        "query": "bluetooth sans fil",
+        "operator": "and"
+      }
+    }
+  }
+}
+```
+
+Option 2: compromis avec `minimum_should_match`
+
+```json
+GET catalogue_demo/_search
+{
+  "query": {
+    "match": {
+      "description": {
+        "query": "bluetooth sans fil",
+        "minimum_should_match": "2"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Comment lire la reponse `match`
+
+- `hits.total.value`: combien de documents correspondent
+- `hits.hits[*]._score`: ordre de pertinence
+- `hits.hits[*]._source.description`: texte qui a vraiment matche
+
+Reflexe de debug:
+
+- si trop de bruit, rendre la requete plus stricte (`operator`, `minimum_should_match`)
+- si zero resultat, verifier l analyseur et le contenu reel du champ
 
 ---
 
@@ -330,18 +596,6 @@ Repere theorique:
 - `took`: temps d'execution cote moteur (ms)
 
 ---
-
-## Recap operationnel
-
-- Tu as un jeu de donnees exemple pret a reutiliser
-- Tu sais lancer les requetes de base et lire ce qu'elles font
-- Tu sais expliquer les specificites du moteur
-- Analyse textuelle
-- Scoring <span class="glossary-term" data-definition="Mecanisme de calcul du score de pertinence par defaut dans Elasticsearch.">BM25</span>
-- Difference `must` vs `filter`
-- Impact des mappings sur le comportement des requetes
-
-Prochaine etape: appliquer exactement le meme schema sur un dataset plus grand.
         </textarea>
       </section>
     </div>

@@ -289,7 +289,7 @@ POST _reindex
 
     <article class="exo">
       <h3>1) Creer l'index <code>shakespeare</code> avec un mapping explicite</h3>
-      <p class="hint">Objectif: verifier que tu sais preparer un schema propre avant ingestion (types numeriques, keyword et text).</p>
+      <p class="hint">Objectif: verifier que vous savez preparer un schema propre avant ingestion (types numeriques, keyword et text).</p>
       <p class="expect">Resultat attendu: l'index existe et le mapping contient bien les 6 champs du cours.</p>
       <details><summary>Voir la solution</summary><pre><code>curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
   "mappings": {
