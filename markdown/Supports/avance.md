@@ -1,5 +1,5 @@
 
-# Cours Elasticsearch (Synthèse Structurée)
+# Analyseur et 
 
 ## Plan
 
@@ -12,7 +12,7 @@
 
 ## 1) Analyseurs personnalisés
 
-Voici un **exemple d’analyseur personnalisé (ad hoc)** dans Elasticsearch pour bien comprendre comment on construit le sien.
+Voici un **exemple d'analyseur personnalisé (ad hoc)** dans Elasticsearch pour bien comprendre comment on construit le sien.
 
 ---
 
@@ -33,9 +33,9 @@ tokenizer → lowercase → stop → asciifolding → stemmer
 
 ---
 
-### 1. Définition de l’analyzer
+### 1. Définition de l'analyzer
 
-On doit le définir **dans les settings de l’index** :
+On doit le définir **dans les settings de l'index** :
 
 ```json
 PUT mon_index
@@ -71,7 +71,7 @@ PUT mon_index
 
 ---
 
-### 2. Tester l’analyzer
+### Tester l'analyzer
 
 ```json
 GET mon_index/_analyze
@@ -99,11 +99,11 @@ On a :
 
 ---
 
-### 3. Cas concret où c’est utile
+### Cas concret où c'est utile
 
 Par exemple pour un moteur de recherche de formation :
 
-Si quelqu’un cherche :
+Si quelqu'un cherche :
 
 ```
 etudier universite
@@ -117,11 +117,11 @@ Les étudiants mangent à l'université
 
 Même si les mots ne sont pas exactement les mêmes.
 
-C’est ça la puissance du full-text.
+C'est ça la puissance du full-text.
 
 ---
 
-### 4. Autre exemple d’analyzer ad hoc (produits e-commerce)
+### Autre exemple d'analyzer ad hoc (produits e-commerce)
 
 On veut :
 
@@ -161,7 +161,7 @@ Très utile pour recherche produit.
 
 ---
 
-### 5. Structure générale d’un analyzer custom
+### Structure générale d'un analyzer custom
 
 Toujours cette structure :
 
@@ -183,7 +183,7 @@ Toujours cette structure :
 
 ---
 
-### 6. Les tokenizers les plus utilisés
+### Les tokenizers les plus utilisés
 
 | Tokenizer  | Rôle                        |
 | ---------- | --------------------------- |
@@ -195,7 +195,7 @@ Toujours cette structure :
 
 ---
 
-### 7. Exemple autocomplete (très classique)
+###  Exemple autocomplete (très classique)
 
 ```json
 "tokenizer": {
@@ -228,15 +228,11 @@ ordina
 Un analyzer custom =
 **tokenizer + filtres** pour adapter la recherche à ton métier.
 
-C’est exactement comme un **pipeline de traitement de texte**.
-
-
+C'est exactement comme un **pipeline de traitement de texte**.
 
 ## 2) Cas Pratique Complet : Base De Films (Analyse Et Recherche)
 
-Oui. Voici un **exemple complet** autour d’une base de films, avec un analyseur pensé pour ce contexte.
-
-L’idée métier est simple : dans un catalogue de films, les utilisateurs tapent souvent des requêtes comme :
+L'idée métier est simple : dans un catalogue de films, les utilisateurs tapent souvent des requêtes comme :
 
 * `amelie`
 * `seigneur anneaux`
@@ -249,9 +245,9 @@ On veut donc un analyseur qui :
 * mette en minuscules,
 * enlève les accents avec `asciifolding`,
 * supprime les mots vides avec `stop`,
-* gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l’API `_analyze` sert à inspecter les tokens produits. ([Elastic][1])
+* gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l'API `_analyze` sert à inspecter les tokens produits. ([Elastic][1])
 
-#### 1. Création de l’index
+#### Création de l'index
 
 ```json
 PUT films
@@ -326,7 +322,7 @@ PUT films
 
 ---
 
-#### 2. Insertion d’un petit jeu de données
+#### 2. Insertion d'un petit jeu de données
 
 ```json
 POST films/_bulk
@@ -344,7 +340,7 @@ POST films/_bulk
 
 ---
 
-#### 3. Vérifier le comportement de l’analyseur
+#### 3. Vérifier le comportement de l'analyseur
 
 ```json
 GET films/_analyze
@@ -354,7 +350,7 @@ GET films/_analyze
 }
 ```
 
-Avec cet analyseur, on s’attend à obtenir des tokens proches de :
+Avec cet analyseur, on s'attend à obtenir des tokens proches de :
 
 ```text
 fabuleux
@@ -366,7 +362,7 @@ poulain
 Ici :
 
 * `Le` disparaît comme stop word,
-* `Amélie` devient `amelie` grâce à `asciifolding`. L’API `_analyze` est précisément faite pour visualiser ce type de transformation. ([Elastic][4])
+* `Amélie` devient `amelie` grâce à `asciifolding`. L'API `_analyze` est précisément faite pour visualiser ce type de transformation. ([Elastic][4])
 
 ---
 
@@ -383,7 +379,7 @@ GET films/_search
 }
 ```
 
-Cette requête peut retrouver **Le Fabuleux Destin d'Amélie Poulain** même si l’utilisateur tape sans accent, car le texte indexé et la requête sont tous deux analysés. La logique d’analyse s’applique au moment de l’indexation et peut aussi être testée côté requête via l’analyseur. ([Elastic][1])
+Cette requête peut retrouver **Le Fabuleux Destin d'Amélie Poulain** même si l'utilisateur tape sans accent, car le texte indexé et la requête sont tous deux analysés. La logique d'analyse s'applique au moment de l'indexation et peut aussi être testée côté requête via l'analyseur. ([Elastic][1])
 
 ---
 
@@ -411,11 +407,11 @@ GET films/_search
 
 ##### Ce qui se passe
 
-* `film` peut avoir peu d’impact s’il n’est pas présent,
+* `film` peut avoir peu d'impact s'il n'est pas présent,
 * `sci fi` est rapproché de `science fiction` via les synonymes,
-* `espace` matche bien le résumé d’**Interstellar**.
+* `espace` matche bien le résumé d'**Interstellar**.
 
-Donc ce type d’analyseur améliore la recherche en collant au vocabulaire réel des utilisateurs.
+Donc ce type d'analyseur améliore la recherche en collant au vocabulaire réel des utilisateurs.
 
 ---
 
@@ -439,13 +435,13 @@ Ici, on mélange :
 * un genre,
 * un réalisateur.
 
-C’est un bon cas d’usage full-text.
+C'est un bon cas d'usage full-text.
 
 ---
 
 #### 7. Variante utile : autocomplétion sur le titre
 
-Pour une vraie base de films, on ajoute souvent un second champ pour l’autocomplete. Par exemple :
+Pour une vraie base de films, on ajoute souvent un second champ pour l'autocomplete. Par exemple :
 
 ```json
 PUT films_autocomplete
@@ -478,7 +474,7 @@ PUT films_autocomplete
 
 #### 8. Ce que ce design vous apprend
 
-Dans cet exemple, l’analyseur n’est pas “linguistiquement parfait”, mais il est **cohérent métier** :
+Dans cet exemple, l'analyseur n'est pas “linguistiquement parfait”, mais il est **cohérent métier** :
 
 * base films francophone,
 * titres avec accents,
@@ -486,7 +482,7 @@ Dans cet exemple, l’analyseur n’est pas “linguistiquement parfait”, mais
 * synonymes de genres,
 * recherche sur plusieurs champs.
 
-Autrement dit, un bon analyseur n’est pas seulement “technique”, il doit refléter **la manière dont les utilisateurs cherchent**.
+Autrement dit, un bon analyseur n'est pas seulement “technique”, il doit refléter **la manière dont les utilisateurs cherchent**.
 
 #### 9. Version pédagogique ultra claire
 
@@ -504,7 +500,7 @@ Pipeline de notre analyseur :
 → ["fabuleux","destin","amelie","poulain"]
 ```
 
-C’est exactement l’idée d’un analyseur custom dans Elasticsearch : construire sa propre chaîne de traitement à partir d’un tokenizer et de filtres adaptés. ([Elastic][1])
+C'est exactement l'idée d'un analyseur custom dans Elasticsearch : construire sa propre chaîne de traitement à partir d'un tokenizer et de filtres adaptés. ([Elastic][1])
 
 Je peux aussi vous donner la **version avec `completion suggester`** ou une **version pédagogique minimale pour un cours avec seulement `title` + `summary`**.
 
@@ -516,9 +512,9 @@ Je peux aussi vous donner la **version avec `completion suggester`** ou une **ve
 
 ## 3) Requête Complexe Imbriquée (Function_score + Bool + Nested)
 
-Oui. En partant de la base **films**, voici une **query complexe**, réaliste, avec plusieurs niveaux d’imbrication.
+Oui. En partant de la base **films**, voici une **query complexe**, réaliste, avec plusieurs niveaux d'imbrication.
 
-Je vais supposer que l’index contient au moins ces champs :
+Je vais supposer que l'index contient au moins ces champs :
 
 * `title`, `summary`, `genres`, `director` en `text`
 * `year`, `rating`, `popularity` en numériques
@@ -532,7 +528,7 @@ Je vais supposer que l’index contient au moins ces champs :
   * `streaming_offers.price`
   * `streaming_offers.country`
 
-Le point important est que `nested` sert à interroger des objets imbriqués comme s’ils étaient indexés séparément, tout en renvoyant le document parent. Le `bool` permet ensuite de combiner des clauses `must`, `should`, `filter` et `must_not`. Enfin, `function_score` permet de modifier le score final d’un document déjà trouvé. ([Elastic][1])
+Le point important est que `nested` sert à interroger des objets imbriqués comme s'ils étaient indexés séparément, tout en renvoyant le document parent. Le `bool` permet ensuite de combiner des clauses `must`, `should`, `filter` et `must_not`. Enfin, `function_score` permet de modifier le score final d'un document déjà trouvé. ([Elastic][1])
 
 #### Exemple de besoin métier
 
@@ -729,17 +725,17 @@ GET films/_search
 
 ##### Niveau 1 : `function_score`
 
-C’est l’enveloppe externe.
+C'est l'enveloppe externe.
 Elle prend une query normale, puis **augmente ou ajuste le score** avec des fonctions. Ici :
 
 * on ajoute un bonus selon `popularity`
 * on ajoute un bonus fixe si le réalisateur est `Christopher Nolan`
 
-C’est exactement le rôle de `function_score`. ([Elastic][2])
+C'est exactement le rôle de `function_score`. ([Elastic][2])
 
 ##### Niveau 2 : `bool`
 
-À l’intérieur, on a un gros `bool`, qui combine plusieurs familles de contraintes :
+À l'intérieur, on a un gros `bool`, qui combine plusieurs familles de contraintes :
 
 * `must` : indispensable
 * `filter` : indispensable mais sans effet sur le score
@@ -770,7 +766,7 @@ Ici, on veut une vraie recherche full-text sur plusieurs champs :
 
 Dans `filter`, il y a déjà plusieurs niveaux :
 
-* `range` sur l’année
+* `range` sur l'année
 * `range` sur la note
 * un `bool` avec `should` pour exiger au moins un genre parmi `science fiction` ou `fantasy`
 
@@ -808,7 +804,7 @@ On filtre ensuite sur les offres de streaming :
 }
 ```
 
-C’est un vrai cas d’usage de `nested` : on veut s’assurer que **la même offre imbriquée** vérifie à la fois :
+C'est un vrai cas d'usage de `nested` : on veut s'assurer que **la même offre imbriquée** vérifie à la fois :
 
 * plateforme = Netflix ou Prime Video
 * pays = FR
@@ -838,7 +834,7 @@ On ajoute ensuite un bonus si un acteur ou un rôle dans `cast` correspond :
 }
 ```
 
-Cela ne rend pas le document obligatoire, mais améliore son score s’il contient ce type d’information dans un objet `cast`. `nested` permet bien ce ciblage sur des sous-documents imbriqués. ([Elastic][1])
+Cela ne rend pas le document obligatoire, mais améliore son score s'il contient ce type d'information dans un objet `cast`. `nested` permet bien ce ciblage sur des sous-documents imbriqués. ([Elastic][1])
 
 ---
 
@@ -847,12 +843,12 @@ Cela ne rend pas le document obligatoire, mais améliore son score s’il contie
 Elle dit en substance :
 
 > Cherche des films qui correspondent textuellement à “science fiction espace voyage temporel”, sortis après 2000, notés au moins 7.5, appartenant à la science-fiction ou à la fantasy, disponibles en France sur Netflix ou Prime pour un prix ≤ 15.
-> Exclue les films d’horreur.
+> Exclue les films d'horreur.
 > Donne un bonus si le casting contient Matthew McConaughey ou un rôle de type wizard, si le résumé contient certaines expressions, si le film est populaire, et encore plus si le réalisateur est Christopher Nolan.
 
 ---
 
-#### Pourquoi c’est un bon exemple pédagogique
+#### Pourquoi c'est un bon exemple pédagogique
 
 Cette query montre bien :
 
@@ -997,11 +993,11 @@ Donc :
 * Niveau 3 : `nested`
 * Niveau 4 : `match`
 
-→ Ça, c’est déjà une requête imbriquée.
+→ Ça, c'est déjà une requête imbriquée.
 
 ---
 
-### Exemple avec 2 niveaux d’imbrication
+### Exemple avec 2 niveaux d'imbrication
 
 On veut :
 
@@ -1052,9 +1048,9 @@ query
 
 Et on peut mettre **bool dans bool**, **nested dans bool**, **bool dans nested**, etc.
 
-C’est ça une requête imbriquée :
+C'est ça une requête imbriquée :
 
-> une requête qui contient d’autres requêtes à l’intérieur.
+> une requête qui contient d'autres requêtes à l'intérieur.
 
 ---
 
@@ -1247,7 +1243,7 @@ Oui. Voici un **exemple simple mais crédible** de pipeline Logstash pour ingér
 * un fichier CSV pour le catalogue principal,
 * un fichier JSON Lines pour les notes critiques.
 
-L’intérêt pédagogique est de montrer que Logstash sait **lire**, **parser**, **transformer**, puis **envoyer** les documents vers Elasticsearch à l’aide de plugins d’input, de filter et d’output. Le `file` input garde aussi une position de lecture via `sincedb`, le filtre `csv` sait mapper des colonnes, `mutate` sert à renommer/convertir des champs, et `fingerprint` permet de produire un identifiant stable pour éviter les doublons. ([Elastic][1])
+L'intérêt pédagogique est de montrer que Logstash sait **lire**, **parser**, **transformer**, puis **envoyer** les documents vers Elasticsearch à l'aide de plugins d'input, de filter et d'output. Le `file` input garde aussi une position de lecture via `sincedb`, le filtre `csv` sait mapper des colonnes, `mutate` sert à renommer/convertir des champs, et `fingerprint` permet de produire un identifiant stable pour éviter les doublons. ([Elastic][1])
 
 #### 1. Sources fictives
 
@@ -1272,7 +1268,7 @@ film_id,title,year,director,genres,summary
 
 #### 2. Premier pipeline : catalogue CSV → Elasticsearch
 
-Ici, on lit le CSV, on parse les colonnes, on convertit quelques types, on découpe `genres`, puis on écrit dans l’index `films`. Le `file` input peut relire depuis le début avec `start_position => "beginning"` lors d’un premier chargement, tandis que `sincedb` mémorise la progression de lecture. Le filtre `csv` accepte une liste de colonnes et le filtre `mutate` sert aux transformations générales. ([Elastic][1])
+Ici, on lit le CSV, on parse les colonnes, on convertit quelques types, on découpe `genres`, puis on écrit dans l'index `films`. Le `file` input peut relire depuis le début avec `start_position => "beginning"` lors d'un premier chargement, tandis que `sincedb` mémorise la progression de lecture. Le filtre `csv` accepte une liste de colonnes et le filtre `mutate` sert aux transformations générales. ([Elastic][1])
 
 ##### `pipelines/films_catalog.conf`
 
@@ -1322,8 +1318,8 @@ output {
 
 ##### Ce que fait ce pipeline
 
-* `file` lit le fichier CSV ligne par ligne. Logstash conserve la position de lecture dans un fichier `sincedb`, ce qui évite de repartir de zéro à chaque redémarrage, sauf si l’on réinitialise cet état. ([Elastic][1])
-* `csv` transforme chaque ligne en champs nommés. `skip_header` permet de gérer l’en-tête quand les colonnes sont connues. ([Elastic][2])
+* `file` lit le fichier CSV ligne par ligne. Logstash conserve la position de lecture dans un fichier `sincedb`, ce qui évite de repartir de zéro à chaque redémarrage, sauf si l'on réinitialise cet état. ([Elastic][1])
+* `csv` transforme chaque ligne en champs nommés. `skip_header` permet de gérer l'en-tête quand les colonnes sont connues. ([Elastic][2])
 * `mutate` convertit `film_id` et `year` en entiers et découpe `genres` en tableau. `mutate` est précisément prévu pour renommer, remplacer et modifier des champs. ([Elastic][3])
 * `fingerprint` crée un hash stable à partir de `film_id`, ce qui est utile pour fournir un `document_id` cohérent dans Elasticsearch et donc remplacer un document existant au lieu de créer un doublon. ([Elastic][4])
 
@@ -1331,7 +1327,7 @@ output {
 
 #### 3. Deuxième pipeline : notes JSON Lines → Elasticsearch
 
-On lit maintenant une seconde source, déjà structurée en JSON. On l’envoie dans un index séparé `films_ratings`. Cela permet ensuite de faire des enrichissements plus tard, ou simplement de montrer qu’on peut ingérer plusieurs flux distincts. Le `file` input fonctionne aussi pour ce type de source, avec la même logique de suivi de position. ([Elastic][1])
+On lit maintenant une seconde source, déjà structurée en JSON. On l'envoie dans un index séparé `films_ratings`. Cela permet ensuite de faire des enrichissements plus tard, ou simplement de montrer qu'on peut ingérer plusieurs flux distincts. Le `file` input fonctionne aussi pour ce type de source, avec la même logique de suivi de position. ([Elastic][1])
 
 ##### `pipelines/films_ratings.conf`
 
@@ -1375,20 +1371,20 @@ output {
 
 ---
 
-#### 4. Pourquoi faire deux index au lieu d’un seul
+#### 4. Pourquoi faire deux index au lieu d'un seul
 
-Pour un cours, c’est utile parce que cela montre deux idées :
+Pour un cours, c'est utile parce que cela montre deux idées :
 
 * **ingestion brute de plusieurs sources**,
 * **séparation des domaines de données**.
 
-Le catalogue et les notes n’ont pas forcément le même rythme de mise à jour. Garder deux pipelines et deux index simplifie souvent les premières démonstrations. Ensuite, si besoin, on enrichit en amont ou on consolide côté Elasticsearch.
+Le catalogue et les notes n'ont pas forcément le même rythme de mise à jour. Garder deux pipelines et deux index simplifie souvent les premières démonstrations. Ensuite, si besoin, on enrichit en amont ou on consolide côté Elasticsearch.
 
 ---
 
 #### 5. Variante plus réaliste : mise à jour du même index
 
-Si vous voulez que le fichier des notes **mette à jour** le même document film, il faut utiliser un `document_id` cohérent et un `action => "update"` avec `doc_as_upsert => true`. L’idée générale est la suivante : avec un identifiant stable, Elasticsearch peut remplacer ou mettre à jour le document correspondant ; sans identifiant explicite, Elasticsearch génère un `_id` et vous créez des doublons. Les docs et la documentation du filtre `fingerprint` décrivent précisément cet usage. ([Elastic][4])
+Si vous voulez que le fichier des notes **mette à jour** le même document film, il faut utiliser un `document_id` cohérent et un `action => "update"` avec `doc_as_upsert => true`. L'idée générale est la suivante : avec un identifiant stable, Elasticsearch peut remplacer ou mettre à jour le document correspondant ; sans identifiant explicite, Elasticsearch génère un `_id` et vous créez des doublons. Les docs et la documentation du filtre `fingerprint` décrivent précisément cet usage. ([Elastic][4])
 
 Exemple de sortie pour le pipeline des notes :
 
@@ -1420,7 +1416,7 @@ bin/logstash -f pipelines/films_catalog.conf
 bin/logstash -f pipelines/films_ratings.conf
 ```
 
-Si vous rejouez souvent vos fichiers pour des démonstrations, il faut penser au `sincedb` du `file` input, car Logstash mémorise où il s’est arrêté. Réinitialiser ou supprimer ce fichier permet de relire la source depuis le début. ([Elastic][1])
+Si vous rejouez souvent vos fichiers pour des démonstrations, il faut penser au `sincedb` du `file` input, car Logstash mémorise où il s'est arrêté. Réinitialiser ou supprimer ce fichier permet de relire la source depuis le début. ([Elastic][1])
 
 ---
 
@@ -1470,7 +1466,7 @@ filters (csv / mutate / fingerprint)
 output elasticsearch
 ```
 
-C’est exactement le rôle de Logstash : **ingérer**, **transformer**, **router**. Les plugins sont faits pour être combinés de cette manière dans un pipeline. ([Elastic][3])
+C'est exactement le rôle de Logstash : **ingérer**, **transformer**, **router**. Les plugins sont faits pour être combinés de cette manière dans un pipeline. ([Elastic][3])
 
 #### 9. Ce que je vous conseillerais pour un cours
 
