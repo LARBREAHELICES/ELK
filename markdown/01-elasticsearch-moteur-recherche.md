@@ -134,6 +134,8 @@ PUT shakespeare/_doc/3
 
 Chaque ligne = **un document JSON**.
 
+---
+
 ## Exercice
 
 1. Pour ces 3 exemples, créez l'index et les documents dans `Elasticksearch` dans Jupyter.
@@ -154,6 +156,8 @@ GET shakespeare/_doc/1
 ```json
 GET shakespeare/_search
 ```
+
+---
 
 | Action           | Requête           |
 | ---------------- | ----------------- |
@@ -183,6 +187,8 @@ Pour les champs `text`, Elasticsearch applique :
 ```text
 Tokenizer + Filtres = Analyzer
 ```
+
+---
 
 ### Exemple
 
@@ -229,6 +235,8 @@ C'est **l'index inversé** :
 > mot → documents
 
 C'est ce qui permet la recherche rapide. 
+
+---
 
 ## Application 
 
@@ -291,6 +299,8 @@ Documents trouvés
 ```
 
 Une requête match passe par l'analyzer puis utilise l'index inversé pour retrouver les documents.
+
+---
 
 ## Recherche exacte (filtre)
 

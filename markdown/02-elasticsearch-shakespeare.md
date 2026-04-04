@@ -52,6 +52,8 @@ Ici Elasticsearch cherche le mot **question** dans le texte.
 6. Il calcule le score
 7. Il renvoie les résultats
 
+---
+
 ## Exercice 
 
 L'objectif de cet exercice est de comprendre pourquoi Elasticsearch utilise des tokens et pourquoi la requête match est adaptée pour la recherche dans du texte.
@@ -60,6 +62,8 @@ L'objectif de cet exercice est de comprendre pourquoi Elasticsearch utilise des 
 1. Utilisez la commande _analyze pour voir les tokens générés pour la phrase: `To be or not to be`
 1. Faites une recherche avec `match` puis avec `term` et comparer.
 1. Concluez 
+
+---
 
 Remarque sur les méthodes d'ajout
 
@@ -178,6 +182,8 @@ speaker = HAMLET
 OR speaker = OTHELLO
 ```
 
+---
+
 
 `minimum_should_match` indique combien de conditions should doivent être vraies pour que le document soit accepté.
 minimum_should_match: 1 signifie qu'au moins une des conditions doit être vraie.
@@ -200,6 +206,8 @@ On peut mettre `0` augmente le score si on a un match.
   }
 }
 ```
+
+---
 
 - Image mentale
 
@@ -338,6 +346,8 @@ GET shakespeare/_search
 }
 ```
 
+---
+
 Traduction :
 
 ```text
@@ -445,4 +455,3 @@ Exercices à donner :
 
 
 ---
-
