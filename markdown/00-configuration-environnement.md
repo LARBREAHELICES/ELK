@@ -1,158 +1,161 @@
-# Module 0 - Configuration de l'environnement ELK
-## Installation locale et test de bout en bout
-
----
+#  Elasticsearch + Jupyter avec Docker
 
 ## Objectif
 
-- Lancer la stack locale avec Docker Compose
-- Comprendre clairement le role de chaque service
-- Inserer des donnees dans Elasticsearch
-- Verifier les donnees dans Dev Tools et dans Discover
+Nous voulons :
 
----
+- Elasticsearch (base de recherche)
+- Kibana (interface graphique)
+- Jupyter (Python pour faire des requêtes)
 
+Architecture :
 
-## Fichier a connaitre
-
-Chemin:
-
-```bash
-sandbox/docker-compose.yml
+```text
+Jupyter → HTTP → Elasticsearch → données
+                    ↓
+                  Kibana
 ```
 
-Services de la stack:
-
-- `elasticsearch` (port 9200): moteur de recherche
-- `kibana` (port 5601): interface d'exploration et visualisation
-- `postgres` (port 5432): base relationnelle pour le fil rouge
-- `logstash` (port 9600): pipeline d'ingestion/transform
-- `jupyter` (port 8888): notebooks de demo
-
 ---
 
-## Lecture guidee de docker-compose
+# Récupérer le docker compose 
 
-Points importants dans `sandbox/docker-compose.yml`:
+Installer Docker Desktop (si non présent sur vos machines)
 
-- `discovery.type=single-node`: mode local mono-noeud
-- `xpack.security.enabled=false`: pas d'authentification en local
-- `depends_on ... condition: service_healthy`: ordre de demarrage fiable
-- `healthcheck`: verification automatique de disponibilite
-- `volumes`: persistance (`es_data`, `postgres_data`)
+* [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
 
----
-
-## Demarrage de l'environnement
+Vérifier :
 
 ```bash
-cd sandbox
+docker --version
+docker compose version
+```
+
+---
+
+# Fichier docker-compose.yml
+
+Placez dans `sandbox`
+
+# Démarrer les conteneurs
+
+```bash
 docker compose up -d
 ```
 
-Verifier l'etat:
+Vérifier :
 
 ```bash
-docker compose ps
+docker ps
 ```
 
-Arret propre:
+Vous devez voir :
 
-```bash
-docker compose down
+| Service       | URL                                            |
+| ------------- | ---------------------------------------------- |
+| Elasticsearch | [http://localhost:9200](http://localhost:9200) |
+| Kibana        | [http://localhost:5601](http://localhost:5601) |
+| Jupyter       | [http://localhost:8888](http://localhost:8888) |
+
+---
+
+# Tester Elasticsearch
+
+Dans un navigateur :
+
+```text
+http://localhost:9200
+```
+
+Vous devez voir un JSON.
+
+---
+
+#  Accéder à Jupyter
+
+Dans un navigateur :
+
+```text
+http://localhost:8888
+```
+
+Copier le token dans le terminal Docker.
+
+---
+
+# Depuis Jupyter, se connecter à Elasticsearch
+
+Très important :
+
+Comme Jupyter est dans Docker, il faut utiliser le nom du service :
+
+```python
+import requests
+
+url = "http://elasticsearch:9200"
+
+response = requests.get(url)
+print(response.text)
 ```
 
 ---
 
-## Checks rapides de sante
+# Exemple de requête depuis Jupyter
 
-Elasticsearch:
+```python
+import requests
+import json
 
-```bash
-curl http://localhost:9200
-curl "http://localhost:9200/_cluster/health?pretty"
-```
+url = "http://elasticsearch:9200/shakespeare/_search"
 
-Kibana:
-
-```bash
-curl http://localhost:5601/api/status
-```
-
-Si les endpoints repondent, l'environnement est operationnel.
-
----
-
-## Test 1 - Creer un index de test
-
-```bash
-curl -X PUT "http://localhost:9200/demo_env" -H "Content-Type: application/json" -d '{
-  "mappings": {
-    "properties": {
-      "app": { "type": "keyword" },
-      "level": { "type": "keyword" },
-      "message": { "type": "text" },
-      "created_at": { "type": "date" }
+query = {
+    "query": {
+        "match_all": {}
     }
-  }
-}'
-```
-
----
-
-## Test 2 - Inserer des donnees
-
-```bash
-curl -X POST "http://localhost:9200/demo_env/_bulk" -H "Content-Type: application/x-ndjson" -d '
-{"index":{"_id":"1"}}
-{"app":"api-gateway","level":"INFO","message":"Service demarre","created_at":"2026-03-31T09:00:00Z"}
-{"index":{"_id":"2"}}
-{"app":"api-gateway","level":"WARN","message":"Latence elevee sur endpoint /search","created_at":"2026-03-31T09:05:00Z"}
-{"index":{"_id":"3"}}
-{"app":"worker-sync","level":"ERROR","message":"Timeout base externe","created_at":"2026-03-31T09:07:00Z"}
-'
-
-curl -X POST "http://localhost:9200/demo_env/_refresh"
-curl "http://localhost:9200/demo_env/_count?pretty"
-```
-
-Resultat attendu: `count` = `3`.
-
----
-
-## Ou retrouver ces donnees - Dev Tools
-
-1. Ouvrir Kibana: `http://localhost:5601`
-2. Menu gauche -> **<span class="glossary-term" data-definition="Console integree de Kibana pour executer des requetes Elasticsearch en DSL JSON.">Dev Tools</span>**
-3. Executer:
-
-```http
-GET demo_env/_search
-{
-  "sort": [{"created_at": "desc"}]
 }
+
+response = requests.get(url, json=query)
+print(json.dumps(response.json(), indent=2))
 ```
 
-![Repere Dev Tools](assets/images/env-dev-tools.svg)
+---
+
+# Schéma réseau Docker
+
+```text
+Conteneur Jupyter
+        ↓
+http://elasticsearch:9200
+        ↓
+Conteneur Elasticsearch
+```
+
+Important :
+
+| Depuis              | URL                |
+| ------------------- | ------------------ |
+| Machine             | localhost:9200     |
+| Jupyter (conteneur) | elasticsearch:9200 |
 
 ---
 
-## Ou retrouver ces donnees - Discover
+# Commandes utiles
 
-1. Ouvrir **Stack Management -> <span class="glossary-term" data-definition="Configuration Kibana qui decrit quel index lire et quels champs exposer dans l'interface.">Data Views</span>**
-2. Creer la data view `demo_env`
-3. Aller dans **<span class="glossary-term" data-definition="Vue Kibana pour explorer les documents indexes, filtrer en KQL et verifier rapidement la qualite des donnees.">Discover</span>**
-4. Selectionner `demo_env` puis verifier les 3 documents
-
-![Repere Discover](assets/images/env-discover.svg)
+| Action          | Commande                  |
+| --------------- | ------------------------- |
+| Démarrer        | docker compose up -d      |
+| Arrêter         | docker compose down       |
+| Voir conteneurs | docker ps                 |
+| Voir logs       | docker logs elasticsearch |
 
 ---
 
-## Checklist de validation (fin de setup)
+#  Architecture finale
 
-- `docker compose ps` montre les services `Up`
-- `GET demo_env/_count` retourne `3`
-- La recherche Dev Tools retourne les documents
-- Discover affiche bien les memes donnees
-
-L'environnement est pret pour les modules de requetage et dataviz.
+```text
+           Navigateur
+           /       \
+      Kibana      Jupyter
+          \        /
+           Elasticsearch
+```

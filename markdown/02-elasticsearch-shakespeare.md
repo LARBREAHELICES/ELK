@@ -1,212 +1,35 @@
-# Cours 2 - Comprendre Elasticsearch pas a pas avec Shakespeare
-## Du vocabulaire fondamental aux requêtes combinees
 
----
+# Les requêtes Elasticsearch
 
-## Objectif du cours
+## Structure d'une requête
 
-A la fin, vous devez comprendre:
+Dans Elasticsearch, toutes les recherches se font avec `_search`.
 
-- ce qu'est un <span class="glossary-term" data-definition="Collection logique de documents JSON dans Elasticsearch.">index</span>
-- ce qu'est un <span class="glossary-term" data-definition="Unité de données stockee dans un index, représentée en JSON.">document</span>
-- ce qu'est un <span class="glossary-term" data-definition="Propriété d'un document JSON, avec un type et un usage de recherche.">champ</span>
-- la différence entre <span class="glossary-term" data-definition="Champ analyse pour la recherche plein texte.">`text`</span> et <span class="glossary-term" data-definition="Champ exact non analyse pour filtre, tri et aggregations.">`keyword`</span>
-- pourquoi on utilise <span class="glossary-term" data-definition="Requête full-text basée sur l'analyse linguistique du texte.">`match`</span> pour le plein texte
-- pourquoi on utilise <span class="glossary-term" data-definition="Requête de correspondance exacte sur une valeur indexée telle quelle.">`term`</span> pour la recherche exacte
-- à quoi sert la <span class="glossary-term" data-definition="API d'ingestion en masse basée sur le format NDJSON (action + document).">Bulk API</span>
-- comment combiner recherche textuelle et filtres structures
-
----
-
-
-## Le problème que resout Elasticsearch
-
-Imaginons un gros corpus de citations littéraires.
-
-Vous voulez pouvoir:
-
-- retrouver les phrases qui parlent de `love`
-- retrouver les phrases prononcées par `HAMLET`
-- retrouver les phrases de `Othello` qui parlent d'amour
-- classer les résultats par pertinence
-
-Une base relationnelle peut aider, mais Elasticsearch est conçu pour chercher efficacement dans du texte.
-
----
-
-## Première idée: Elasticsearch travaille avec des documents JSON
-
-Exemple de donnée:
+Structure générale :
 
 ```json
+GET shakespeare/_search
 {
-  "line_id": 2,
-  "play_name": "Hamlet",
-  "speech_number": 2,
-  "line_number": "3.1.64",
-  "speaker": "HAMLET",
-  "text_entry": "To be, or not to be: that is the question."
-}
-```
-
-A retenir:
-
-- un document = un objet JSON
-- un champ = une propriété du JSON
-- un ensemble de documents = un index
-
----
-
-## Vocabulaire fondamental
-
-- Index: collection de documents (ex: `shakespeare`)
-- Document: une unité d'information (une replique)
-- Champ: attribut du document (`speaker`, `play_name`, `text_entry`, ...)
-
-Modele métier simple:
-
-- 1 citation = 1 document
-- toutes les citations = 1 index
-
----
-
-## Grande distinction: `text` vs `keyword`
-
-- `text` = texte humain analyse
-- `keyword` = valeur brute exacte
-
-Exemples:
-
-- `text_entry` doit être en `text`
-- `speaker` et `play_name` doivent etre en `keyword`
-
----
-
-## Pourquoi `text_entry` doit être en `text`
-
-Parce que c'est le contenu littéraire recherche en langage naturel.
-
-Requêtes attendues:
-
-- `question`
-- `to be`
-- `cursed spite`
-
-Elasticsearch doit analyser le texte pour retrouver ces intentions.
-
----
-
-## Pourquoi `speaker` et `play_name` doivent etre en `keyword`
-
-Ces champs servent surtout de filtres exacts:
-
-- `speaker = HAMLET`
-- `play_name = Macbeth`
-
-Ici on veut une égalité stricte, pas une recherche approximée.
-
----
-
-## Le mapping
-
-Le mapping définit les types des champs.
-
-```json
-PUT shakespeare
-{
-  "mappings": {
-    "properties": {
-      "line_id": { "type": "integer" },
-      "play_name": { "type": "keyword" },
-      "speech_number": { "type": "integer" },
-      "line_number": { "type": "keyword" },
-      "speaker": { "type": "keyword" },
-      "text_entry": { "type": "text" }
-    }
+  "query": {
+    ...
   }
 }
 ```
 
----
-
-## Ce que fait Elasticsearch sur un champ `text`
-
-Lors de l'indexation d'une phrase, Elasticsearch la prépare pour la recherche:
-
-- découpage en tokens
-- normalisation
-- indexation optimisée
-
-Exemple idée:
-
-`To be, or not to be: that is the question.`
-
-devient une suite de tokens exploitables (`to`, `be`, `question`, ...).
+> Dans Elasticsearch, on recherche toujours avec `_search` et une requête dans `query`.
 
 ---
 
-## Format des données pour Bulk API
+#  Rappel : match vs term
 
-Principe NDJSON (2 lignes par document):
+On a deux types de recherche :
 
-1. ligne d'action
-2. ligne de document
+| Requête | Utilisation             |
+| ------- | ----------------------- |
+| match   | recherche dans un texte |
+| term    | recherche exacte        |
 
-```json
-{"index":{"_id":"1"}}
-{"line_id":1,"play_name":"Hamlet","speaker":"BERNARDO","text_entry":"Whos there?"}
-{"index":{"_id":"2"}}
-{"line_id":2,"play_name":"Hamlet","speaker":"HAMLET","text_entry":"To be, or not to be: that is the question."}
-```
-
----
-
-## Pourquoi utiliser le Bulk API
-
-Quand on a beaucoup de documents, on évite une requête HTTP par document.
-
-Avantages:
-
-- plus rapide
-- plus réaliste
-- idéal pour un dataset de cours
-
----
-
-## Charger les données Shakespeare
-
-Option dataset complet:
-
-```bash
-curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" \
-  -o sandbox/data/shakespeare.json
-
-curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
-  "mappings": {
-    "properties": {
-      "line_id": { "type": "integer" },
-      "play_name": { "type": "keyword" },
-      "speech_number": { "type": "integer" },
-      "line_number": { "type": "keyword" },
-      "speaker": { "type": "keyword" },
-      "text_entry": { "type": "text" }
-    }
-  }
-}'
-
-curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
-  -H "Content-Type: application/x-ndjson" \
-  --data-binary @sandbox/data/shakespeare.json
-
-curl -X POST "http://localhost:9200/shakespeare/_refresh"
-curl "http://localhost:9200/shakespeare/_count?pretty"
-```
-
----
-
-## Première requête: chercher dans le texte
-
-On veut les citations liées a `question`.
+### Exemple match
 
 ```json
 GET shakespeare/_search
@@ -219,38 +42,38 @@ GET shakespeare/_search
 }
 ```
 
-Pourquoi `match`?
+Ici Elasticsearch cherche le mot **question** dans le texte.
 
-- `text_entry` est un champ `text`
-- `match` est fait pour le langage naturel
+1. Elasticsearch reçoit "question"
+2. Il passe "question" dans l'analyzer
+3. Il obtient un token : "question"
+4. Il cherche ce token dans l'index inversé
+5. Il trouve les documents
+6. Il calcule le score
+7. Il renvoie les résultats
+
+## Exercice 
+
+L'objectif de cet exercice est de comprendre pourquoi Elasticsearch utilise des tokens et pourquoi la requête match est adaptée pour la recherche dans du texte.
+
+1. Ajouter de nouvelles données.
+1. Utilisez la commande _analyze pour voir les tokens générés pour la phrase: `To be or not to be`
+1. Faites une recherche avec `match` puis avec `term` et comparer.
+1. Concluez 
+
+Remarque sur les méthodes d'ajout
+
+| Action              | URL            | Méthode |
+| ------------------- | -------------- | ------- |
+| Ajouter doc avec id | /index/_doc/1  | PUT     |
+| Ajouter doc sans id | /index/_doc    | POST    |
+| Lire doc            | /index/_doc/1  | GET     |
+| Rechercher          | /index/_search | GET     |
+
 
 ---
 
-## Pourquoi ne pas utiliser `term` sur `text_entry`
-
-Erreur classique débutant:
-
-```json
-GET shakespeare/_search
-{
-  "query": {
-    "term": {
-      "text_entry": "question"
-    }
-  }
-}
-```
-
-Regle simple:
-
-- `match` sur `text`
-- `term` sur `keyword`
-
----
-
-## Requête exacte sur un champ `keyword`
-
-On veut toutes les citations de `HAMLET`.
+### Exemple term
 
 ```json
 GET shakespeare/_search
@@ -263,30 +86,46 @@ GET shakespeare/_search
 }
 ```
 
-Ici `term` est correct car `speaker` est un champ `keyword`.
+Ici Elasticsearch cherche exactement **HAMLET**.
 
 ---
 
-## Filtre exact par piece
+# La requête bool - important 
+
+Structure :
 
 ```json
-GET shakespeare/_search
 {
   "query": {
-    "term": {
-      "play_name": "Macbeth"
+    "bool": {
+      "must": [],
+      "filter": [],
+      "should": [],
+      "must_not": []
     }
   }
 }
 ```
 
-Résultat: uniquement des citations de `Macbeth`.
+| Élément  | Signification     |
+| -------- | ----------------- |
+| must     | AND               |
+| should   | OR                |
+| must_not | NOT               |
+| filter   | filtre sans score |
+
+
+> La requête bool permet de combiner plusieurs conditions.
+
+> Dans Elasticsearch, `must` calcule un score de pertinence (à quel point le document correspond à la recherche), alors que filter sert seulement à limiter les résultats sans changer le score.
 
 ---
 
-## Requête combinee avec `bool`
+# must = AND
 
-On veut les citations prononcées par HAMLET dans la piece Hamlet.
+Exemple :
+
+> On veut les phrases avec "be" prononcées par Hamlet.
 
 ```json
 GET shakespeare/_search
@@ -294,7 +133,7 @@ GET shakespeare/_search
   "query": {
     "bool": {
       "must": [
-        { "term": { "play_name": "Hamlet" } },
+        { "match": { "text_entry": "be" } },
         { "term": { "speaker": "HAMLET" } }
       ]
     }
@@ -302,13 +141,146 @@ GET shakespeare/_search
 }
 ```
 
-Lecture logique: les deux conditions sont obligatoires.
+Traduction logique :
+
+```text
+text contient "be"
+AND speaker = HAMLET
+```
 
 ---
 
-## Combiner plein texte et filtre exact
+# should = OR
 
-On veut: citations qui parlent de `love`, seulement dans `Othello`.
+Exemple :
+
+> On veut les phrases prononcées par Hamlet ou Othello.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "term": { "speaker": "HAMLET" } },
+        { "term": { "speaker": "OTHELLO" } }
+      ],
+      "minimum_should_match": 1
+    }
+  }
+}
+```
+
+Traduction :
+
+```text
+speaker = HAMLET
+OR speaker = OTHELLO
+```
+
+
+`minimum_should_match` indique combien de conditions should doivent être vraies pour que le document soit accepté.
+minimum_should_match: 1 signifie qu'au moins une des conditions doit être vraie.
+
+On peut mettre `0` augmente le score si on a un match. 
+
+```json
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } }
+      ],
+      "should": [
+        { "term": { "speaker": "HAMLET" } },
+        { "term": { "speaker": "OTHELLO" } }
+      ],
+      "minimum_should_match": 0
+    }
+  }
+}
+```
+
+- Image mentale
+
+```txt
+text contient "love"
+ET
+si speaker = HAMLET ou OTHELLO → meilleur score
+sinon → document accepté quand même
+```
+
+Ici si `minimum_should_match=2`, c'est clairement un `AND`.
+
+On en reparle à la fin du cours.
+
+---
+
+# must_not = NOT
+
+Exemple :
+
+> On veut tous les textes sauf ceux de Macbeth.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        { "term": { "play_name": "Macbeth" } }
+      ]
+    }
+  }
+}
+```
+
+Traduction :
+
+```text
+NOT play_name = Macbeth
+```
+
+---
+
+# filter (filtrer sans influencer le score)
+
+Exemple :
+
+> On veut les textes contenant "be" mais seulement Hamlet.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "be" } }
+      ],
+      "filter": [
+        { "term": { "play_name": "Hamlet" } }
+      ]
+    }
+  }
+}
+```
+
+**Important :**
+
+- `must` → influence le score
+- `filter` → filtre seulement
+
+**Phrase à retenir :**
+
+> filter sert à filtrer, must sert à chercher.
+
+---
+
+# Requête avec AND + OR
+
+Exemple :
+
+> On veut les textes contenant "love" et prononcés par Hamlet ou Othello.
 
 ```json
 GET shakespeare/_search
@@ -318,125 +290,159 @@ GET shakespeare/_search
       "must": [
         { "match": { "text_entry": "love" } }
       ],
-      "filter": [
-        { "term": { "play_name": "Othello" } }
+      "should": [
+        { "term": { "speaker": "HAMLET" } },
+        { "term": { "speaker": "OTHELLO" } }
+      ],
+      "minimum_should_match": 1
+    }
+  }
+}
+```
+
+Traduction :
+
+```text
+text contient "love"
+AND
+(HAMLET OR OTHELLO)
+```
+
+---
+
+# Requêtes imbriquées
+
+On peut mettre un `bool` dans un `bool`.
+
+Exemple :
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } },
+        {
+          "bool": {
+            "should": [
+              { "term": { "speaker": "HAMLET" } },
+              { "term": { "speaker": "OTHELLO" } }
+            ],
+            "minimum_should_match": 1
+          }
+        }
       ]
     }
   }
 }
 ```
 
+Traduction :
+
+```text
+text contient "love"
+AND
+(HAMLET OR OTHELLO)
+```
+
+C'est une **requête imbriquée**.
+
 ---
 
-## Pourquoi separer `must` et `filter`
+# Requête range (intervalle)
 
-- `must`: participe a la pertinence textuelle
-- `filter`: restreint le périmètre sans recalcul de score
-
-Pedagogiquement: on separe la pertinence du texte et la contrainte métier.
-
----
-
-## Le score `_score`
-
-Avec `match`, Elasticsearch calcule un score de pertinence.
+Si on avait un champ `year` :
 
 ```json
 GET shakespeare/_search
 {
   "query": {
-    "match": {
-      "text_entry": "love"
+    "range": {
+      "year": {
+        "gte": 1600,
+        "lte": 1700
+      }
     }
   }
 }
 ```
 
-Interpretation simple:
-
-- plus `_score` est eleve, plus le document est juge pertinent.
-
----
-
-## Ce que cela change par rapport a SQL
-
-SQL renvoie surtout vrai/faux sur des conditions.
-
-Elasticsearch renvoie aussi un ordre de pertinence.
-
-C'est une différence de logique centrale pour la recherche.
+| Opérateur | Signification |
+| --------- | ------------- |
+| gte       | >=            |
+| lte       | <=            |
+| gt        | >             |
+| lt        | <             |
 
 ---
 
-## Trois familles d'usage sur ce dataset
+# Correspondance SQL
 
-1. Recherche textuelle (`match` sur `text_entry`)
-2. Filtre exact (`term` sur `speaker` ou `play_name`)
-3. Combinaison (`bool` avec `match` + `filter`)
-
----
-
-## Plan pedagogique en 6 etapes
-
-1. Comprendre index / document / champ
-2. Lire un JSON concret
-3. Distinguer `text` et `keyword`
-4. Créer le mapping
-5. Charger les données avec `_bulk`
-6. Executer 3 requêtes pivots (`match`, `term`, `bool`)
+| SQL     | Elasticsearch |
+| ------- | ------------- |
+| AND     | must          |
+| OR      | should        |
+| NOT     | must_not      |
+| WHERE   | filter        |
+| LIKE    | match         |
+| =       | term          |
+| BETWEEN | range         |
 
 ---
 
-## Ce qu'un étudiant doit absolument retenir
+# Schéma d'une requête Elasticsearch
 
-- Un index contient des documents JSON
-- Un document contient des champs
-- `text` sert au plein texte
-- `keyword` sert a l'exact
-- `match` va avec `text`
-- `term` va avec `keyword`
-- `_bulk` charge vite beaucoup de documents
+```text
+query
+ └── bool
+      ├── must
+      ├── should
+      ├── filter
+      └── must_not
+```
 
----
+Et on peut imbriquer :
 
-## Mini sequence d'exercices
-
-Exercice 1:
-- Créer l'index `shakespeare` avec le bon mapping
-
-Exercice 2:
-- Indexer les documents avec `_bulk`
-
-Exercice 3:
-- Retrouver la citation contenant `question`
-
-Exercice 4:
-- Retrouver tous les documents de `OTHELLO`
-
-Exercice 5:
-- Retrouver les citations de `Romeo and Juliet` qui parlent de `sun`
+```text
+bool
+ └── must
+      └── bool
+           └── should
+```
 
 ---
 
-## Erreurs classiques a éviter
+# Résumé du cours
 
-- Utiliser `term` sur `text_entry`
-- Mettre `speaker` en `text` alors qu'on filtre exactement
-- Indexer sans mapping explicite
-- Confondre recherche plein texte et filtrage exact
+| Élément  | Rôle            |
+| -------- | --------------- |
+| match    | recherche texte |
+| term     | valeur exacte   |
+| must     | AND             |
+| should   | OR              |
+| must_not | NOT             |
+| filter   | filtre          |
+| range    | intervalle      |
 
 ---
 
-## Synthese finale
+# Ce qu'il faut retenir
 
-Avec ce dataset Shakespeare:
+> Une requête Elasticsearch est une structure logique (AND / OR / NOT) qui permet de combiner des recherches texte et des filtres.
 
-- index = `shakespeare`
-- document = une citation
-- champs = `speaker`, `play_name`, `text_entry`, ...
-- `text_entry` doit être en `text`
-- `speaker` et `play_name` doivent etre en `keyword`
-- `match` pour le texte
-- `term` pour l'exact
-- `_bulk` pour charger vite
-- `bool` pour combiner texte et filtres
+---
+
+# 15. Exercices 
+
+Exercices à donner :
+
+1. Trouver toutes les phrases de Hamlet
+2. Trouver les phrases contenant "love"
+3. Trouver les phrases contenant "love" prononcées par Othello
+4. Trouver toutes les phrases sauf celles de Macbeth
+5. Trouver les phrases contenant "be" et prononcées par Hamlet ou Othello
+
+
+---
+

@@ -48,205 +48,221 @@
     <div class="slides">
       <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
         <textarea data-template>
-# Cours 3 - Elasticsearch Avance
-## Pertinence, performance et cycle de vie
+# Le Mapping dans Elasticsearch
+
+## Qu'est-ce que le mapping ?
+
+Le **mapping** définit la structure des documents dans Elasticsearch.
+
+C'est l'équivalent du schéma d'une table en base de données.
+
+> Le mapping définit le type des champs et comment Elasticsearch va les indexer.
 
 ---
 
-## Objectif du chapitre
-
-- Comprendre les leviers de pertinence
-- Diagnostiquer score et latence avec les APIs de debug
-- Paginer proprement a grande echelle
-- Migrer un schema sans downtime applicatif
-
----
-
-
-## Reperes theoriques (moteur prod)
-
-- Le schema influence precision, agregations et cout CPU
-- Le ranking est un choix produit, pas seulement technique
-- La latence depend autant de la requete que du mapping
-- Un index evolue: versioning + alias sont des fondamentaux
-
----
-
-## Multi-fields: un champ, deux usages
+## Exemple de mapping
 
 ```json
-"title": {
-  "type": "text",
-  "fields": {
-    "keyword": { "type": "keyword", "ignore_above": 256 }
+PUT shakespeare
+{
+  "mappings": {
+    "properties": {
+      "play_name": { "type": "keyword" },
+      "speaker": { "type": "keyword" },
+      "text_entry": { "type": "text" }
+    }
   }
 }
 ```
 
-Ce que fait le code:
-- `title` sert a la recherche linguistique (`text`)
-- `title.keyword` sert au tri et aux aggregations exactes
+Ce mapping définit 3 champs :
 
-Test concret:
+| Champ      | Type    |
+| ---------- | ------- |
+| play_name  | keyword |
+| speaker    | keyword |
+| text_entry | text    |
 
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
-  "size": 0,
-  "aggs": {
-    "top_titles": { "terms": { "field": "title.keyword" } }
-  }
-}'
+---
+
+## Différence entre text et keyword
+
+C'est la chose la plus importante à comprendre.
+
+### Type text
+
+- Le texte est **analysé**
+- Il est découpé en mots (tokens)
+- Utilisé pour la recherche full-text
+- Utilise `match`
+
+### Type keyword
+
+- La valeur est **stockée telle quelle**
+- Pas découpée
+- Utilisé pour filtrer
+- Utilise `term`
+
+---
+
+## Exemple concret
+
+Document :
+
+```json
+{
+  "speaker": "HAMLET",
+  "text_entry": "To be or not to be"
+}
+```
+
+### Si `speaker` = keyword
+
+```text
+HAMLET → doc 1
+```
+
+### Si `text_entry` = text
+
+```text
+to → doc 1
+be → doc 1
+not → doc 1
+```
+
+Donc :
+
+| Type    | Stockage       |
+| ------- | -------------- |
+| keyword | valeur entière |
+| text    | mots séparés   |
+
+---
+
+## Mapping dynamique
+
+Si on ne crée pas le mapping, Elasticsearch devine les types.
+
+Exemple :
+
+```json
+PUT shakespeare/_doc/1
+{
+  "play_name": "Hamlet",
+  "speaker": "HAMLET",
+  "text_entry": "To be or not to be"
+}
+```
+
+Elasticsearch va deviner :
+
+| Champ      | Type    |
+| ---------- | ------- |
+| play_name  | keyword |
+| speaker    | keyword |
+| text_entry | text    |
+
+C'est le **mapping dynamique**.
+
+> Elasticsearch peut créer le mapping automatiquement.
+
+---
+
+## 6. Voir le mapping
+
+```json
+GET shakespeare/_mapping
+```
+
+Cela permet de voir la structure de l'index.
+
+---
+
+## 7. Pourquoi le mapping est important ?
+
+Parce que le type du champ détermine la requête :
+
+| Type    | Requête |
+| ------- | ------- |
+| text    | match   |
+| keyword | term    |
+
+Si on se trompe de type, la recherche ne marche pas correctement.
+
+---
+
+## 8. Résumé
+
+| Type    | Sert à                   |
+| ------- | ------------------------ |
+| text    | rechercher dans le texte |
+| keyword | filtrer                  |
+| integer | nombres                  |
+| date    | dates                    |
+| boolean | true / false             |
+
+---
+
+## 9. Schéma
+
+```text
+Mapping
+  ↓
+Définit type des champs
+  ↓
+Définit comment Elasticsearch indexe
+  ↓
+Définit comment on peut rechercher
 ```
 
 ---
 
-## Analyze API: comprendre la <span class="glossary-term" data-definition="Decoupage d'un texte en tokens utilises par le moteur pour indexer et rechercher.">tokenisation</span>
+## 10. Phrase très importante pour les étudiants
 
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_analyze?pretty" -H "Content-Type: application/json" -d '{
-  "field": "title",
-  "text": "Casque Audio Bluetooth"
-}'
-```
-
-Ce que fait le code:
-- Montre les tokens reellement indexes
-- Explique pourquoi certaines recherches matchent (ou non)
-
-Repere theorique:
-- Les tokens produits ici determinent la rappel/precision du moteur
+> Le mapping définit comment les champs sont stockés et comment on pourra faire les recherches.
 
 ---
 
-## Relevance tuning avec `bool` et `should`
+## 11. Règle simple à retenir
 
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
-  "query": {
-    "bool": {
-      "should": [
-        { "match": { "title": "bluetooth" } },
-        { "match": { "description": "bluetooth" } }
-      ],
-      "minimum_should_match": 1
+| Si on veut…                  | On met  |
+| ---------------------------- | ------- |
+| chercher dans une phrase     | text    |
+| filtrer (nom, catégorie, id) | keyword |
+
+---
+
+## 12. Exemple complet
+
+Mapping :
+
+```json
+PUT shakespeare
+{
+  "mappings": {
+    "properties": {
+      "play_name": { "type": "keyword" },
+      "speaker": { "type": "keyword" },
+      "text_entry": { "type": "text" }
     }
   }
-}'
+}
 ```
 
-Ce que fait le code:
-- Favorise les documents qui matchent plusieurs champs
-- Garantit au moins un match `should`
+Requêtes :
 
-Repere theorique:
-- `should` module le score et peut servir de boosting metier
-
----
-
-## Expliquer un score (<span class="glossary-term" data-definition="API Elasticsearch qui detaille la construction du score d'un document pour une requete.">`_explain`</span>)
-
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_explain/1?pretty" -H "Content-Type: application/json" -d '{
-  "query": { "match": { "title": "bluetooth" } }
-}'
-```
-
-Ce que fait le code:
-- Donne la decomposition du score doc par doc
-- Permet de justifier le ranking en detail
-
----
-
-## Profiler une requete (`profile: true`)
-
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
-  "profile": true,
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "description": "sans fil" } }
-      ],
-      "filter": [
-        { "term": { "in_stock": true } }
-      ]
-    }
-  }
-}'
-```
-
-Ce que fait le code:
-- Expose le temps passe dans chaque composant de requete
-- Aide a isoler le cout des clauses lentes
-
----
-
-## Pagination scalable avec <span class="glossary-term" data-definition="Methode de pagination profonde basee sur le tri du dernier document retourne.">`search_after`</span>
-
-Repere theorique:
-- Eviter `from + size` sur gros offsets
-- Utiliser un tri deterministe et continuer via curseur de tri
-
-Page 1:
-
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
-  "size": 2,
-  "sort": [
-    { "price": "asc" },
-    { "_id": "asc" }
-  ],
-  "query": { "match_all": {} }
-}'
-```
-
-Page 2 (reprendre `sort` du dernier hit de la page 1):
-
-```bash
-curl -X GET "http://localhost:9200/catalogue_demo/_search?pretty" -H "Content-Type: application/json" -d '{
-  "size": 2,
-  "sort": [
-    { "price": "asc" },
-    { "_id": "asc" }
-  ],
-  "search_after": [99.9, "1"],
-  "query": { "match_all": {} }
-}'
+```json
+match → text_entry
+term → speaker
+term → play_name
 ```
 
 ---
 
-## Migration de schema sans downtime (<span class="glossary-term" data-definition="Nom logique pointant vers un index, utile pour basculer de version sans couper l'application.">alias</span>)
+# Conclusion
 
-```bash
-curl -X POST "http://localhost:9200/_reindex" -H "Content-Type: application/json" -d '{
-  "source": { "index": "products_v1" },
-  "dest":   { "index": "products_v2" }
-}'
-
-curl -X POST "http://localhost:9200/_aliases" -H "Content-Type: application/json" -d '{
-  "actions": [
-    { "remove": { "index": "products_v1", "alias": "products_current" } },
-    { "add":    { "index": "products_v2", "alias": "products_current" } }
-  ]
-}'
-```
-
-Ce que fait le code:
-- Copie les donnees vers une nouvelle version d'index
-- Bascule l'alias applicatif en une operation atomique
-
----
-
-## Checklist de passage en production
-
-- Mapping explicite et versionne
-- Jeux de requetes de reference (qualite + perf)
-- Suivi de `took` et taille index
-- Strategie `reindex + alias` documentee
-- Tests de pertinence sur vrais cas metier
-
----
+> Le mapping est la structure de l'index.
+> Il définit le type des champs et donc la manière de rechercher.
         </textarea>
       </section>
     </div>
