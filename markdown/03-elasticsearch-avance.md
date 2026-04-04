@@ -25,6 +25,8 @@ PUT shakespeare
 }
 ```
 
+---
+
 Ce mapping définit 3 champs :
 
 | Champ      | Type    |
@@ -45,6 +47,8 @@ C'est la chose la plus importante à comprendre.
 - Il est découpé en mots (tokens)
 - Utilisé pour la recherche full-text
 - Utilise `match`
+
+---
 
 ### Type keyword
 
@@ -80,6 +84,8 @@ be → doc 1
 not → doc 1
 ```
 
+---
+
 Donc :
 
 | Type    | Stockage       |
@@ -103,6 +109,8 @@ PUT shakespeare/_doc/1
   "text_entry": "To be or not to be"
 }
 ```
+
+---
 
 Elasticsearch va deviner :
 
@@ -198,6 +206,8 @@ PUT shakespeare
   }
 }
 ```
+
+---
 
 Requêtes :
 
