@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support 04 - Mapping</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #22d3ee;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17223b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #67e8f9; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .content th, .content td { border: 1px solid #2d3748; padding: 8px; text-align: left; }
+    .content th { background: #111827; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Support 04 - Mapping</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+      </div>
+    </div>
+    <p class="sub">Support de cours sur le mapping Elasticsearch.</p>
+    <article class="content">
+<h1 id="le-mapping-dans-elasticsearch">Le Mapping dans
+Elasticsearch</h1>
+<h2 id="les-types-dans-elasticsearch">Les types dans Elasticsearch</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Sert à</th>
+<th>Requêtes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text</td>
+<td>texte analysé</td>
+<td>match</td>
+</tr>
+<tr>
+<td>keyword</td>
+<td>valeur exacte</td>
+<td>term</td>
+</tr>
+<tr>
+<td>integer</td>
+<td>nombres</td>
+<td>range / term</td>
+</tr>
+<tr>
+<td>long</td>
+<td>grands entiers</td>
+<td>range</td>
+</tr>
+<tr>
+<td>float</td>
+<td>nombres décimaux</td>
+<td>range</td>
+</tr>
+<tr>
+<td>double</td>
+<td>nombres décimaux</td>
+<td>range</td>
+</tr>
+<tr>
+<td>boolean</td>
+<td>true / false</td>
+<td>term</td>
+</tr>
+<tr>
+<td>date</td>
+<td>dates</td>
+<td>range</td>
+</tr>
+<tr>
+<td>object</td>
+<td>objet JSON</td>
+<td>requêtes sur sous-champs</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="quest-ce-que-le-mapping-">Qu'est-ce que le mapping ?</h2>
+<p>Le <strong>mapping</strong> définit la structure des documents dans
+Elasticsearch.</p>
+<p>C'est l'équivalent du schéma d'une table en base de données.</p>
+<blockquote>
+<p>Le mapping définit le type des champs et comment Elasticsearch va les
+indexer.</p>
+</blockquote>
+<hr />
+<h2 id="exemple-de-mapping">Exemple de mapping</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;mappings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;properties&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Ce mapping définit 3 champs :</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>play_name</td>
+<td>keyword</td>
+</tr>
+<tr>
+<td>speaker</td>
+<td>keyword</td>
+</tr>
+<tr>
+<td>text_entry</td>
+<td>text</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="différence-entre-text-et-keyword">Différence entre text et
+keyword</h2>
+<p>C'est la chose la plus importante à comprendre.</p>
+<h3 id="type-text">Type text</h3>
+<ul>
+<li>Le texte est <strong>analysé</strong></li>
+<li>Il est découpé en mots (tokens)</li>
+<li>Utilisé pour la recherche full-text</li>
+<li>Utilise <code>match</code></li>
+</ul>
+<h3 id="type-keyword">Type keyword</h3>
+<ul>
+<li>La valeur est <strong>stockée telle quelle</strong></li>
+<li>Pas découpée</li>
+<li>Utilisé pour filtrer</li>
+<li>Utilise <code>term</code></li>
+</ul>
+<hr />
+<h2 id="exemple-concret">Exemple concret</h2>
+<p>Document :</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="si-speaker--keyword">Si <code>speaker</code> = keyword</h3>
+<pre class="text"><code>HAMLET → doc 1</code></pre>
+<h3 id="si-text_entry--text">Si <code>text_entry</code> = text</h3>
+<pre class="text"><code>to → doc 1
+be → doc 1
+not → doc 1</code></pre>
+<p>Donc :</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Stockage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>keyword</td>
+<td>valeur entière</td>
+</tr>
+<tr>
+<td>text</td>
+<td>mots séparés</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="mapping-dynamique">Mapping dynamique</h2>
+<p>Si on ne crée pas le mapping, Elasticsearch devine les types.</p>
+<p>Exemple :</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare/_doc/1</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Elasticsearch va deviner :</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>play_name</td>
+<td>keyword</td>
+</tr>
+<tr>
+<td>speaker</td>
+<td>keyword</td>
+</tr>
+<tr>
+<td>text_entry</td>
+<td>text</td>
+</tr>
+</tbody>
+</table>
+<p>C'est le <strong>mapping dynamique</strong>.</p>
+<blockquote>
+<p>Elasticsearch peut créer le mapping automatiquement.</p>
+</blockquote>
+<hr />
+<h2 id="6-voir-le-mapping">6. Voir le mapping</h2>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare/_mapping</span></span></code></pre></div>
+<p>Cela permet de voir la structure de l'index.</p>
+<hr />
+<h2 id="7-pourquoi-le-mapping-est-important-">7. Pourquoi le mapping est
+important ?</h2>
+<p>Parce que le type du champ détermine la requête :</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Requête</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text</td>
+<td>match</td>
+</tr>
+<tr>
+<td>keyword</td>
+<td>term</td>
+</tr>
+</tbody>
+</table>
+<p>Si on se trompe de type, la recherche ne marche pas correctement.</p>
+<hr />
+<h2 id="8-résumé">8. Résumé</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Sert à</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text</td>
+<td>rechercher dans le texte</td>
+</tr>
+<tr>
+<td>keyword</td>
+<td>filtrer</td>
+</tr>
+<tr>
+<td>integer</td>
+<td>nombres</td>
+</tr>
+<tr>
+<td>date</td>
+<td>dates</td>
+</tr>
+<tr>
+<td>boolean</td>
+<td>true / false</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-schéma">9. Schéma</h2>
+<pre class="text"><code>Mapping
+  ↓
+Définit type des champs
+  ↓
+Définit comment Elasticsearch indexe
+  ↓
+Définit comment on peut rechercher</code></pre>
+<hr />
+<h2 id="10-phrase-très-importante-pour-les-étudiants">10. Phrase très
+importante pour les étudiants</h2>
+<blockquote>
+<p>Le mapping définit comment les champs sont stockés et comment on
+pourra faire les recherches.</p>
+</blockquote>
+<hr />
+<h2 id="11-règle-simple-à-retenir">11. Règle simple à retenir</h2>
+<table>
+<thead>
+<tr>
+<th>Si on veut…</th>
+<th>On met</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chercher dans une phrase</td>
+<td>text</td>
+</tr>
+<tr>
+<td>filtrer (nom, catégorie, id)</td>
+<td>keyword</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-exemple-complet">12. Exemple complet</h2>
+<p>Mapping :</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;mappings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;properties&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span> <span class="fu">}</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Requêtes :</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">match</span> <span class="er">→</span> <span class="er">text_entry</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="er">term</span> <span class="er">→</span> <span class="er">speaker</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="er">term</span> <span class="er">→</span> <span class="er">play_name</span></span></code></pre></div>
+<hr />
+<h1 id="conclusion">Conclusion</h1>
+<blockquote>
+<p>Le mapping est la structure de l'index. Il définit le type des champs
+et donc la manière de rechercher.</p>
+</blockquote>
+    </article>
+  </div>
+</body>
+</html>
