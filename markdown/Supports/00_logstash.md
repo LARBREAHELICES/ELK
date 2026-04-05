@@ -1,147 +1,190 @@
-# Introduction à Logstash
+# Logstash avec un dataset films 
 
-## Rôle
+## Objectif
 
-Logstash sert à **envoyer des données vers Elasticsearch** en pouvant les **transformer** au passage.
+Utiliser Logstash pour ingérer un CSV réel de 10 000 films dans Elasticsearch.
 
 Pipeline :
 
 ```text
-input → filter → output
+input -> filter -> output
 ```
 
 ---
 
-# Structure d'un pipeline
+## Dataset utilisé
 
-## Input — lire les données
+Fichier :
 
-Exemple : lire un fichier JSON
+`Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv`
+
+Colonnes :
+- `index`
+- `title`
+- `original_language`
+- `release_date`
+- `popularity`
+- `vote_average`
+- `vote_count`
+- `overview`
+
+---
+
+## Input - lire le CSV
 
 ```conf
 input {
   file {
-    path => "/data/films.jsonl"
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
     start_position => "beginning"
-    sincedb_path => "/dev/null"
-    codec => json
+    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
   }
 }
 ```
 
 ---
 
-## Filter — transformer 
-
-Exemples :
+## Filter - parser et typer
 
 ```conf
 filter {
-  mutate {
-    rename => { "title" => "film_title" }
+  csv {
+    separator => ","
+    quote_char => '"'
+    skip_header => true
+    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
   }
 
   mutate {
-    convert => { "year" => "integer" }
+    rename => { "index" => "movie_id" }
+    convert => {
+      "movie_id" => "integer"
+      "popularity" => "float"
+      "vote_average" => "float"
+      "vote_count" => "integer"
+    }
   }
 
-  mutate {
-    add_field => { "source" => "logstash" }
+  date {
+    match => ["release_date", "dd-MM-yyyy"]
+    target => "release_date_ts"
   }
 }
 ```
 
 ---
 
-## Output — envoyer vers Elasticsearch
+## Output - indexer dans Elasticsearch
 
 ```conf
 output {
   elasticsearch {
     hosts => ["http://elasticsearch:9200"]
-    index => "films"
+    index => "tmdb-movies"
   }
 
-  stdout {
-    codec => rubydebug
-  }
+  stdout { codec => rubydebug }
 }
 ```
 
 ---
 
-# Pipeline complet
+## Pipeline complet
 
 ```conf
 input {
   file {
-    path => "/data/films.jsonl"
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
     start_position => "beginning"
-    sincedb_path => "/dev/null"
-    codec => json
+    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
   }
 }
 
 filter {
+  csv {
+    separator => ","
+    quote_char => '"'
+    skip_header => true
+    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
+  }
+
   mutate {
-    convert => { "year" => "integer" }
+    rename => { "index" => "movie_id" }
+    convert => {
+      "movie_id" => "integer"
+      "popularity" => "float"
+      "vote_average" => "float"
+      "vote_count" => "integer"
+    }
+  }
+
+  date {
+    match => ["release_date", "dd-MM-yyyy"]
+    target => "release_date_ts"
   }
 }
 
 output {
   elasticsearch {
     hosts => ["http://elasticsearch:9200"]
-    index => "films"
-  }
-
-  stdout {
-    codec => rubydebug
+    index => "tmdb-movies"
   }
 }
 ```
 
 ---
 
-# Lancer Logstash
+## Vérifications utiles
 
 ```bash
-logstash -f films.conf
+curl "http://localhost:9200/tmdb-movies/_count?pretty"
+curl "http://localhost:9200/tmdb-movies/_mapping?pretty"
+curl "http://localhost:9200/tmdb-movies/_search?pretty&size=3"
 ```
 
 ---
 
-# À retenir
+## Exemples d'analyses métier
 
-| Partie | Rôle                       |
-| ------ | -------------------------- |
-| input  | lire données               |
-| filter | modifier données           |
-| output | envoyer vers Elasticsearch |
+Top langues :
+
+```json
+GET tmdb-movies/_search
+{
+  "size": 0,
+  "aggs": {
+    "top_languages": {
+      "terms": {
+        "field": "original_language.keyword",
+        "size": 10
+      }
+    }
+  }
+}
+```
+
+Top films populaires :
+
+```json
+GET tmdb-movies/_search
+{
+  "size": 10,
+  "sort": [{ "popularity": "desc" }],
+  "_source": ["title", "popularity", "vote_average", "vote_count"]
+}
+```
 
 ---
 
-# Dans votre projet
+## À retenir
 
-| Outil         | Rôle                  |
-| ------------- | --------------------- |
-| Python        | indexation manuelle   |
-| Logstash      | ingestion automatique |
-| Elasticsearch | stockage + recherche  |
-| Kibana        | visualisation         |
+- `input` lit le fichier CSV
+- `filter` transforme les champs
+- `output` envoie vers Elasticsearch
+- les types (`float`, `integer`, `date`) sont essentiels pour analyser correctement
 
 ---
 
-# Objectif TP
+## Résumé en une phrase
 
-Faire un pipeline qui :
-
-1. lit un fichier JSON
-2. modifie un champ
-3. envoie dans Elasticsearch
-4. visualise dans Kibana
-
----
-
-# Résumé en une phrase
-
-**Logstash sert à lire des données, les transformer, puis les envoyer dans Elasticsearch.**
+**Logstash permet de transformer un CSV brut (TMDB) en index exploitable pour la recherche et l'analyse dans Elasticsearch.**

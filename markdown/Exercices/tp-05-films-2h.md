@@ -1,32 +1,39 @@
-# TP Films (2h) - Logstash + Elasticsearch
+# TP Films (2h) - Logstash + Elasticsearch (TMDB 10 000 films)
 
 ## But du TP
 
-Construire une mini chaine data sur des films:
+Construire une chaine d'ingestion complete avec **un vrai dataset TMDB**:
 - ingestion CSV avec Logstash
-- mapping propre dans Elasticsearch
-- verification de la qualite des donnees
-- requetes metier pour analyser le catalogue
+- conversion des types
+- parsing de date
+- indexation Elasticsearch
+- analyses metier simples
 
 Duree cible: **2 heures**.
 
 ---
 
-## Scenario
+## Dataset utilise
 
-Vous recevez deux fichiers:
-- `films_catalog.csv` (metadonnees films)
-- `films_ratings.csv` (notes utilisateurs)
+Fichier source:
 
-Vous devez produire deux index:
-- `films-catalog`
-- `films-ratings`
+`sandbox/data/Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv`
 
-Puis repondre a des questions produit simples (top genres, meilleurs films, etc.).
+Colonnes detectees:
+- `index`
+- `title`
+- `original_language`
+- `release_date` (format `dd-MM-yyyy`)
+- `popularity`
+- `vote_average`
+- `vote_count`
+- `overview`
+
+Volume: **10 001 lignes** (1 header + 10 000 films).
 
 ---
 
-## Pre-requis 
+## Pre-requis (10 min)
 
 1. Verifier les services:
 
@@ -34,136 +41,189 @@ Puis repondre a des questions produit simples (top genres, meilleurs films, etc.
 docker compose ps
 ```
 
-2. Creer un dossier de travail:
+2. Copier le fichier dans le dossier lu par Logstash:
 
 ```bash
 mkdir -p logs/films
-```
-
-3. Ajouter deux CSV dans `logs/films/`.
-
-Format minimal conseille:
-
-`films_catalog.csv`
-
-```csv
-movie_id,title,year,genre,director
-1,Inception,2010,Sci-Fi,Christopher Nolan
-2,The Godfather,1972,Crime,Francis Ford Coppola
-3,Parasite,2019,Thriller,Bong Joon-ho
-```
-
-`films_ratings.csv`
-
-```csv
-movie_id,user_id,rating,rated_at
-1,101,4.8,2026-03-01T10:00:00Z
-1,102,4.6,2026-03-02T11:20:00Z
-3,103,4.9,2026-03-03T09:15:00Z
+cp "sandbox/data/Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv" logs/films/tmdb_movies.csv
 ```
 
 ---
 
-## Etape 1 - Pipeline catalog 
+## Etape 1 - Pipeline Logstash TMDB (40 min)
 
-### Travail
+Creer `pipelines/tmdb_movies.conf` avec:
 
-Creer un pipeline Logstash pour `films_catalog.csv`:
-- `input file`
-- `filter csv`
-- conversion de `movie_id` et `year` en entier
-- `output elasticsearch` vers `films-catalog`
+```conf
+input {
+  file {
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
+    start_position => "beginning"
+    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
+  }
+}
 
-### Verification
+filter {
+  csv {
+    separator => ","
+    quote_char => '"'
+    skip_header => true
+    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
+  }
 
-```bash
-curl "http://localhost:9200/films-catalog/_count?pretty"
+  mutate {
+    rename => { "index" => "movie_id" }
+    convert => {
+      "movie_id" => "integer"
+      "popularity" => "float"
+      "vote_average" => "float"
+      "vote_count" => "integer"
+    }
+  }
+
+  date {
+    match => ["release_date", "dd-MM-yyyy"]
+    target => "release_date_ts"
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://elasticsearch:9200"]
+    index => "tmdb-movies"
+  }
+}
 ```
 
+Lancer/relancer Logstash, puis verifier:
+
 ```bash
-curl "http://localhost:9200/films-catalog/_search?pretty&size=3"
+docker compose restart logstash
+curl "http://localhost:9200/tmdb-movies/_count?pretty"
 ```
 
 ---
 
-## Etape 2 - Pipeline ratings (30 min)
+## Etape 2 - Controle qualite (20 min)
 
-### Travail
-
-Creer un pipeline Logstash pour `films_ratings.csv`:
-- `input file`
-- `filter csv`
-- conversion `movie_id` en entier, `rating` en float
-- parse `rated_at` vers `@timestamp`
-- output vers `films-ratings`
-
-### Verification
+Verifier mapping + echantillon:
 
 ```bash
-curl "http://localhost:9200/films-ratings/_count?pretty"
+curl "http://localhost:9200/tmdb-movies/_mapping?pretty"
+curl "http://localhost:9200/tmdb-movies/_search?pretty&size=3"
 ```
 
-```bash
-curl "http://localhost:9200/films-ratings/_search?pretty&size=3"
-```
-
----
-
-## Etape 3 - Controle qualite 
-
-### Travail
-
-Verifier:
-- types de champs (`movie_id`, `rating`, `@timestamp`)
-- presence de tags d'erreur de parsing
-- doublons evidents
-
-### Commandes utiles
+Verifier les anomalies de date:
 
 ```bash
-curl "http://localhost:9200/films-catalog/_mapping?pretty"
-curl "http://localhost:9200/films-ratings/_mapping?pretty"
-```
-
-```bash
-curl -X GET "http://localhost:9200/films-ratings/_search?pretty" -H "Content-Type: application/json" -d '{
-  "query": {"exists": {"field": "tags"}}
+curl -X GET "http://localhost:9200/tmdb-movies/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": {
+    "bool": {
+      "must_not": [
+        { "exists": { "field": "release_date_ts" } }
+      ]
+    }
+  }
 }'
 ```
 
 ---
 
-## Etape 4 - Questions metier 
+## Etape 3 - Analyses metier (40 min)
 
-Faire ces requetes:
+### Requete 1 - Top 10 langues
 
-1. Top genres par nombre de films (`films-catalog`)
-2. Note moyenne par film (`films-ratings`, agg `avg` sur `rating`)
-3. Top 3 films les mieux notes (tri sur moyenne)
-4. Evolution du volume de notes par jour (`date_histogram` sur `@timestamp`)
+```json
+GET tmdb-movies/_search
+{
+  "size": 0,
+  "aggs": {
+    "top_languages": {
+      "terms": {
+        "field": "original_language.keyword",
+        "size": 10
+      }
+    }
+  }
+}
+```
+
+### Requete 2 - Top 10 films par popularite
+
+```json
+GET tmdb-movies/_search
+{
+  "size": 10,
+  "sort": [
+    { "popularity": "desc" }
+  ],
+  "_source": ["title", "popularity", "vote_average", "vote_count"]
+}
+```
+
+### Requete 3 - Films "solides" (vote_count >= 1000)
+
+```json
+GET tmdb-movies/_search
+{
+  "query": {
+    "bool": {
+      "filter": [
+        { "range": { "vote_count": { "gte": 1000 } } },
+        { "range": { "vote_average": { "gte": 7.5 } } }
+      ]
+    }
+  },
+  "sort": [
+    { "vote_average": "desc" }
+  ],
+  "_source": ["title", "vote_average", "vote_count"]
+}
+```
+
+### Requete 4 - Evolution des sorties (par annee)
+
+```json
+GET tmdb-movies/_search
+{
+  "size": 0,
+  "aggs": {
+    "releases_by_year": {
+      "date_histogram": {
+        "field": "release_date_ts",
+        "calendar_interval": "year"
+      }
+    }
+  }
+}
+```
 
 ---
 
-## Bonus
+## Bonus (10 min)
 
-- Ajouter un champ `rating_band` (`low`, `medium`, `high`) via `mutate` / condition.
-- Creer une requete qui compte les notes par `rating_band`.
+1. Ajouter un champ `quality_band`:
+- `A` si `vote_average >= 8`
+- `B` si `vote_average >= 7`
+- `C` sinon
+
+2. Compter les films par `quality_band`.
 
 ---
 
 ## Livrables attendus
 
-1. Deux fichiers pipeline Logstash (`catalog` et `ratings`)
-2. Captures ou commandes de verification (`_count`, `_mapping`, `_search`)
-3. 4 requetes metier + interpretation en 3 lignes max par requete
+1. Le pipeline Logstash `tmdb_movies.conf`
+2. Les commandes de verification (`_count`, `_mapping`, `_search`)
+3. Les 4 requetes metier
+4. Une interpretation courte (2-3 lignes) pour chaque requete
 
 ---
 
 ## Grille de temps recommandee
 
-- 0:00 -> 0:10: setup
-- 0:10 -> 0:40: pipeline catalog
-- 0:40 -> 1:10: pipeline ratings
-- 1:10 -> 1:30: qualite
-- 1:30 -> 1:55: analyses metier
-- 1:55 -> 2:00: rendu
+- 0:00 -> 0:10: setup + copie dataset
+- 0:10 -> 0:50: pipeline + ingestion
+- 0:50 -> 1:10: qualite de donnees
+- 1:10 -> 1:50: analyses metier
+- 1:50 -> 2:00: bonus + rendu

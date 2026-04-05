@@ -1,41 +1,47 @@
-# Cours 5 - Logstash Cas d'usage
-## Ingestion, parsing et enrichissement expliques
+# Logstash - Cas d'usage TMDB
+## Ingestion CSV, typage et analyse metier
 
 ---
 
-## Objectif du chapitre
+## Objectif du cours
 
-- Generer un flux de logs de demo
-- Transformer du texte brut en champs exploitables
-- Verifier techniquement l'ingestion dans Elasticsearch
-- Comprendre les points de fragilite d'un pipeline
-
----
-
-
-## Reperes theoriques (pipeline)
-
-- Logstash suit la chaine <span class="glossary-term" data-definition="Architecture pipeline Logstash: lecture, transformation, puis envoi vers une destination.">`input -> filter -> output`</span>
-- La qualite de parsing conditionne la valeur metier en aval
-- Un pipeline robuste doit etre observable et testable
+- Ingerer un CSV reels de 10 000 films TMDB
+- Transformer les champs en types exploitables
+- Parser les dates de sortie
+- Verifier la qualite de l'ingestion dans Elasticsearch
+- Produire des requetes metier simples
 
 ---
 
-## Generer des logs d'exemple
+## Dataset utilise
+
+Fichier source :
+
+`Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv`
+
+Colonnes :
+- `index`
+- `title`
+- `original_language`
+- `release_date` (format `dd-MM-yyyy`)
+- `popularity`
+- `vote_average`
+- `vote_count`
+- `overview`
+
+---
+
+## Preparation du fichier
 
 ```bash
-cat > logs/app.log <<'LOG'
-2026-03-30T10:15:00Z INFO api - User 42 created order 9001
-2026-03-30T10:16:45Z WARN billing - Payment retry for order 9002
-2026-03-30T10:17:12Z ERROR worker - Timeout while exporting report 77
-LOG
-
+mkdir -p logs/films
+cp "sandbox/data/Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv" logs/films/tmdb_movies.csv
 docker compose restart logstash
 ```
 
 Ce que fait le code:
-- Cree un jeu de logs simple et reproductible
-- Relance Logstash pour relire et parser le fichier
+- Place le CSV dans le dossier monte dans Logstash
+- Redemarre Logstash pour relancer la lecture
 
 ---
 
@@ -44,35 +50,50 @@ Ce que fait le code:
 ```conf
 input {
   file {
-    path => "/usr/share/logstash/logs/*.log"
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
     start_position => "beginning"
-    sincedb_path => "/dev/null"
+    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
   }
 }
 
 filter {
-  grok {
-    match => {
-      "message" => "%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:level} %{DATA:service} - %{GREEDYDATA:log_message}"
-    }
-    tag_on_failure => ["_grokparsefailure_app"]
+  csv {
+    separator => ","
+    quote_char => '"'
+    skip_header => true
+    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
   }
-  date { match => ["log_timestamp", "ISO8601"] }
+
+  mutate {
+    rename => { "index" => "movie_id" }
+    convert => {
+      "movie_id" => "integer"
+      "popularity" => "float"
+      "vote_average" => "float"
+      "vote_count" => "integer"
+    }
+  }
+
+  date {
+    match => ["release_date", "dd-MM-yyyy"]
+    target => "release_date_ts"
+  }
 }
 
 output {
   elasticsearch {
     hosts => ["http://elasticsearch:9200"]
-    index => "app-logs-%{+YYYY.MM.dd}"
+    index => "tmdb-movies"
   }
 }
 ```
 
 Ce que fait le code:
-- `input file`: lit les logs en entree
-- <span class="glossary-term" data-definition="Filtre Logstash base sur des patterns pour extraire des champs structures depuis une ligne texte.">`grok`</span>: extrait timestamp, niveau, service, message
-- `date`: aligne <span class="glossary-term" data-definition="Champ temporel standard Elasticsearch/Kibana utilise pour tri et analyses chronologiques.">`@timestamp`</span> pour analyses temporelles
-- `output`: indexe les events dans Elasticsearch
+- `input file`: lit le CSV TMDB
+- `csv`: split les colonnes
+- `mutate`: renomme et convertit les types
+- `date`: transforme `release_date` en date exploitable
+- `output`: indexe dans `tmdb-movies`
 
 ---
 
@@ -80,57 +101,72 @@ Ce que fait le code:
 
 ```bash
 curl "http://localhost:9200/_cat/indices?v"
-curl "http://localhost:9200/app-logs-*/_count?pretty"
-curl -X GET "http://localhost:9200/app-logs-*/_search?pretty" -H "Content-Type: application/json" -d '{
-  "size": 5,
-  "sort": [{"@timestamp": "desc"}]
-}'
+curl "http://localhost:9200/tmdb-movies/_count?pretty"
+curl "http://localhost:9200/tmdb-movies/_mapping?pretty"
+curl "http://localhost:9200/tmdb-movies/_search?pretty&size=3"
 ```
 
 Ce que fait le code:
-- Verifie que l'index journalier existe
-- Controle le volume d'events ingeres
-- Lit un echantillon recent pour valider les champs parsees
+- Verifie la creation de l'index
+- Controle le volume ingere
+- Verifie les types de champs
+- Lit un echantillon de documents
 
 ---
 
-## Requete metier d'exemple (niveau ERROR)
+## Requete metier 1 - Top langues
 
-```bash
-curl -X GET "http://localhost:9200/app-logs-*/_search?pretty" -H "Content-Type: application/json" -d '{
-  "query": {
-    "bool": {
-      "filter": [
-        { "term": { "level": "ERROR" } }
-      ]
-    }
-  },
+```json
+GET tmdb-movies/_search
+{
+  "size": 0,
   "aggs": {
-    "by_service": { "terms": { "field": "service.keyword" } }
+    "top_languages": {
+      "terms": {
+        "field": "original_language.keyword",
+        "size": 10
+      }
+    }
   }
-}'
+}
 ```
 
-Ce que fait le code:
-- Isole les erreurs
-- Regroupe les erreurs par service pour prioriser les actions
+Ce que fait la requete:
+- Donne les langues les plus presentes dans le dataset
 
-Repere theorique:
-- Sans champs bien parsees (`level`, `service`), cette requete est impossible
+---
+
+## Requete metier 2 - Top films par popularite
+
+```json
+GET tmdb-movies/_search
+{
+  "size": 10,
+  "sort": [
+    { "popularity": "desc" }
+  ],
+  "_source": ["title", "popularity", "vote_average", "vote_count"]
+}
+```
+
+Ce que fait la requete:
+- Liste les films les plus populaires
+- Affiche les metriques utiles pour interpretation rapide
 
 ---
 
 ## Qualite de parsing et enrichissement
 
 Points a controler:
-- Presence de `_grokparsefailure_app`
-- Coherence de `@timestamp`
-- Types corrects des champs (keyword/date)
+- `movie_id` bien en `integer`
+- `popularity` et `vote_average` en `float`
+- `vote_count` en `integer`
+- `release_date_ts` present et exploitable
 
-Enrichissements utiles:
-- `geoip` pour IP
-- `useragent` pour devices
-- `mutate` pour normalisation
+Enrichissements possibles:
+- derive `release_year`
+- categoriser `vote_average` (A/B/C)
+- normaliser `original_language`
 
 ---
 
@@ -142,23 +178,8 @@ docker compose logs -f logstash
 ```
 
 Ce que fait le code:
-- Lit l'etat runtime de Logstash (API monitor)
+- Lit l'etat runtime de Logstash
 - Suit les erreurs de parsing en temps reel
-
----
-
-## Exercices proposes (Chapitre 5)
-
-1. Ingestion minimale d'un fichier de logs
-2. Parsing `grok` des champs metier (`level`, `service`, `log_message`)
-3. Controle qualite avec `tag_on_failure` + correction `@timestamp`
-4. Requete metier: erreurs par service + derniers incidents
-
-Lien exercice:
-- [Exercice 05 - Logstash](exercice-05-logstash.html)
-
-Lien correction:
-- [Correction 05 - Logstash](correction-05-logstash.html)
 
 ---
 

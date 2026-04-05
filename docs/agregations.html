@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agrégations Elasticsearch</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="assets/theme.css">
+  <style>
+    .reveal section { text-align: left; }
+    .reveal h1, .reveal h2 { text-transform: none; }
+    .reveal pre code { max-height: 70vh; }
+    .top-nav {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .top-nav a {
+      background: rgba(10, 10, 10, 0.82);
+      border: 1px solid #2b2b2b;
+      color: #e5e7eb;
+      text-decoration: none;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(3px);
+    }
+    .top-nav a:hover {
+      border-color: #7c3aed;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav" aria-label="Navigation">
+    <a href="index.html">Accueil</a>
+    <a href="00-configuration-environnement.html">Setup env</a>
+    <a href="exercices.html">Exercices</a>
+  </div>
+
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
+        <textarea data-template>
+# Les agrégations Elasticsearch
+
+### Query vs Aggregation
+
+Une requête Elasticsearch peut faire deux choses différentes :
+
+| Objectif               | Élément Elasticsearch |
+| ---------------------- | --------------------- |
+| Trouver des documents  | query                 |
+| Analyser des documents | aggs                  |
+
+Donc :
+
+```json
+GET index/_search
+{
+  "query": { ... },
+  "aggs": { ... }
+}
+```
+
+* `query` → sélectionne les documents
+* `aggs` → calcule sur ces documents
+
+---
+
+## Remarque importante
+
+Pour les agrégations sur des champs textuels, il faut utiliser **`.keyword`** et pas le champ `text`.
+
+Pourquoi ?
+
+- `text` = analysé → pas utilisable pour GROUP BY
+- `keyword` = valeur exacte → utilisable pour GROUP BY
+
+```json
+"terms": {
+  "field": "speaker.keyword"
+}
+```
+
+| Champ   | Usage                     |
+| ------- | ------------------------- |
+| text    | recherche                 |
+| keyword | agrégation / tri / filtre |
+
+**Règle :**
+- Recherche → `text`
+- Agrégation → `keyword`
+
+---
+
+### Première agrégation : regrouper avec `terms`
+
+On veut compter le nombre de documents par pièce.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      }
+    }
+  }
+}
+```
+
+Résultat :
+
+| play_name | count |
+| --------- | ----- |
+| Hamlet    | 3     |
+| Othello   | 2     |
+| Macbeth   | 2     |
+
+`terms` = regrouper par valeur.
+
+Équivalent SQL :
+
+```sql
+SELECT play_name, COUNT(*)
+FROM shakespeare
+GROUP BY play_name;
+```
+
+---
+
+### Agrégations numériques
+
+Si on a un champ `year`, on peut faire des calculs :
+
+| Calcul       | Agrégation |
+| ------------ | ---------- |
+| moyenne      | avg        |
+| minimum      | min        |
+| maximum      | max        |
+| somme        | sum        |
+| statistiques | stats      |
+
+Exemple :
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "moyenne_annee": {
+      "avg": {
+        "field": "year"
+      }
+    }
+  }
+}
+```
+
+`size:0` indique que l'on ne souhaite pas les documents dans la recherche, seulement les statistiques.
+
+---
+
+### Agrégation avec filtre
+
+On peut filtrer les documents avant de faire le calcul :
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "range": {
+      "year": {
+        "gte": 1600,
+        "lte": 1610
+      }
+    }
+  },
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      }
+    }
+  }
+}
+```
+
+On analyse seulement les documents entre 1600 et 1610.
+
+---
+
+### Agrégations imbriquées (GROUP BY + calcul)
+
+On veut la moyenne des années par pièce.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      },
+      "aggs": {
+        "moyenne_annee": {
+          "avg": {
+            "field": "year"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+SQL :
+
+```sql
+SELECT play_name, AVG(year)
+FROM shakespeare
+GROUP BY play_name;
+```
+
+---
+
+### Agrégation par intervalle
+
+On veut regrouper par périodes.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_periode": {
+      "range": {
+        "field": "year",
+        "ranges": [
+          { "to": 1600 },
+          { "from": 1600, "to": 1605 },
+          { "from": 1605 }
+        ]
+      }
+    }
+  }
+}
+```
+
+Cela crée des groupes par intervalle de valeurs.
+
+---
+
+### Exercices
+
+1. Compter le nombre de documents par speaker
+2. Calculer l'année moyenne
+3. Trouver l'année min et max
+4. Compter le nombre de documents par pièce entre 1600 et 1610
+5. Calculer l'année moyenne par speaker
+6. Regrouper les documents par période (avant 1600, 1600–1605, après 1605)
+
+---
+
+## Agrégation `histogram`
+
+L'agrégation `histogram` permet de regrouper des valeurs numériques dans des intervalles de taille fixe.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_periode": {
+      "histogram": {
+        "field": "year",
+        "interval": 5
+      }
+    }
+  }
+}
+```
+
+Si `interval = 5`, Elasticsearch crée des groupes :
+
+* 1600–1605
+* 1605–1610
+* 1610–1615
+
+### Différence avec `range`
+
+| histogram         | range                         |
+| ----------------- | ----------------------------- |
+| intervalles fixes | intervalles définis à la main |
+
+---
+
+## Agrégation `date_histogram`
+
+`date_histogram` permet de regrouper des documents par intervalle de temps (jour, mois, année).
+
+### Exemple
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_annee": {
+      "date_histogram": {
+        "field": "date",
+        "calendar_interval": "year"
+      }
+    }
+  }
+}
+```
+
+### Intervalles possibles
+
+| Intervalle | Signification |
+| ---------- | ------------- |
+| minute     | par minute    |
+| hour       | par heure     |
+| day        | par jour      |
+| month      | par mois      |
+| year       | par année     |
+
+---
+
+## Exercices
+
+1. Combien de répliques par pièce, et quelle est la longueur moyenne des répliques ?
+2. Top 5 des speakers avec le plus de répliques
+3. Nombre de speakers différents par pièce
+4. Longueur moyenne des répliques par speaker
+5. Pièce avec la réplique la plus longue
+6. Moyenne du nombre de répliques par pièce
+7. Histogramme de la longueur des répliques (intervalle 20)
+8. Nombre de répliques par année puis par pièce (agrégations imbriquées)
+        </textarea>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: 'slide',
+      backgroundTransition: 'fade',
+      width: 1920,
+      height: 1080,
+      margin: 0.06,
+      controls: true,
+      progress: true,
+      center: false,
+      plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
+    });
+  </script>
+</body>
+</html>
