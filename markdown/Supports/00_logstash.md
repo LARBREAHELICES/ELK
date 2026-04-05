@@ -1,8 +1,9 @@
-# Logstash avec un dataset films 
+# Logstash avec un dataset films
 
 ## Objectif
 
-Utiliser Logstash pour ingérer un CSV réel de 10 000 films dans Elasticsearch.
+Utiliser Logstash pour ingerer un CSV reel de films dans Elasticsearch,
+et savoir **nommer**, **placer**, **executer** et **debugger** un pipeline.
 
 Pipeline :
 
@@ -12,11 +13,37 @@ input -> filter -> output
 
 ---
 
-## Dataset utilisé
+## Ou placer le fichier `.conf` ?
 
-Fichier :
+Dans ce projet (compose actuel) :
 
-`Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv`
+```yaml
+- ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+```
+
+Donc :
+- host : `sandbox/logstash.conf`
+- container : `/usr/share/logstash/pipeline/logstash.conf`
+
+---
+
+## Comment executer ?
+
+```bash
+docker compose up -d logstash
+docker compose restart logstash
+docker compose logs -f logstash
+```
+
+Tester la config avant execution :
+
+```bash
+docker compose run --rm logstash --config.test_and_exit -f /usr/share/logstash/pipeline/logstash.conf
+```
+
+---
+
+## Dataset TMDB (CSV)
 
 Colonnes :
 - `index`
@@ -30,7 +57,7 @@ Colonnes :
 
 ---
 
-## Input - lire le CSV
+## Pipeline CSV (TMDB)
 
 ```conf
 input {
@@ -40,13 +67,7 @@ input {
     sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
   }
 }
-```
 
----
-
-## Filter - parser et typer
-
-```conf
 filter {
   csv {
     separator => ","
@@ -70,71 +91,54 @@ filter {
     target => "release_date_ts"
   }
 }
-```
 
----
-
-## Output - indexer dans Elasticsearch
-
-```conf
 output {
   elasticsearch {
     hosts => ["http://elasticsearch:9200"]
     index => "tmdb-movies"
   }
-
   stdout { codec => rubydebug }
 }
 ```
 
 ---
 
-## Pipeline complet
+## Et si c'est un texte brut ? (`grok` / regex)
+
+Exemple ligne :
+
+```text
+2026-04-05T12:10:00Z INFO api - GET /movies/123 200 42ms
+```
+
+Exemple filtre :
 
 ```conf
-input {
-  file {
-    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
-    start_position => "beginning"
-    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
+grok {
+  match => {
+    "message" => "%{TIMESTAMP_ISO8601:log_ts} %{LOGLEVEL:level} %{DATA:service} - %{WORD:method} %{URIPATHPARAM:path} %{INT:status:int} %{INT:duration_ms:int}ms"
   }
-}
-
-filter {
-  csv {
-    separator => ","
-    quote_char => '"'
-    skip_header => true
-    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
-  }
-
-  mutate {
-    rename => { "index" => "movie_id" }
-    convert => {
-      "movie_id" => "integer"
-      "popularity" => "float"
-      "vote_average" => "float"
-      "vote_count" => "integer"
-    }
-  }
-
-  date {
-    match => ["release_date", "dd-MM-yyyy"]
-    target => "release_date_ts"
-  }
-}
-
-output {
-  elasticsearch {
-    hosts => ["http://elasticsearch:9200"]
-    index => "tmdb-movies"
-  }
+  tag_on_failure => ["_grokparsefailure_app"]
 }
 ```
 
 ---
 
-## Vérifications utiles
+## Regex custom
+
+Inline :
+
+```conf
+pattern_definitions => { "MOVIEID" => "MOV-[0-9]{6}" }
+```
+
+Ou via dossier patterns (recommande):
+- monter `./patterns:/usr/share/logstash/patterns:ro`
+- utiliser `patterns_dir => ["/usr/share/logstash/patterns"]`
+
+---
+
+## Verifications utiles
 
 ```bash
 curl "http://localhost:9200/tmdb-movies/_count?pretty"
@@ -142,49 +146,19 @@ curl "http://localhost:9200/tmdb-movies/_mapping?pretty"
 curl "http://localhost:9200/tmdb-movies/_search?pretty&size=3"
 ```
 
----
+Erreurs grok :
 
-## Exemples d'analyses métier
-
-Top langues :
-
-```json
-GET tmdb-movies/_search
-{
-  "size": 0,
-  "aggs": {
-    "top_languages": {
-      "terms": {
-        "field": "original_language.keyword",
-        "size": 10
-      }
-    }
-  }
-}
-```
-
-Top films populaires :
-
-```json
-GET tmdb-movies/_search
-{
-  "size": 10,
-  "sort": [{ "popularity": "desc" }],
-  "_source": ["title", "popularity", "vote_average", "vote_count"]
-}
+```bash
+curl -X GET "http://localhost:9200/app-logs-*/_search?pretty" -H "Content-Type: application/json" -d '{
+  "query": { "term": { "tags": "_grokparsefailure_app" } }
+}'
 ```
 
 ---
 
-## À retenir
+## A retenir
 
-- `input` lit le fichier CSV
-- `filter` transforme les champs
-- `output` envoie vers Elasticsearch
-- les types (`float`, `integer`, `date`) sont essentiels pour analyser correctement
-
----
-
-## Résumé en une phrase
-
-**Logstash permet de transformer un CSV brut (TMDB) en index exploitable pour la recherche et l'analyse dans Elasticsearch.**
+- Nommer et placer correctement `logstash.conf`
+- Tester la config avec `--config.test_and_exit`
+- Utiliser `csv` pour fichiers tabulaires
+- Utiliser `grok` pour parsing regex des logs texte
