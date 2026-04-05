@@ -1,5 +1,21 @@
 # Le Mapping dans Elasticsearch
 
+## Les types dans Elasticsearch 
+
+| Type    | Sert à           | Requêtes                 |
+| ------- | ---------------- | ------------------------ |
+| text    | texte analysé    | match                    |
+| keyword | valeur exacte    | term                     |
+| integer | nombres          | range / term             |
+| long    | grands entiers   | range                    |
+| float   | nombres décimaux | range                    |
+| double  | nombres décimaux | range                    |
+| boolean | true / false     | term                     |
+| date    | dates            | range                    |
+| object  | objet JSON       | requêtes sur sous-champs |
+
+---
+
 ## Qu'est-ce que le mapping ?
 
 Le **mapping** définit la structure des documents dans Elasticsearch.
