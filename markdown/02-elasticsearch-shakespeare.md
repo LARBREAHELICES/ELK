@@ -30,7 +30,7 @@ Il existe deux types de recherche principaux :
 
 ---
 
-## Important — text vs keyword
+## Important — `text` vs `keyword`
 
 Quand Elasticsearch crée le mapping automatiquement pour un champ texte, il crée souvent deux champs :
 
@@ -45,7 +45,7 @@ Donc :
 | -------------------------- | ------------------------ |
 | chercher dans un texte     | match                    |
 | chercher une valeur exacte | term                     |
-| filtrer speaker            | term sur speaker.keyword |
+| filtrer `speaker`          | term sur `speaker.keyword` |
 
 Règle à retenir :
 
@@ -283,7 +283,7 @@ GET shakespeare/_search
 Important :
 
 * `must` influence le score
-* `filter` filtre seulement
+* `filter` filtre uniquement
 
 ---
 
@@ -364,7 +364,13 @@ AND
 
 # Requêtes imbriquées
 
-On peut imbriquer des requêtes bool :
+On veut :
+
+```txt
+(text contient "love" OU text contient "death")
+ET
+(HAMLET OU OTHELLO)
+```
 
 ```json
 GET shakespeare/_search
@@ -375,13 +381,21 @@ GET shakespeare/_search
         {
           "bool": {
             "should": [
+              { "match": { "text_entry": "love" } },
+              { "match": { "text_entry": "death" } }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "bool": {
+            "should": [
               { "term": { "speaker.keyword": "HAMLET" } },
               { "term": { "speaker.keyword": "OTHELLO" } }
             ],
             "minimum_should_match": 1
           }
-        },
-        { "match": { "text_entry": "love" } }
+        }
       ]
     }
   }
@@ -414,6 +428,13 @@ GET shakespeare/_search
 | lte       | <=            |
 | gt        | >             |
 | lt        | <             |
+
+
+## Exercice
+
+1. Créez un exemple dans Jupyter qui illustre l'utilisation d'un `range`, puis inventez une requête combinée avec un `AND`, un `OR` et un `RANGE`.
+
+2. Reprenez la même requête en mettant `minimum_should_match: 0` et observez la différence.
 
 ---
 
