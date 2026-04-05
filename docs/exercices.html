@@ -25,7 +25,7 @@
     h1 { margin: 0; color: var(--accent); font-size: clamp(30px, 4vw, 46px); }
     .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
     .sub { color: var(--muted); margin: 8px 0 20px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .card {
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -53,25 +53,13 @@
       <h1>Hub Exercices ELK</h1>
       <a href="index.html">Retour accueil</a>
     </div>
-    <p class="sub">Tous les exercices sont separes par technologie. Les corrections sont masquees et s'affichent au clic dans chaque page.</p>
+    <p class="sub">Un seul exercice actif pour le moment.</p>
 
     <div class="cards">
       <article class="card">
-        <h2>Elasticsearch Shakespeare</h2>
-        <p class="meta">20 exercices progressifs: full-text, filtrage, aggregations et niveau avance.</p>
-        <a href="exercices-elasticsearch-shakespeare.html">Ouvrir les exos Elasticsearch</a>
-      </article>
-
-      <article class="card">
-        <h2>Kibana</h2>
-        <p class="meta">Exercices dedies: Discover, KQL, Lens, Dashboard, Inspect, verification DSL.</p>
-        <a href="exercices-kibana.html">Ouvrir les exos Kibana</a>
-      </article>
-
-      <article class="card">
-        <h2>Logstash</h2>
-        <p class="meta">Exercices dedies: generation de logs, grok, date, output, verification ingestion.</p>
-        <a href="exercices-logstash.html">Ouvrir les exos Logstash</a>
+        <h2>Exercice 01 - Shakespeare</h2>
+        <p class="meta">Mapping, match/term, bool, range, analyse des tokens et requete complete.</p>
+        <a href="exercice.html">Ouvrir l'exercice</a>
       </article>
     </div>
   </div>

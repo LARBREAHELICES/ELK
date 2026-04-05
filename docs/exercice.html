@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice Elasticsearch</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #22d3ee;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17223b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #67e8f9; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .content th, .content td { border: 1px solid #2d3748; padding: 8px; text-align: left; }
+    .content th { background: #111827; }
+    .content blockquote {
+      margin: 12px 0;
+      padding: 8px 12px;
+      border-left: 3px solid #38bdf8;
+      background: rgba(56,189,248,0.08);
+      color: #dbeafe;
+    }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Exercice Elasticsearch</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+      </div>
+    </div>
+    <p class="sub">Exercice unique charge depuis <code>markdown/Exercices/exercice.md</code>.</p>
+    <article class="content">
+<h1 id="exercice-1--mapping-et-types-de-champs">Exercice 1 — Mapping et
+types de champs</h1>
+<h2 id="objectif">Objectif</h2>
+<p>Comprendre l’importance du mapping et des types <code>text</code>,
+<code>keyword</code>, <code>integer</code>.</p>
+<h2 id="travail">Travail</h2>
+<p>Créez un nouvel index <code>shakespeare_extended</code> avec le
+mapping suivant :</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;mappings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;properties&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;keyword&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Ajoutez ensuite les documents suivants :</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be&quot;</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/2</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Macbeth&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;MACBETH&quot;</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;Is this a dagger which I see before me&quot;</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1606</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/3</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Othello&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;OTHELLO&quot;</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;One that loved not wisely but too well&quot;</span><span class="fu">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1604</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions">Questions</h3>
+<ol type="1">
+<li>Quels champs sont de type <code>text</code> ?</li>
+<li>Quels champs sont de type <code>keyword</code> ?</li>
+<li>Quels champs sont numériques ?</li>
+<li>Quelle requête faut-il utiliser pour chercher un mot dans
+<code>text_entry</code> ?</li>
+<li>Quelle requête faut-il utiliser pour filtrer <code>play_name</code>
+?</li>
+</ol>
+<hr />
+<h1 id="exercice-2--match-et-pertinence-score">Exercice 2 — match et
+pertinence (score)</h1>
+<h2 id="objectif-1">Objectif</h2>
+<p>Comprendre comment Elasticsearch classe les résultats.</p>
+<p>Ajoutez ces documents :</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/4</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span><span class="fu">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/5</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be a king&quot;</span><span class="fu">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Faites la requête :</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;to be question&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-1">Questions</h3>
+<ol type="1">
+<li>Quel document apparaît en premier ?</li>
+<li>Pourquoi ?</li>
+<li>Quel document contient le plus de mots recherchés ?</li>
+<li>Que représente <code>_score</code> ?</li>
+</ol>
+<hr />
+<h1 id="exercice-3--bool--must--filter">Exercice 3 — bool : must +
+filter</h1>
+<h2 id="objectif-2">Objectif</h2>
+<p>Comprendre la différence entre chercher et filtrer.</p>
+<p>Faites la requête :</p>
+<blockquote>
+<p>Trouver les textes contenant "be" mais seulement dans Hamlet.</p>
+</blockquote>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-2">Questions</h3>
+<ol type="1">
+<li>Quel est le rôle de <code>must</code> ?</li>
+<li>Quel est le rôle de <code>filter</code> ?</li>
+<li>Est-ce que <code>filter</code> change le score ?</li>
+</ol>
+<hr />
+<h1 id="exercice-4--bool--should-or-logique">Exercice 4 — bool : should
+(OR logique)</h1>
+<h2 id="objectif-3">Objectif</h2>
+<p>Comprendre <code>should</code>.</p>
+<blockquote>
+<p>Trouver les textes contenant "love" prononcés par Hamlet ou
+Othello.</p>
+</blockquote>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;love&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;OTHELLO&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;minimum_should_match&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-3">Questions</h3>
+<ol type="1">
+<li>À quoi correspond <code>should</code> ?</li>
+<li>Que signifie <code>minimum_should_match: 1</code> ?</li>
+<li>Que se passe-t-il si on met <code>minimum_should_match: 2</code>
+?</li>
+</ol>
+<hr />
+<h1 id="exercice-5--range-requête-sur-nombres">Exercice 5 — range
+(requête sur nombres)</h1>
+<h2 id="objectif-4">Objectif</h2>
+<p>Utiliser un filtre sur un champ numérique.</p>
+<blockquote>
+<p>Trouver les pièces écrites entre 1603 et 1605.</p>
+</blockquote>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1603</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lte&quot;</span><span class="fu">:</span> <span class="dv">1605</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-4">Questions</h3>
+<ol type="1">
+<li>Que signifie <code>gte</code> ?</li>
+<li>Que signifie <code>lte</code> ?</li>
+<li>Quelle pièce est la plus ancienne ?</li>
+<li>Quelle pièce est la plus récente ?</li>
+</ol>
+<hr />
+<h1 id="exercice-6--tokens-et-_analyze">Exercice 6 — Tokens et
+_analyze</h1>
+<h2 id="objectif-5">Objectif</h2>
+<p>Comprendre comment Elasticsearch découpe le texte.</p>
+<p>Utilisez :</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">shakespeare_extended/_analyze</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;text_entry&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-5">Questions</h3>
+<ol type="1">
+<li>Quels sont les tokens ?</li>
+<li>Pourquoi certains mots disparaissent ?</li>
+<li>Quand Elasticsearch crée ces tokens ?</li>
+<li>Quand Elasticsearch utilise ces tokens ?</li>
+</ol>
+<hr />
+<h1 id="exercice-7--requête-complète-niveau-technique">Exercice 7 —
+Requête complète (niveau technique)</h1>
+<blockquote>
+<p>Trouver les textes contenant "be", seulement dans Hamlet, écrits
+après 1600, et favoriser ceux prononcés par HAMLET.</p>
+</blockquote>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1600</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="questions-6">Questions</h3>
+<p>Identifier :</p>
+<ul>
+<li>la partie recherche</li>
+<li>la partie filtre</li>
+<li>la partie score</li>
+</ul>
+<hr />
+<h1 id="exercice-final--compréhension-globale">Exercice final —
+Compréhension globale</h1>
+<p>Expliquez avec vos mots la différence entre :</p>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>match</td>
+<td></td>
+</tr>
+<tr>
+<td>term</td>
+<td></td>
+</tr>
+<tr>
+<td>must</td>
+<td></td>
+</tr>
+<tr>
+<td>filter</td>
+<td></td>
+</tr>
+<tr>
+<td>should</td>
+<td></td>
+</tr>
+<tr>
+<td>tokens</td>
+<td></td>
+</tr>
+<tr>
+<td>index inversé</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="objectif-pédagogique-global">Objectif pédagogique global</h1>
+<p>À la fin, les étudiants doivent comprendre :</p>
+<pre class="text"><code>Document JSON
+      ↓
+Mapping
+      ↓
+Analyzer
+      ↓
+Tokens
+      ↓
+Index inversé
+      ↓
+match / term
+      ↓
+bool
+      ↓
+Résultats + score</code></pre>
+<p>Si un étudiant comprend ce schéma, il a compris Elasticsearch.</p>
+    </article>
+  </div>
+</body>
+</html>
