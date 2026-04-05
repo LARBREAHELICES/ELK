@@ -1,4 +1,3 @@
-
 # Les requêtes Elasticsearch
 
 ## Structure d'une requête
@@ -16,20 +15,48 @@ GET shakespeare/_search
 }
 ```
 
-> Dans Elasticsearch, on recherche toujours avec `_search` et une requête dans `query`.
+Une requête Elasticsearch est toujours une structure JSON placée dans `query`.
 
 ---
 
-#  Rappel : match vs term
+# match vs term
 
-On a deux types de recherche :
+Il existe deux types de recherche principaux :
 
 | Requête | Utilisation             |
 | ------- | ----------------------- |
 | match   | recherche dans un texte |
 | term    | recherche exacte        |
 
-### Exemple match
+---
+
+## Important — text vs keyword
+
+Quand Elasticsearch crée le mapping automatiquement pour un champ texte, il crée souvent deux champs :
+
+| Champ           | Type    | Utilisation            |
+| --------------- | ------- | ---------------------- |
+| speaker         | text    | recherche texte        |
+| speaker.keyword | keyword | filtre / valeur exacte |
+
+Donc :
+
+| Si on veut                 | Requête                  |
+| -------------------------- | ------------------------ |
+| chercher dans un texte     | match                    |
+| chercher une valeur exacte | term                     |
+| filtrer speaker            | term sur speaker.keyword |
+
+Règle à retenir :
+
+```text
+text → match
+keyword → term
+```
+
+---
+
+# Exemple match
 
 ```json
 GET shakespeare/_search
@@ -42,59 +69,47 @@ GET shakespeare/_search
 }
 ```
 
-Ici Elasticsearch cherche le mot **question** dans le texte.
+Ce que fait Elasticsearch :
 
 1. Elasticsearch reçoit "question"
-2. Il passe "question" dans l'analyzer
-3. Il obtient un token : "question"
-4. Il cherche ce token dans l'index inversé
+2. Il analyse le mot (analyzer)
+3. Il obtient un token
+4. Il cherche ce token dans l’index inversé
 5. Il trouve les documents
-6. Il calcule le score
+6. Il calcule un score
 7. Il renvoie les résultats
 
 ---
 
-## Exercice 
-
-L'objectif de cet exercice est de comprendre pourquoi Elasticsearch utilise des tokens et pourquoi la requête match est adaptée pour la recherche dans du texte.
-
-1. Ajouter de nouvelles données.
-1. Utilisez la commande _analyze pour voir les tokens générés pour la phrase: `To be or not to be`
-1. Faites une recherche avec `match` puis avec `term` et comparer.
-1. Concluez 
-
----
-
-Remarque sur les méthodes d'ajout
-
-| Action              | URL            | Méthode |
-| ------------------- | -------------- | ------- |
-| Ajouter doc avec id | /index/_doc/1  | PUT     |
-| Ajouter doc sans id | /index/_doc    | POST    |
-| Lire doc            | /index/_doc/1  | GET     |
-| Rechercher          | /index/_search | GET     |
-
-
----
-
-### Exemple term
+# Exemple term
 
 ```json
 GET shakespeare/_search
 {
   "query": {
     "term": {
-      "speaker": "HAMLET"
+      "speaker.keyword": "HAMLET"
     }
   }
 }
 ```
 
-Ici Elasticsearch cherche exactement **HAMLET**.
+Ici Elasticsearch cherche exactement la valeur **HAMLET**.
+
+Si on ne veut pas dépendre de la casse :
+
+```json
+"term": {
+  "speaker.keyword": {
+    "value": "hamlet",
+    "case_insensitive": true
+  }
+}
+```
 
 ---
 
-# La requête bool - important 
+# La requête bool
 
 Structure :
 
@@ -111,25 +126,22 @@ Structure :
 }
 ```
 
-| Élément  | Signification     |
-| -------- | ----------------- |
-| must     | AND               |
-| should   | OR                |
-| must_not | NOT               |
-| filter   | filtre sans score |
+| Élément  | Rôle                                          |
+| -------- | --------------------------------------------- |
+| must     | condition obligatoire + score                 |
+| filter   | condition obligatoire sans score              |
+| should   | améliore le score ou peut devenir obligatoire |
+| must_not | exclut des documents                          |
 
-
-> La requête bool permet de combiner plusieurs conditions.
-
-> Dans Elasticsearch, `must` calcule un score de pertinence (à quel point le document correspond à la recherche), alors que filter sert seulement à limiter les résultats sans changer le score.
+La requête bool permet de combiner plusieurs conditions.
 
 ---
 
-# must = AND
+# must
 
 Exemple :
 
-> On veut les phrases avec "be" prononcées par Hamlet.
+> On veut les phrases contenant "be" prononcées par Hamlet.
 
 ```json
 GET shakespeare/_search
@@ -138,7 +150,7 @@ GET shakespeare/_search
     "bool": {
       "must": [
         { "match": { "text_entry": "be" } },
-        { "term": { "speaker": "HAMLET" } }
+        { "term": { "speaker.keyword": "HAMLET" } }
       ]
     }
   }
@@ -154,7 +166,7 @@ AND speaker = HAMLET
 
 ---
 
-# should = OR
+# should
 
 Exemple :
 
@@ -166,8 +178,8 @@ GET shakespeare/_search
   "query": {
     "bool": {
       "should": [
-        { "term": { "speaker": "HAMLET" } },
-        { "term": { "speaker": "OTHELLO" } }
+        { "term": { "speaker.keyword": "HAMLET" } },
+        { "term": { "speaker.keyword": "OTHELLO" } }
       ],
       "minimum_should_match": 1
     }
@@ -182,13 +194,15 @@ speaker = HAMLET
 OR speaker = OTHELLO
 ```
 
----
+`minimum_should_match` indique combien de conditions doivent être vraies.
 
+| Valeur | Signification                |
+| ------ | ---------------------------- |
+| 0      | optionnel, améliore le score |
+| 1      | au moins une condition       |
+| 2      | deux conditions obligatoires |
 
-`minimum_should_match` indique combien de conditions should doivent être vraies pour que le document soit accepté.
-minimum_should_match: 1 signifie qu'au moins une des conditions doit être vraie.
-
-On peut mettre `0` augmente le score si on a un match. 
+Exemple avec score :
 
 ```json
 {
@@ -198,8 +212,8 @@ On peut mettre `0` augmente le score si on a un match.
         { "match": { "text_entry": "love" } }
       ],
       "should": [
-        { "term": { "speaker": "HAMLET" } },
-        { "term": { "speaker": "OTHELLO" } }
+        { "term": { "speaker.keyword": "HAMLET" } },
+        { "term": { "speaker.keyword": "OTHELLO" } }
       ],
       "minimum_should_match": 0
     }
@@ -207,24 +221,17 @@ On peut mettre `0` augmente le score si on a un match.
 }
 ```
 
----
+Traduction :
 
-- Image mentale
-
-```txt
+```text
 text contient "love"
 ET
 si speaker = HAMLET ou OTHELLO → meilleur score
-sinon → document accepté quand même
 ```
-
-Ici si `minimum_should_match=2`, c'est clairement un `AND`.
-
-On en reparle à la fin du cours.
 
 ---
 
-# must_not = NOT
+# must_not
 
 Exemple :
 
@@ -236,7 +243,7 @@ GET shakespeare/_search
   "query": {
     "bool": {
       "must_not": [
-        { "term": { "play_name": "Macbeth" } }
+        { "term": { "play_name.keyword": "Macbeth" } }
       ]
     }
   }
@@ -251,7 +258,7 @@ NOT play_name = Macbeth
 
 ---
 
-# filter (filtrer sans influencer le score)
+# filter
 
 Exemple :
 
@@ -266,25 +273,62 @@ GET shakespeare/_search
         { "match": { "text_entry": "be" } }
       ],
       "filter": [
-        { "term": { "play_name": "Hamlet" } }
+        { "term": { "play_name.keyword": "Hamlet" } }
       ]
     }
   }
 }
 ```
 
-**Important :**
+Important :
 
-- `must` → influence le score
-- `filter` → filtre seulement
-
-**Phrase à retenir :**
-
-> filter sert à filtrer, must sert à chercher.
+* `must` influence le score
+* `filter` filtre seulement
 
 ---
 
-# Requête avec AND + OR
+# AND
+
+`be AND not`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "be" } },
+        { "match": { "text_entry": "not" } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+# OR
+
+`be OR not`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match": { "text_entry": "be" } },
+        { "match": { "text_entry": "not" } }
+      ],
+      "minimum_should_match": 1
+    }
+  }
+}
+```
+
+---
+
+# AND + OR
 
 Exemple :
 
@@ -299,8 +343,8 @@ GET shakespeare/_search
         { "match": { "text_entry": "love" } }
       ],
       "should": [
-        { "term": { "speaker": "HAMLET" } },
-        { "term": { "speaker": "OTHELLO" } }
+        { "term": { "speaker.keyword": "HAMLET" } },
+        { "term": { "speaker.keyword": "OTHELLO" } }
       ],
       "minimum_should_match": 1
     }
@@ -320,9 +364,7 @@ AND
 
 # Requêtes imbriquées
 
-On peut mettre un `bool` dans un `bool`.
-
-Exemple :
+On peut imbriquer des requêtes bool :
 
 ```json
 GET shakespeare/_search
@@ -330,16 +372,16 @@ GET shakespeare/_search
   "query": {
     "bool": {
       "must": [
-        { "match": { "text_entry": "love" } },
         {
           "bool": {
             "should": [
-              { "term": { "speaker": "HAMLET" } },
-              { "term": { "speaker": "OTHELLO" } }
+              { "term": { "speaker.keyword": "HAMLET" } },
+              { "term": { "speaker.keyword": "OTHELLO" } }
             ],
             "minimum_should_match": 1
           }
-        }
+        },
+        { "match": { "text_entry": "love" } }
       ]
     }
   }
@@ -348,21 +390,9 @@ GET shakespeare/_search
 
 ---
 
-Traduction :
+# Requête range
 
-```text
-text contient "love"
-AND
-(HAMLET OR OTHELLO)
-```
-
-C'est une **requête imbriquée**.
-
----
-
-# Requête range (intervalle)
-
-Si on avait un champ `year` :
+Si on a un champ `year` :
 
 ```json
 GET shakespeare/_search
@@ -412,7 +442,7 @@ query
       └── must_not
 ```
 
-Et on peut imbriquer :
+Imbrication possible :
 
 ```text
 bool
@@ -423,35 +453,51 @@ bool
 
 ---
 
-# Résumé du cours
+# Résumé
 
-| Élément  | Rôle            |
-| -------- | --------------- |
-| match    | recherche texte |
-| term     | valeur exacte   |
-| must     | AND             |
-| should   | OR              |
-| must_not | NOT             |
-| filter   | filtre          |
-| range    | intervalle      |
-
----
-
-# Ce qu'il faut retenir
-
-> Une requête Elasticsearch est une structure logique (AND / OR / NOT) qui permet de combiner des recherches texte et des filtres.
+| Élément  | Rôle                  |
+| -------- | --------------------- |
+| match    | recherche texte       |
+| term     | valeur exacte         |
+| must     | condition obligatoire |
+| filter   | filtrer               |
+| should   | améliorer le score    |
+| must_not | exclure               |
+| range    | intervalle            |
 
 ---
 
-# 15. Exercices 
+# Comment Elasticsearch traite une requête
 
-Exercices à donner :
+Elasticsearch traite une requête en trois étapes :
+
+```text
+1. must → chercher
+2. filter → filtrer
+3. should → classer
+4. tri par score
+```
+
+---
+
+# Schéma global
+
+```text
+Recherche (must)
+        ↓
+Filtre (filter)
+        ↓
+Classement (should)
+        ↓
+Résultats
+```
+
+---
+
+# Exercices
 
 1. Trouver toutes les phrases de Hamlet
 2. Trouver les phrases contenant "love"
 3. Trouver les phrases contenant "love" prononcées par Othello
 4. Trouver toutes les phrases sauf celles de Macbeth
 5. Trouver les phrases contenant "be" et prononcées par Hamlet ou Othello
-
-
----
