@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice 05 - Logstash</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #22d3ee;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17223b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #67e8f9; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Exercice 05 - Logstash</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+        <a href="corrections.html">Corrections</a>
+      </div>
+    </div>
+    <p class="sub">4 exercices progressifs pour le chapitre 5 (ingestion, parsing, qualite, analyse metier).</p>
+    <article class="content">
+<h1 id="exercice-05---logstash-chapitre-5">Exercice 05 - Logstash
+(Chapitre 5)</h1>
+<h2 id="contexte">Contexte</h2>
+<p>Vous travaillez sur un pipeline Logstash avec des logs applicatifs.
+Objectif: passer de logs bruts a des donnees exploitables dans
+Elasticsearch.</p>
+<p>Index cible: <code>app-logs-*</code></p>
+<hr />
+<h2 id="exercice-1---ingestion-minimale">Exercice 1 - Ingestion
+minimale</h2>
+<h3 id="objectif">Objectif</h3>
+<p>Verifier que Logstash lit bien un fichier local.</p>
+<h3 id="travail">Travail</h3>
+<ol type="1">
+<li>Creer un fichier <code>logs/app.log</code> avec 3 lignes:</li>
+</ol>
+<pre class="text"><code>2026-03-30T10:15:00Z INFO api - User 42 created order 9001
+2026-03-30T10:16:45Z WARN billing - Payment retry for order 9002
+2026-03-30T10:17:12Z ERROR worker - Timeout while exporting report 77</code></pre>
+<ol start="2" type="1">
+<li>Configurer un pipeline minimal:</li>
+</ol>
+<ul>
+<li><code>input file</code></li>
+<li><code>output stdout { codec =&gt; rubydebug }</code></li>
+</ul>
+<ol start="3" type="1">
+<li>Redemarrer Logstash et verifier que les 3 events apparaissent.</li>
+</ol>
+<h3 id="questions">Questions</h3>
+<ol type="1">
+<li>Quelle difference entre <code>message</code> brut et event JSON
+affiche?</li>
+<li>A quoi sert <code>sincedb_path =&gt; "/dev/null"</code> en phase de
+test?</li>
+</ol>
+<hr />
+<h2 id="exercice-2---parsing-avec-grok">Exercice 2 - Parsing avec
+grok</h2>
+<h3 id="objectif-1">Objectif</h3>
+<p>Extraire les champs utiles depuis <code>message</code>.</p>
+<h3 id="travail-1">Travail</h3>
+<p>Ajouter un filtre <code>grok</code> pour extraire:</p>
+<ul>
+<li><code>log_timestamp</code></li>
+<li><code>level</code></li>
+<li><code>service</code></li>
+<li><code>log_message</code></li>
+</ul>
+<p>Pattern attendu:</p>
+<pre class="text"><code>%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:level} %{DATA:service} - %{GREEDYDATA:log_message}</code></pre>
+<p>Puis envoyer vers Elasticsearch index
+<code>app-logs-%{+YYYY.MM.dd}</code>.</p>
+<h3 id="questions-1">Questions</h3>
+<ol type="1">
+<li>Quels champs sont nouveaux apres <code>grok</code>?</li>
+<li>Pourquoi <code>level</code> doit etre present pour les analyses
+d'erreurs?</li>
+</ol>
+<hr />
+<h2 id="exercice-3---qualite-de-parsing">Exercice 3 - Qualite de
+parsing</h2>
+<h3 id="objectif-2">Objectif</h3>
+<p>Detecter les erreurs de parsing et corriger le temps.</p>
+<h3 id="travail-2">Travail</h3>
+<ol type="1">
+<li>Ajouter:</li>
+</ol>
+<ul>
+<li><code>tag_on_failure =&gt; ["_grokparsefailure_app"]</code></li>
+<li>filtre <code>date</code> base sur <code>log_timestamp</code></li>
+</ul>
+<ol start="2" type="1">
+<li>Ajouter une ligne invalide dans <code>logs/app.log</code>:</li>
+</ol>
+<pre class="text"><code>line_not_matching_pattern</code></pre>
+<ol start="3" type="1">
+<li>Reingester et verifier:</li>
+</ol>
+<ul>
+<li>presence du tag <code>_grokparsefailure_app</code></li>
+<li>coherence de <code>@timestamp</code></li>
+</ul>
+<h3 id="questions-2">Questions</h3>
+<ol type="1">
+<li>Comment identifier rapidement les logs non parsees?</li>
+<li>Pourquoi <code>@timestamp</code> est plus utile que garder une date
+en texte?</li>
+</ol>
+<hr />
+<h2 id="exercice-4---requete-metier-et-priorisation">Exercice 4 -
+Requete metier et priorisation</h2>
+<h3 id="objectif-3">Objectif</h3>
+<p>Passer des logs parsees a une analyse metier.</p>
+<h3 id="travail-3">Travail</h3>
+<p>Ecrire une requete Elasticsearch qui:</p>
+<ul>
+<li>filtre <code>level = ERROR</code></li>
+<li>regroupe par <code>service.keyword</code></li>
+<li>retourne aussi les 3 derniers evenements</li>
+</ul>
+<h3 id="questions-3">Questions</h3>
+<ol type="1">
+<li>Quel service genere le plus d'erreurs?</li>
+<li>Quelle action prioriser en premier?</li>
+</ol>
+<hr />
+<h2 id="livrable-attendu">Livrable attendu</h2>
+<ul>
+<li>Fichier de conf Logstash complet</li>
+<li>Requetes <code>curl</code> de verification</li>
+<li>Requete metier <code>ERROR</code> par service</li>
+<li>Reponse courte aux questions des 4 exercices</li>
+</ul>
+    </article>
+  </div>
+</body>
+</html>

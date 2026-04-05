@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TP Films (2h)</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #f59e0b;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #3a2b17 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #fbbf24; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>TP Films (2h)</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+        <a href="corrections.html">Corrections</a>
+      </div>
+    </div>
+    <p class="sub">TP d'approfondissement chapitre 5: pipeline films sur 2 heures.</p>
+    <article class="content">
+<h1 id="tp-films-2h---logstash--elasticsearch">TP Films (2h) - Logstash
++ Elasticsearch</h1>
+<h2 id="but-du-tp">But du TP</h2>
+<p>Construire une mini chaine data sur des films:</p>
+<ul>
+<li>ingestion CSV avec Logstash</li>
+<li>mapping propre dans Elasticsearch</li>
+<li>verification de la qualite des donnees</li>
+<li>requetes metier pour analyser le catalogue</li>
+</ul>
+<p>Duree cible: <strong>2 heures</strong>.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>Vous recevez deux fichiers:</p>
+<ul>
+<li><code>films_catalog.csv</code> (metadonnees films)</li>
+<li><code>films_ratings.csv</code> (notes utilisateurs)</li>
+</ul>
+<p>Vous devez produire deux index:</p>
+<ul>
+<li><code>films-catalog</code></li>
+<li><code>films-ratings</code></li>
+</ul>
+<p>Puis repondre a des questions produit simples (top genres, meilleurs
+films, etc.).</p>
+<hr />
+<h2 id="pre-requis-10-min">Pre-requis (10 min)</h2>
+<ol type="1">
+<li>Verifier les services:</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose ps</span></code></pre></div>
+<ol start="2" type="1">
+<li>Creer un dossier de travail:</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> logs/films</span></code></pre></div>
+<ol start="3" type="1">
+<li>Ajouter deux CSV dans <code>logs/films/</code>.</li>
+</ol>
+<p>Format minimal conseille:</p>
+<p><code>films_catalog.csv</code></p>
+<pre class="csv"><code>movie_id,title,year,genre,director
+1,Inception,2010,Sci-Fi,Christopher Nolan
+2,The Godfather,1972,Crime,Francis Ford Coppola
+3,Parasite,2019,Thriller,Bong Joon-ho</code></pre>
+<p><code>films_ratings.csv</code></p>
+<pre class="csv"><code>movie_id,user_id,rating,rated_at
+1,101,4.8,2026-03-01T10:00:00Z
+1,102,4.6,2026-03-02T11:20:00Z
+3,103,4.9,2026-03-03T09:15:00Z</code></pre>
+<hr />
+<h2 id="etape-1---pipeline-catalog-30-min">Etape 1 - Pipeline catalog
+(30 min)</h2>
+<h3 id="travail">Travail</h3>
+<p>Creer un pipeline Logstash pour <code>films_catalog.csv</code>:</p>
+<ul>
+<li><code>input file</code></li>
+<li><code>filter csv</code></li>
+<li>conversion de <code>movie_id</code> et <code>year</code> en
+entier</li>
+<li><code>output elasticsearch</code> vers
+<code>films-catalog</code></li>
+</ul>
+<h3 id="verification">Verification</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-catalog/_count?pretty&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-catalog/_search?pretty&amp;size=3&quot;</span></span></code></pre></div>
+<hr />
+<h2 id="etape-2---pipeline-ratings-30-min">Etape 2 - Pipeline ratings
+(30 min)</h2>
+<h3 id="travail-1">Travail</h3>
+<p>Creer un pipeline Logstash pour <code>films_ratings.csv</code>:</p>
+<ul>
+<li><code>input file</code></li>
+<li><code>filter csv</code></li>
+<li>conversion <code>movie_id</code> en entier, <code>rating</code> en
+float</li>
+<li>parse <code>rated_at</code> vers <code>@timestamp</code></li>
+<li>output vers <code>films-ratings</code></li>
+</ul>
+<h3 id="verification-1">Verification</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-ratings/_count?pretty&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-ratings/_search?pretty&amp;size=3&quot;</span></span></code></pre></div>
+<hr />
+<h2 id="etape-3---controle-qualite-20-min">Etape 3 - Controle qualite
+(20 min)</h2>
+<h3 id="travail-2">Travail</h3>
+<p>Verifier:</p>
+<ul>
+<li>types de champs (<code>movie_id</code>, <code>rating</code>,
+<code>@timestamp</code>)</li>
+<li>presence de tags d'erreur de parsing</li>
+<li>doublons evidents</li>
+</ul>
+<h3 id="commandes-utiles">Commandes utiles</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-catalog/_mapping?pretty&quot;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/films-ratings/_mapping?pretty&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> GET <span class="st">&quot;http://localhost:9200/films-ratings/_search?pretty&quot;</span> <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="at">-d</span> <span class="st">&#39;{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;query&quot;: {&quot;exists&quot;: {&quot;field&quot;: &quot;tags&quot;}}</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="st">}&#39;</span></span></code></pre></div>
+<hr />
+<h2 id="etape-4---questions-metier-25-min">Etape 4 - Questions metier
+(25 min)</h2>
+<p>Faire ces requetes:</p>
+<ol type="1">
+<li>Top genres par nombre de films (<code>films-catalog</code>)</li>
+<li>Note moyenne par film (<code>films-ratings</code>, agg
+<code>avg</code> sur <code>rating</code>)</li>
+<li>Top 3 films les mieux notes (tri sur moyenne)</li>
+<li>Evolution du volume de notes par jour (<code>date_histogram</code>
+sur <code>@timestamp</code>)</li>
+</ol>
+<hr />
+<h2 id="bonus-5-min">Bonus (5 min)</h2>
+<ul>
+<li>Ajouter un champ <code>rating_band</code> (<code>low</code>,
+<code>medium</code>, <code>high</code>) via <code>mutate</code> /
+condition.</li>
+<li>Creer une requete qui compte les notes par
+<code>rating_band</code>.</li>
+</ul>
+<hr />
+<h2 id="livrables-attendus">Livrables attendus</h2>
+<ol type="1">
+<li>Deux fichiers pipeline Logstash (<code>catalog</code> et
+<code>ratings</code>)</li>
+<li>Captures ou commandes de verification (<code>_count</code>,
+<code>_mapping</code>, <code>_search</code>)</li>
+<li>4 requetes metier + interpretation en 3 lignes max par requete</li>
+</ol>
+<hr />
+<h2 id="grille-de-temps-recommandee">Grille de temps recommandee</h2>
+<ul>
+<li>0:00 -&gt; 0:10: setup</li>
+<li>0:10 -&gt; 0:40: pipeline catalog</li>
+<li>0:40 -&gt; 1:10: pipeline ratings</li>
+<li>1:10 -&gt; 1:30: qualite</li>
+<li>1:30 -&gt; 1:55: analyses metier</li>
+<li>1:55 -&gt; 2:00: rendu</li>
+</ul>
+    </article>
+  </div>
+</body>
+</html>

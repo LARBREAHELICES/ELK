@@ -26,6 +26,12 @@
     .top a { color: var(--text); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; }
     .sub { color: var(--muted); margin: 8px 0 20px; }
     .cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .section-title {
+      margin: 28px 0 10px;
+      font-size: 20px;
+      color: #cbd5e1;
+      letter-spacing: 0.2px;
+    }
     .card {
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -56,6 +62,7 @@
     <p class="sub">Exercices et corrections disponibles par module.</p>
 
     <div class="cards">
+      <h2 class="section-title">Partie Exercices</h2>
       <article class="card">
         <h2>Exercice 01 - Shakespeare</h2>
         <p class="meta">Mapping, match/term, bool, range, analyse des tokens et requete complete.</p>
@@ -67,9 +74,21 @@
         <a href="exercice-03-aggregation.html">Ouvrir l'exercice</a>
       </article>
       <article class="card">
+        <h2>Exercice 05 - Logstash</h2>
+        <p class="meta">4 exercices progressifs: ingestion, parsing grok, qualite des donnees et requete metier.</p>
+        <a href="exercice-05-logstash.html">Ouvrir l'exercice</a>
+      </article>
+      <article class="card">
         <h2>Page des corrections</h2>
         <p class="meta">Accès aux corrections détaillées des exercices, avec requêtes JSON et version Python Jupyter.</p>
         <a href="corrections.html">Ouvrir les corrections</a>
+      </article>
+
+      <h2 class="section-title">Partie TP</h2>
+      <article class="card">
+        <h2>TP Films (2h) - Chapitre 5</h2>
+        <p class="meta">TP d'approfondissement Logstash + Elasticsearch sur un jeu de donnees films (catalog + ratings).</p>
+        <a href="tp-05-films-2h.html">Ouvrir le TP</a>
       </article>
     </div>
   </div>
