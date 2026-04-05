@@ -97,7 +97,7 @@ Puis on indexe les documents.
 
 **Indexer un document = insérer une donnée + la rendre recherchable.**
 
-Pour l'instant nous utiliserons le **mapping dynamique** et revoyons ce point dans le chapitre `03_mapping` un peu plus tard.
+Sans précision de votre part, Elasticsearch utilise le mapping dynamique.
 
 ---
 
