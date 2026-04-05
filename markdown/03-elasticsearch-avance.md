@@ -299,3 +299,199 @@ GET shakespeare/_search
 6. Moyenne du nombre de répliques par pièce
 7. Histogramme de la longueur des répliques (intervalle 20)
 8. Nombre de répliques par année puis par pièce (agrégations imbriquées)
+
+---
+
+# Partie avancée — `emit` dans Elasticsearch
+
+## Note de synthèse — Agrégations et runtime fields
+
+Les agrégations et les runtime fields sont très puissants, mais ils peuvent être coûteux en calcul.
+
+En particulier :
+
+- les agrégations s'exécutent sur beaucoup de documents
+- les scripts (`runtime`, `emit`) consomment du CPU
+- cela peut devenir lent sur de gros volumes de données
+
+Règle pratique :
+
+- pour explorer / tester → runtime fields + `emit`
+- pour la production → créer un vrai champ indexé
+- éviter les scripts sur des millions de documents
+- toujours tester avec `size: 0` pour ne pas récupérer les documents inutilement
+
+**Idée clé :**
+Ce qui est pratique n'est pas toujours performant.
+
+---
+
+`emit` est utilisé dans les **runtime fields** ou les **scripted aggregations** pour **émettre une valeur calculée** qu'Elasticsearch pourra ensuite agréger.
+
+En gros :
+
+> `emit()` permet de créer une valeur calculée à la volée.
+
+---
+
+## Runtime field avec `emit`
+
+On peut créer un champ calculé sans modifier l'index.
+
+Exemple : calculer la longueur d'une réplique.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "runtime_mappings": {
+    "line_length": {
+      "type": "long",
+      "script": {
+        "source": "emit(doc['text_entry.keyword'].value.length())"
+      }
+    }
+  },
+  "aggs": {
+    "longueur_moyenne": {
+      "avg": {
+        "field": "line_length"
+      }
+    }
+  }
+}
+```
+
+### Ce que fait `emit`
+
+```js
+emit(valeur)
+```
+
+→ envoie la valeur dans le champ calculé.
+
+Sans `emit`, Elasticsearch ne peut pas récupérer la valeur.
+
+---
+
+## Exemple : année regroupée par décennie
+
+On veut regrouper par décennie (1600, 1610, etc.).
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "runtime_mappings": {
+    "decade": {
+      "type": "long",
+      "script": {
+        "source": "emit((doc['year'].value / 10) * 10)"
+      }
+    }
+  },
+  "aggs": {
+    "par_decennie": {
+      "terms": {
+        "field": "decade"
+      }
+    }
+  }
+}
+```
+
+SQL équivalent :
+
+```sql
+SELECT FLOOR(year/10)*10 AS decade, COUNT(*)
+FROM shakespeare
+GROUP BY decade;
+```
+
+---
+
+## Exemple : catégoriser des valeurs - Painless
+
+Le langage utilisé est Painless, propre à Elasticsearch.
+
+On veut créer des catégories :
+
+* court
+* moyen
+* long
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "runtime_mappings": {
+    "categorie_longueur": {
+      "type": "keyword",
+      "script": {
+        "source": """
+          int len = doc['text_entry.keyword'].value.length();
+          if (len < 50) emit("court");
+          else if (len < 100) emit("moyen");
+          else emit("long");
+        """
+      }
+    }
+  },
+  "aggs": {
+    "par_categorie": {
+      "terms": {
+        "field": "categorie_longueur"
+      }
+    }
+  }
+}
+```
+
+Très puissant : on peut faire un **GROUP BY sur une valeur calculée**.
+
+---
+
+## Cas réel très important (logs)
+
+Exemple : extraire le domaine d'une URL.
+
+```json
+"script": {
+  "source": """
+    String url = doc['url.keyword'].value;
+    if (url.contains("google")) emit("google");
+    else if (url.contains("bing")) emit("bing");
+    else emit("autre");
+  """
+}
+```
+
+Puis agrégation dessus → analytics.
+
+---
+
+## Quand utiliser `emit` ?
+
+Quand on veut faire un GROUP BY sur :
+
+* une transformation
+* une catégorie
+* une tranche
+* une valeur calculée
+* un parsing (URL, email, log…)
+* une normalisation
+* une règle métier
+
+Donc :
+
+> `emit` = SQL `CASE WHEN` + `GROUP BY`
+
+---
+
+## Exercices avancés (`emit`)
+
+1. Regrouper les répliques par longueur (court/moyen/long)
+2. Regrouper les années par décennie
+3. Calculer le nombre de mots par réplique puis faire la moyenne
+4. Extraire la première lettre du speaker et regrouper dessus
+5. Catégoriser les pièces : ancienne (<1600) / récente (>1600)
