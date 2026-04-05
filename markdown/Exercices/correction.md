@@ -8,8 +8,8 @@ import json
 
 ES_URL = "http://elasticsearch:9200"
 
-def run_search(query):
-    resp = requests.get(f"{ES_URL}/shakespeare_extended/_search", json=query)
+def run_search(query, index="shakespeare_extended"):
+    resp = requests.get(f"{ES_URL}/{index}/_search", json=query)
     data = resp.json()
     print(json.dumps(data, indent=2, ensure_ascii=False))
     return data
@@ -262,3 +262,89 @@ run_search({
 | `should` | préférence / OR selon `minimum_should_match` |
 | `tokens` | unités de texte issues de l’analyse |
 | `index inversé` | structure terme -> documents |
+
+---
+
+## Exercice 8 — `multi_match` avec boost
+
+- Rechercher `ghost` dans plusieurs champs.
+- Donner plus de poids au champ `speaker` avec `speaker^2`.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "ghost",
+      "fields": ["text_entry", "play_name", "speaker^2"]
+    }
+  }
+}
+```
+
+```python
+run_search({
+  "query": {
+    "multi_match": {
+      "query": "ghost",
+      "fields": ["text_entry", "play_name", "speaker^2"]
+    }
+  }
+}, index="shakespeare")
+```
+
+---
+
+## Exercice 9 — `multi_match` + filtre
+
+- Rechercher `love` dans `text_entry` et `play_name`.
+- Filtrer uniquement la pièce `Hamlet`.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "multi_match": {
+            "query": "love",
+            "fields": ["text_entry", "play_name"]
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "play_name.keyword": "Hamlet"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+```python
+run_search({
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "multi_match": {
+            "query": "love",
+            "fields": ["text_entry", "play_name"]
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "play_name.keyword": "Hamlet"
+          }
+        }
+      ]
+    }
+  }
+}, index="shakespeare")
+```

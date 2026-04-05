@@ -522,3 +522,89 @@ Résultats
 3. Trouver les phrases contenant "love" prononcées par Othello
 4. Trouver toutes les phrases sauf celles de Macbeth
 5. Trouver les phrases contenant "be" et prononcées par Hamlet ou Othello
+
+---
+
+# Multi Match — Shakespeare
+
+## Principe
+
+On veut chercher un mot ou une phrase dans plusieurs champs :
+
+* `speaker`
+* `play_name`
+* `text_entry`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "king",
+      "fields": ["text_entry", "play_name", "speaker"]
+    }
+  }
+}
+```
+
+---
+
+# Pondération des champs
+
+Certains champs sont plus importants :
+
+* `play_name` → très important
+* `speaker` → important
+* `text_entry` → normal
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "king",
+      "fields": ["play_name^3", "speaker^2", "text_entry"]
+    }
+  }
+}
+```
+
+Si "king" est dans le **titre de la pièce**, le score sera plus élevé.
+
+---
+
+# Avec filtre (pièce précise)
+
+On veut chercher **"love"** seulement dans **Hamlet**.
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "multi_match": {
+            "query": "love",
+            "fields": ["text_entry", "speaker", "play_name"]
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "play_name.keyword": "Hamlet"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+# Exercices multi_match
+
+1. Chercher **"ghost"** dans `text_entry`, `speaker`, `play_name`, avec `speaker` boosté x2.
+2. Chercher **"love"** dans `text_entry` et `play_name`, seulement dans la pièce **Hamlet**.

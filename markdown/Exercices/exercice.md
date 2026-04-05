@@ -730,6 +730,123 @@ print(json.dumps(resp.json(), indent=2, ensure_ascii=False))
 
 ---
 
+# Exercice 8 — Multi Match avec boost
+
+Chercher **"ghost"** dans :
+
+- `text_entry`
+- `speaker`
+- `play_name`
+
+Le champ `speaker` doit compter **2 fois plus**.
+
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "ghost",
+      "fields": ["text_entry", "play_name", "speaker^2"]
+    }
+  }
+}
+```
+
+```python
+import requests
+import json
+
+ES_URL = "http://elasticsearch:9200"
+
+query = {
+    "query": {
+        "multi_match": {
+            "query": "ghost",
+            "fields": ["text_entry", "play_name", "speaker^2"],
+        }
+    }
+}
+
+resp = requests.get(f"{ES_URL}/shakespeare/_search", json=query)
+print(json.dumps(resp.json(), indent=2, ensure_ascii=False))
+```
+</details>
+
+---
+
+# Exercice 9 — Multi Match + filtre
+
+Chercher **"love"** :
+
+- dans `text_entry` et `play_name`
+- seulement dans la pièce **Hamlet**
+
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "multi_match": {
+            "query": "love",
+            "fields": ["text_entry", "play_name"]
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "play_name.keyword": "Hamlet"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+```python
+import requests
+import json
+
+ES_URL = "http://elasticsearch:9200"
+
+query = {
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "multi_match": {
+                        "query": "love",
+                        "fields": ["text_entry", "play_name"],
+                    }
+                }
+            ],
+            "filter": [
+                {
+                    "term": {
+                        "play_name.keyword": "Hamlet"
+                    }
+                }
+            ],
+        }
+    }
+}
+
+resp = requests.get(f"{ES_URL}/shakespeare/_search", json=query)
+print(json.dumps(resp.json(), indent=2, ensure_ascii=False))
+```
+</details>
+
+---
+
 # Objectif pédagogique global
 
 À la fin, les étudiants doivent comprendre :
