@@ -3,534 +3,561 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support 05 - Analyser</title>
+  <title>Cours - Analyseurs Elasticsearch</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="assets/theme.css">
   <style>
-    :root {
-      --bg: #090b10;
-      --panel: #121722;
-      --line: #263043;
-      --text: #edf2f7;
-      --muted: #a5b0c2;
-      --accent: #60a5fa;
-      --code-bg: #0a0e16;
-      --code-border: #243049;
+    .reveal section { text-align: left; }
+    .reveal h1, .reveal h2 { text-transform: none; }
+    .reveal pre code { max-height: 70vh; }
+    .top-nav {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: radial-gradient(1000px 600px at 10% -10%, #152e45 0%, var(--bg) 56%), var(--bg);
-      color: var(--text);
-      font-family: Inter, Arial, sans-serif;
-      line-height: 1.6;
-    }
-    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
-    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
-    .top a {
-      color: var(--text);
+    .top-nav a {
+      background: rgba(10, 10, 10, 0.82);
+      border: 1px solid #2b2b2b;
+      color: #e5e7eb;
       text-decoration: none;
-      border: 1px solid var(--line);
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.03);
-    }
-    .sub { color: var(--muted); margin: 8px 0 20px; }
-    .content {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: linear-gradient(180deg, var(--panel), #10141d);
-      padding: 20px;
-    }
-    .content h1, .content h2, .content h3, .content h4 { color: #e2e8f0; margin-top: 22px; }
-    .content h1 { font-size: 30px; color: #93c5fd; }
-    .content h2 { font-size: 24px; }
-    .content h3 { font-size: 18px; }
-    .content p, .content li { color: var(--text); }
-    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
-    .content table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-    .content th, .content td { border: 1px solid #2d3748; padding: 8px; text-align: left; }
-    .content th { background: #111827; }
-    .content pre {
-      margin: 10px 0;
-      padding: 12px;
-      border: 1px solid var(--code-border);
+      font-family: Inter, Arial, sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
       border-radius: 8px;
-      overflow-x: auto;
-      background: var(--code-bg);
-      color: #d1fae5;
-      font-family: "JetBrains Mono", Consolas, monospace;
-      font-size: 12px;
+      backdrop-filter: blur(3px);
     }
-    .content code {
-      font-family: "JetBrains Mono", Consolas, monospace;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 1px 5px;
-      color: #bae6fd;
-    }
-    .content pre code {
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: inherit;
+    .top-nav a:hover {
+      border-color: #7c3aed;
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <h1>Support 05 - Analyser</h1>
-      <div>
-        <a href="index.html">Accueil</a>
-        <a href="exercices.html">Hub exos</a>
-      </div>
-    </div>
-    <p class="sub">Support de cours sur les analyzers et tokenizers Elasticsearch.</p>
-    <article class="content">
-<h1 id="analyseur-et">Analyseur et</h1>
-<h2 id="analyseurs-personnalisés">Analyseurs personnalisés</h2>
-<p>Voici un <strong>exemple d'analyseur personnalisé (ad hoc)</strong>
-dans Elasticsearch pour bien comprendre comment on construit le
-sien.</p>
-<hr />
-<h3 id="objectif">Objectif</h3>
-<p>On veut un analyzer qui :</p>
-<ul>
-<li>met en minuscule</li>
-<li>enlève les mots vides français</li>
-<li>enlève les accents</li>
-<li>fait un peu de stemming (manger → mang)</li>
-</ul>
-<p>Donc pipeline :</p>
-<pre><code>tokenizer → lowercase → stop → asciifolding → stemmer</code></pre>
-<hr />
-<h3 id="définition-de-lanalyzer---exemple">Définition de l'analyzer -
-exemple</h3>
-<p>On doit le définir <strong>dans les settings de l'index</strong>
-:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">mon_index</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;analysis&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;mon_analyzer_fr&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;standard&quot;</span><span class="fu">,</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lowercase&quot;</span><span class="ot">,</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;french_stop&quot;</span><span class="ot">,</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;asciifolding&quot;</span><span class="ot">,</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;french_stemmer&quot;</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>          <span class="ot">]</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;french_stop&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;stop&quot;</span><span class="fu">,</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;stopwords&quot;</span><span class="fu">:</span> <span class="st">&quot;_french_&quot;</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;french_stemmer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;stemmer&quot;</span><span class="fu">,</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;language&quot;</span><span class="fu">:</span> <span class="st">&quot;light_french&quot;</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<hr />
-<h2 id="remarque-sur-les-mots-clés">Remarque sur les mots clés</h2>
-<p>Elasticsearch utilise une liste interne implémentée dans le moteur
-Lucene lui-même.</p>
-<p>"stopwords": "<em>french</em>", le type "stop" ici supprime des
-mots.</p>
-<ol type="1">
-<li>french → agressif</li>
-<li>light_french → mieux pour la recherche</li>
-<li>minimal_french → très léger</li>
-</ol>
-<p>Un <strong>stemmer</strong> transforme un mot en sa racine pour
-regrouper les variantes d'un même mot.</p>
-<p><code>pomme → pome</code></p>
-<hr />
-<h3 id="tester-lanalyzer">Tester l'analyzer</h3>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">mon_index/_analyze</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;mon_analyzer_fr&quot;</span><span class="fu">,</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;Les étudiants mangent des pommes à l&#39;université&quot;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>Résultat (tokens) :</p>
-<pre><code>etudiant
+  <div class="top-nav" aria-label="Navigation">
+    <a href="index.html">Accueil</a>
+    <a href="00-configuration-environnement.html">Setup env</a>
+    <a href="exercices.html">Exercices</a>
+  </div>
+
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
+        <textarea data-template>
+
+# Analyseur et 
+
+## Analyseurs personnalisés
+
+Voici un **exemple d'analyseur personnalisé (ad hoc)** dans Elasticsearch pour bien comprendre comment on construit le sien.
+
+---
+
+### Objectif
+
+On veut un analyzer qui :
+
+- met en minuscule
+- enlève les mots vides français
+- enlève les accents
+- fait un peu de stemming (manger → mang)
+
+Donc pipeline :
+
+```
+tokenizer → lowercase → stop → asciifolding → stemmer
+```
+
+---
+
+###  Définition de l'analyzer - exemple
+
+On doit le définir **dans les settings de l'index** :
+
+```json
+PUT mon_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "mon_analyzer_fr": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "french_stop",
+            "asciifolding",
+            "french_stemmer"
+          ]
+        }
+      },
+      "filter": {
+        "french_stop": {
+          "type": "stop",
+          "stopwords": "_french_"
+        },
+        "french_stemmer": {
+          "type": "stemmer",
+          "language": "light_french"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+## Remarque sur les mots clés
+
+Elasticsearch utilise une liste interne implémentée dans le moteur Lucene lui-même.
+
+"stopwords": "_french_", le type "stop" ici supprime des mots.
+
+1. french → agressif
+1. light_french → mieux pour la recherche
+1. minimal_french → très léger
+
+Un **stemmer** transforme un mot en sa racine pour regrouper les variantes d'un même mot.
+
+`pomme → pome`
+
+---
+
+### Tester l'analyzer
+
+```json
+GET mon_index/_analyze
+{
+  "analyzer": "mon_analyzer_fr",
+  "text": "Les étudiants mangent des pommes à l'université"
+}
+```
+
+Résultat (tokens) :
+
+```
+etudiant
 mangent
 pome
-universit</code></pre>
-<p>On a :</p>
-<ul>
-<li>supprimé <strong>les</strong></li>
-<li>supprimé <strong>des</strong></li>
-<li>enlevé accents</li>
-<li>réduit les mots</li>
-</ul>
-<hr />
-<h3 id="cas-concret-où-cest-utile">Cas concret où c'est utile</h3>
-<p>Par exemple pour un moteur de recherche de formation, si quelqu'un
-cherche :</p>
-<pre><code>etudier universite</code></pre>
-<p>Il pourra trouver :</p>
-<pre><code>Les étudiants mangent à l&#39;université</code></pre>
-<p>Même si les mots ne sont pas exactement les mêmes. C'est ça la
-puissance du full-text.</p>
-<hr />
-<h3 id="autre-exemple-danalyzer-ad-hoc-produits-e-commerce">Autre
-exemple d'analyzer ad hoc (produits e-commerce)</h3>
-<p>On veut :</p>
-<ul>
-<li>garder les nombres</li>
-<li>garder les marques</li>
-<li>ignorer la casse</li>
-<li>découper sur espace seulement</li>
-</ul>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;analyzer&quot;:</span> <span class="fu">{</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;produit_analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;whitespace&quot;</span><span class="fu">,</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;lowercase&quot;</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<ul>
-<li><code>type custom</code> → on crée son propre analyseur.</li>
-<li><code>whitespace</code> → découpe selon les espaces (slide)</li>
-</ul>
-<p>Texte :</p>
-<pre><code>iPhone 15 Pro Max</code></pre>
-<p>Tokens :</p>
-<pre><code>iphone
+universit
+```
+
+On a :
+
+- supprimé **les**
+- supprimé **des**
+- enlevé accents
+- réduit les mots
+
+---
+
+### Cas concret où c'est utile
+
+Par exemple pour un moteur de recherche de formation, si quelqu'un cherche :
+
+```
+etudier universite
+```
+
+Il pourra trouver :
+
+```
+Les étudiants mangent à l'université
+```
+
+Même si les mots ne sont pas exactement les mêmes. C'est ça la puissance du full-text.
+
+---
+
+### Autre exemple d'analyzer ad hoc (produits e-commerce)
+
+On veut :
+
+- garder les nombres
+- garder les marques
+- ignorer la casse
+- découper sur espace seulement
+
+```json
+"analyzer": {
+  "produit_analyzer": {
+    "type": "custom",
+    "tokenizer": "whitespace",
+    "filter": [
+      "lowercase"
+    ]
+  }
+}
+```
+
+- `type custom` → on crée son propre analyseur.
+- `whitespace` → découpe selon les espaces (slide)
+
+Texte :
+
+```
+iPhone 15 Pro Max
+```
+
+Tokens :
+
+```
+iphone
 15
 pro
-max</code></pre>
-<p>Très utile pour recherche produit.</p>
-<hr />
-<h3 id="structure-générale-dun-analyzer-custom">Structure générale d'un
-analyzer custom</h3>
-<p>Toujours cette structure :</p>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;analysis&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;nom_analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;...&quot;</span><span class="fu">,</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;...&quot;</span><span class="ot">,</span> <span class="st">&quot;...&quot;</span><span class="ot">]</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<hr />
-<h3 id="les-tokenizers-les-plus-utilisés">Les tokenizers les plus
-utilisés</h3>
-<table>
-<thead>
-<tr>
-<th>Tokenizer</th>
-<th>Rôle</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>standard</td>
-<td>texte normal</td>
-</tr>
-<tr>
-<td>whitespace</td>
-<td>coupe sur espaces</td>
-</tr>
-<tr>
-<td>keyword</td>
-<td>ne coupe pas (1 seul token)</td>
-</tr>
-<tr>
-<td>ngram</td>
-<td>découpe en morceaux</td>
-</tr>
-<tr>
-<td>edge_ngram</td>
-<td>pour autocomplete</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="exemple-autocomplete">Exemple autocomplete</h3>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;tokenizer&quot;:</span> <span class="fu">{</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;autocomplete_tokenizer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;edge_ngram&quot;</span><span class="fu">,</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;min_gram&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;max_gram&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;token_chars&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;letter&quot;</span><span class="ot">]</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>"ordinateur" devient :</p>
-<pre><code>or
+max
+```
+
+Très utile pour recherche produit.
+
+---
+
+### Structure générale d'un analyzer custom
+
+Toujours cette structure :
+
+```json
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "nom_analyzer": {
+          "type": "custom",
+          "tokenizer": "...",
+          "filter": ["...", "..."]
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### Les tokenizers les plus utilisés
+
+| Tokenizer  | Rôle                        |
+| ---------- | --------------------------- |
+| standard   | texte normal                |
+| whitespace | coupe sur espaces           |
+| keyword    | ne coupe pas (1 seul token) |
+| ngram      | découpe en morceaux         |
+| edge_ngram | pour autocomplete           |
+
+---
+
+###  Exemple autocomplete 
+
+```json
+"tokenizer": {
+  "autocomplete_tokenizer": {
+    "type": "edge_ngram",
+    "min_gram": 2,
+    "max_gram": 10,
+    "token_chars": ["letter"]
+  }
+}
+```
+
+"ordinateur" devient :
+
+```
+or
 ord
 ordi
 ordin
 ordina
-...</code></pre>
-<p>→ Sert pour la recherche <strong>au fur et à mesure que l'on
-tape</strong>.</p>
-<hr />
-<h3 id="synthèse-guidée">Synthèse guidée</h3>
-<p>Un analyzer custom = <strong>tokenizer + filtres</strong> pour
-adapter la recherche à notre métier.</p>
-<p>C'est exactement comme un <strong>pipeline de traitement de
-texte</strong>.</p>
-<h2 id="cas-pratique-complet--base-de-films-analyse-et-recherche">Cas
-Pratique Complet : Base De Films (Analyse Et Recherche)</h2>
-<p>L'idée métier est simple : dans un catalogue de films, les
-utilisateurs tapent souvent des requêtes comme :</p>
-<ul>
-<li><code>amelie</code></li>
-<li><code>seigneur anneaux</code></li>
-<li><code>sci fi espace</code></li>
-<li><code>film fantastique peter jackson</code></li>
-</ul>
-<p>On veut donc un analyseur qui :</p>
-<ul>
-<li>découpe correctement le texte avec <code>standard</code>,</li>
-<li>mette en minuscules,</li>
-<li>enlève les accents avec <code>asciifolding</code>,</li>
-<li>supprime les mots vides avec <code>stop</code>,</li>
-<li>gère quelques synonymes métier comme
-<code>sci fi =&gt; science fiction</code>. Elasticsearch permet
-justement de créer un analyseur personnalisé en combinant un tokenizer
-et des token filters. Le tokenizer <code>standard</code> est le plus
-généraliste, <code>asciifolding</code> transforme par exemple
-<code>à</code> en <code>a</code>, et l'API <code>_analyze</code> sert à
-inspecter les tokens produits. ([Elastic][1])</li>
-</ul>
-<h4 id="création-de-lindex">Création de l'index</h4>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">films</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a> <span class="er">&quot;settings&quot;:</span> <span class="fu">{</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;analysis&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;film_elision_fr&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;elision&quot;</span><span class="fu">,</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;articles_case&quot;</span><span class="fu">:</span> <span class="er">True</span><span class="fu">,</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;articles&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;l&quot;</span><span class="ot">,</span> <span class="st">&quot;d&quot;</span><span class="ot">,</span> <span class="st">&quot;c&quot;</span><span class="ot">,</span> <span class="st">&quot;j&quot;</span><span class="ot">,</span> <span class="st">&quot;m&quot;</span><span class="ot">,</span> <span class="st">&quot;n&quot;</span><span class="ot">,</span> <span class="st">&quot;s&quot;</span><span class="ot">,</span> <span class="st">&quot;t&quot;</span><span class="ot">,</span> <span class="st">&quot;qu&quot;</span><span class="ot">]</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">},</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;film_stop_fr&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;stop&quot;</span><span class="fu">,</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;stopwords&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;le&quot;</span><span class="ot">,</span> <span class="st">&quot;la&quot;</span><span class="ot">,</span> <span class="st">&quot;les&quot;</span><span class="ot">,</span> <span class="st">&quot;de&quot;</span><span class="ot">,</span> <span class="st">&quot;du&quot;</span><span class="ot">,</span> <span class="st">&quot;des&quot;</span><span class="ot">]</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>                <span class="fu">},</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;film_synonyms&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;synonym&quot;</span><span class="fu">,</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;synonyms&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;sci fi, science fiction&quot;</span><span class="ot">,</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;sf, science fiction&quot;</span><span class="ot">,</span></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;heroic fantasy, fantasy&quot;</span><span class="ot">,</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;romcom, comedie romantique&quot;</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">]</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>            <span class="fu">},</span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;film_text_analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;standard&quot;</span><span class="fu">,</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;lowercase&quot;</span><span class="ot">,</span></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;film_elision_fr&quot;</span><span class="ot">,</span></span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;asciifolding&quot;</span><span class="ot">,</span></span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;film_stop_fr&quot;</span><span class="ot">,</span></span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;film_synonyms&quot;</span></span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">]</span></span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>            <span class="fu">}</span></span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="er">,</span></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>    <span class="er">&quot;mappings&quot;:</span> <span class="fu">{</span></span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;properties&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_text_analyzer&quot;</span><span class="fu">},</span></span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_text_analyzer&quot;</span><span class="fu">},</span></span>
-<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;genres&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_text_analyzer&quot;</span><span class="fu">},</span></span>
-<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;director&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_text_analyzer&quot;</span><span class="fu">},</span></span>
-<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">},</span></span>
-<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rating&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;float&quot;</span><span class="fu">}</span></span>
-<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
-<h5 id="pourquoi-cet-analyseur-est-pertinent-ici">Pourquoi cet analyseur
-est pertinent ici</h5>
-<ul>
-<li><code>lowercase</code> : <code>Amélie</code> et <code>amélie</code>
-deviennent comparables.</li>
-<li><code>asciifolding</code> : <code>Amélie</code> peut être retrouvé
-avec <code>amelie</code>. ([Elastic][2])</li>
-<li><code>stop</code> : des mots peu utiles comme <code>le</code>,
-<code>la</code>, <code>de</code>, <code>des</code> sont retirés.</li>
-<li><code>synonym</code> : <code>sci fi</code> et
-<code>science fiction</code> peuvent converger vers la même idée
-métier.</li>
-<li><code>standard</code> : bon choix par défaut pour du texte courant.
-([Elastic][3])</li>
-</ul>
-<hr />
-<h4 id="insertion-dun-petit-jeu-de-données">Insertion d'un petit jeu de
-données</h4>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">films/_bulk</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">1</span><span class="fu">}}</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Le Fabuleux Destin d&#39;Amélie Poulain&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Une jeune femme timide transforme la vie des gens autour d&#39;elle à Montmartre.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;comedie&quot;</span><span class="ot">,</span><span class="st">&quot;romance&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;director&quot;</span><span class="fu">:</span><span class="st">&quot;Jean-Pierre Jeunet&quot;</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.3</span><span class="fu">}</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">2</span><span class="fu">}}</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Le Seigneur des Anneaux : La Communauté de l&#39;Anneau&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Un hobbit hérite d&#39;un anneau et part dans une quête fantastique pour le détruire.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;fantasy&quot;</span><span class="ot">,</span><span class="st">&quot;aventure&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;director&quot;</span><span class="fu">:</span><span class="st">&quot;Peter Jackson&quot;</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.8</span><span class="fu">}</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">3</span><span class="fu">}}</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Interstellar&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Des astronautes traversent l&#39;espace et le temps pour sauver l&#39;humanité.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;science fiction&quot;</span><span class="ot">,</span><span class="st">&quot;drame&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;director&quot;</span><span class="fu">:</span><span class="st">&quot;Christopher Nolan&quot;</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2014</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.7</span><span class="fu">}</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">4</span><span class="fu">}}</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Blade Runner 2049&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Un agent découvre un secret qui pourrait bouleverser la société futuriste.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;science fiction&quot;</span><span class="ot">,</span><span class="st">&quot;thriller&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;director&quot;</span><span class="fu">:</span><span class="st">&quot;Denis Villeneuve&quot;</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2017</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.0</span><span class="fu">}</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">5</span><span class="fu">}}</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Harry Potter à l&#39;école des sorciers&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Un jeune garçon découvre qu&#39;il est sorcier et entre dans une école de magie.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;fantasy&quot;</span><span class="ot">,</span><span class="st">&quot;aventure&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;director&quot;</span><span class="fu">:</span><span class="st">&quot;Chris Columbus&quot;</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">7.6</span><span class="fu">}</span></span></code></pre></div>
-<hr />
-<h4 id="vérifier-le-comportement-de-lanalyseur">Vérifier le comportement
-de l'analyseur</h4>
-<div class="sourceCode" id="cb15"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films/_analyze</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_text_analyzer&quot;</span><span class="fu">,</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;Le Fabuleux Destin d&#39;Amélie Poulain&quot;</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>Avec cet analyseur, on s'attend à obtenir des tokens proches de :</p>
-<pre class="text"><code>fabuleux
+...
+```
+
+→ Sert pour la recherche **au fur et à mesure que l'on tape**.
+
+---
+
+### Synthèse guidée
+
+Un analyzer custom = **tokenizer + filtres** pour adapter la recherche à notre métier.
+
+C'est exactement comme un **pipeline de traitement de texte**.
+
+##  Cas Pratique Complet : Base De Films (Analyse Et Recherche)
+
+L'idée métier est simple : dans un catalogue de films, les utilisateurs tapent souvent des requêtes comme :
+
+- `amelie`
+- `seigneur anneaux`
+- `sci fi espace`
+- `film fantastique peter jackson`
+
+On veut donc un analyseur qui :
+
+- découpe correctement le texte avec `standard`,
+- mette en minuscules,
+- enlève les accents avec `asciifolding`,
+- supprime les mots vides avec `stop`,
+- gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l'API `_analyze` sert à inspecter les tokens produits. ([Elastic][1])
+
+#### Création de l'index
+
+```json
+PUT films
+ "settings": {
+        "analysis": {
+            "filter": {
+                "film_elision_fr": {
+                    "type": "elision",
+                    "articles_case": True,
+                    "articles": ["l", "d", "c", "j", "m", "n", "s", "t", "qu"]
+                },
+                "film_stop_fr": {
+                    "type": "stop",
+                    "stopwords": ["le", "la", "les", "de", "du", "des"]
+                },
+                "film_synonyms": {
+                    "type": "synonym",
+                    "synonyms": [
+                        "sci fi, science fiction",
+                        "sf, science fiction",
+                        "heroic fantasy, fantasy",
+                        "romcom, comedie romantique"
+                    ]
+                }
+            },
+            "analyzer": {
+                "film_text_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "film_elision_fr",
+                        "asciifolding",
+                        "film_stop_fr",
+                        "film_synonyms"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "title": {"type": "text", "analyzer": "film_text_analyzer"},
+            "summary": {"type": "text", "analyzer": "film_text_analyzer"},
+            "genres": {"type": "text", "analyzer": "film_text_analyzer"},
+            "director": {"type": "text", "analyzer": "film_text_analyzer"},
+            "year": {"type": "integer"},
+            "rating": {"type": "float"}
+        }
+    }
+}
+```
+
+##### Pourquoi cet analyseur est pertinent ici
+
+- `lowercase` : `Amélie` et `amélie` deviennent comparables.
+- `asciifolding` : `Amélie` peut être retrouvé avec `amelie`. ([Elastic][2])
+- `stop` : des mots peu utiles comme `le`, `la`, `de`, `des` sont retirés.
+- `synonym` : `sci fi` et `science fiction` peuvent converger vers la même idée métier.
+- `standard` : bon choix par défaut pour du texte courant. ([Elastic][3])
+
+---
+
+#### Insertion d'un petit jeu de données
+
+```json
+POST films/_bulk
+{"index":{"_id":1}}
+{"title":"Le Fabuleux Destin d'Amélie Poulain","summary":"Une jeune femme timide transforme la vie des gens autour d'elle à Montmartre.","genres":["comedie","romance"],"director":"Jean-Pierre Jeunet","year":2001,"rating":8.3}
+{"index":{"_id":2}}
+{"title":"Le Seigneur des Anneaux : La Communauté de l'Anneau","summary":"Un hobbit hérite d'un anneau et part dans une quête fantastique pour le détruire.","genres":["fantasy","aventure"],"director":"Peter Jackson","year":2001,"rating":8.8}
+{"index":{"_id":3}}
+{"title":"Interstellar","summary":"Des astronautes traversent l'espace et le temps pour sauver l'humanité.","genres":["science fiction","drame"],"director":"Christopher Nolan","year":2014,"rating":8.7}
+{"index":{"_id":4}}
+{"title":"Blade Runner 2049","summary":"Un agent découvre un secret qui pourrait bouleverser la société futuriste.","genres":["science fiction","thriller"],"director":"Denis Villeneuve","year":2017,"rating":8.0}
+{"index":{"_id":5}}
+{"title":"Harry Potter à l'école des sorciers","summary":"Un jeune garçon découvre qu'il est sorcier et entre dans une école de magie.","genres":["fantasy","aventure"],"director":"Chris Columbus","year":2001,"rating":7.6}
+```
+
+---
+
+#### Vérifier le comportement de l'analyseur
+
+```json
+GET films/_analyze
+{
+  "analyzer": "film_text_analyzer",
+  "text": "Le Fabuleux Destin d'Amélie Poulain"
+}
+```
+
+Avec cet analyseur, on s'attend à obtenir des tokens proches de :
+
+```text
+fabuleux
 destin
 amelie
-poulain</code></pre>
-<p>Ici :</p>
-<ul>
-<li><code>Le</code> disparaît comme stop word,</li>
-<li><code>Amélie</code> devient <code>amelie</code> grâce à
-<code>asciifolding</code>. L'API <code>_analyze</code> est précisément
-faite pour visualiser ce type de transformation.</li>
-</ul>
-<hr />
-<h4 id="requête-simple-sur-le-titre">Requête simple sur le titre</h4>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films/_search</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;amelie&quot;</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>Cette requête peut retrouver <strong>Le Fabuleux Destin d'Amélie
-Poulain</strong> même si l'utilisateur tape sans accent, car le texte
-indexé et la requête sont tous deux analysés. La logique d'analyse
-s'applique au moment de l'indexation et peut aussi être testée côté
-requête via l'analyseur.</p>
-<hr />
-<h4 id="requête-métier-plus-réaliste">Requête métier plus réaliste</h4>
-<p>Un utilisateur tape :</p>
-<pre class="text"><code>film sci fi espace</code></pre>
-<p>On peut chercher à la fois dans le titre, le résumé, les genres et le
-réalisateur :</p>
-<div class="sourceCode" id="cb19"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films/_search</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;multi_match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="st">&quot;film sci fi espace&quot;</span><span class="fu">,</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;fields&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title^3&quot;</span><span class="ot">,</span> <span class="st">&quot;summary^2&quot;</span><span class="ot">,</span> <span class="st">&quot;genres^2&quot;</span><span class="ot">,</span> <span class="st">&quot;director&quot;</span><span class="ot">]</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<h5 id="ce-qui-se-passe">Ce qui se passe</h5>
-<ul>
-<li><code>film</code> peut avoir peu d'impact s'il n'est pas
-présent,</li>
-<li><code>sci fi</code> est rapproché de <code>science fiction</code>
-via les synonymes,</li>
-<li><code>espace</code> matche bien le résumé
-d'<strong>Interstellar</strong>.</li>
-</ul>
-<p>Donc ce type d'analyseur améliore la recherche en collant au
-vocabulaire réel des utilisateurs.</p>
-<hr />
-<h4 id="requête-sur-un-univers-de-films-fantastiques">Requête sur un
-univers de films fantastiques</h4>
-<div class="sourceCode" id="cb20"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films/_search</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;multi_match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="st">&quot;seigneur anneaux fantasy peter jackson&quot;</span><span class="fu">,</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;fields&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title^4&quot;</span><span class="ot">,</span> <span class="st">&quot;summary&quot;</span><span class="ot">,</span> <span class="st">&quot;genres^2&quot;</span><span class="ot">,</span> <span class="st">&quot;director^2&quot;</span><span class="ot">]</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>Ici, on mélange :</p>
-<ul>
-<li>des mots du titre,</li>
-<li>un genre,</li>
-<li>un réalisateur.</li>
-</ul>
-<p>C'est un bon cas d'usage full-text.</p>
-<hr />
-<h4 id="variante-utile--autocomplétion-sur-le-titre">Variante utile :
-autocomplétion sur le titre</h4>
-<p>Pour une vraie base de films, on ajoute souvent un second champ pour
-l'autocomplete. Par exemple :</p>
-<div class="sourceCode" id="cb21"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">films_autocomplete</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;analysis&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;film_autocomplete_tokenizer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;edge_ngram&quot;</span><span class="fu">,</span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;min_gram&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;max_gram&quot;</span><span class="fu">:</span> <span class="dv">15</span><span class="fu">,</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;token_chars&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;letter&quot;</span><span class="ot">,</span> <span class="st">&quot;digit&quot;</span><span class="ot">]</span></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;film_autocomplete&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_autocomplete_tokenizer&quot;</span><span class="fu">,</span></span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;lowercase&quot;</span><span class="ot">,</span> <span class="st">&quot;asciifolding&quot;</span><span class="ot">]</span></span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p><code>edge_ngram</code> est justement le tokenizer classique pour des
-débuts de mots, donc pour la saisie assistée.</p>
-<h3 id="principe">Principe</h3>
-<p>On indexe le début des mots pour pouvoir chercher pendant que
-l'utilisateur tape.</p>
-<div class="sourceCode" id="cb22"><pre
-class="sourceCode txt"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>Interstellar → in, int, inte, inter, inters, etc.</span></code></pre></div>
-<hr />
-<h4 id="ce-que-ce-design-nous-apprend">Ce que ce design nous
-apprend</h4>
-<p>Dans cet exemple, l'analyseur n'est pas "linguistiquement parfait",
-mais il est <strong>cohérent métier</strong> :</p>
-<ol type="1">
-<li>base films francophone,</li>
-<li>titres avec accents,</li>
-<li>requêtes utilisateur imprécises,</li>
-<li>synonymes de genres,</li>
-<li>recherche sur plusieurs champs.</li>
-</ol>
-<p>Autrement dit, un bon analyseur n'est pas seulement "technique", il
-doit refléter <strong>la manière dont les utilisateurs
-cherchent</strong>.</p>
-    </article>
+poulain
+```
+
+Ici :
+
+- `Le` disparaît comme stop word,
+- `Amélie` devient `amelie` grâce à `asciifolding`. L'API `_analyze` est précisément faite pour visualiser ce type de transformation. 
+
+---
+
+#### Requête simple sur le titre
+
+```json
+GET films/_search
+{
+  "query": {
+    "match": {
+      "title": "amelie"
+    }
+  }
+}
+```
+
+Cette requête peut retrouver **Le Fabuleux Destin d'Amélie Poulain** même si l'utilisateur tape sans accent, car le texte indexé et la requête sont tous deux analysés. La logique d'analyse s'applique au moment de l'indexation et peut aussi être testée côté requête via l'analyseur.
+
+---
+
+#### Requête métier plus réaliste
+
+Un utilisateur tape :
+
+```text
+film sci fi espace
+```
+
+On peut chercher à la fois dans le titre, le résumé, les genres et le réalisateur :
+
+```json
+GET films/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "film sci fi espace",
+      "fields": ["title^3", "summary^2", "genres^2", "director"]
+    }
+  }
+}
+```
+
+##### Ce qui se passe
+
+- `film` peut avoir peu d'impact s'il n'est pas présent,
+- `sci fi` est rapproché de `science fiction` via les synonymes,
+- `espace` matche bien le résumé d'**Interstellar**.
+
+Donc ce type d'analyseur améliore la recherche en collant au vocabulaire réel des utilisateurs.
+
+---
+
+#### Requête sur un univers de films fantastiques
+
+```json
+GET films/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "seigneur anneaux fantasy peter jackson",
+      "fields": ["title^4", "summary", "genres^2", "director^2"]
+    }
+  }
+}
+```
+
+Ici, on mélange :
+
+- des mots du titre,
+- un genre,
+- un réalisateur.
+
+C'est un bon cas d'usage full-text.
+
+---
+
+####  Variante utile : autocomplétion sur le titre
+
+Pour une vraie base de films, on ajoute souvent un second champ pour l'autocomplete. Par exemple :
+
+```json
+PUT films_autocomplete
+{
+  "settings": {
+    "analysis": {
+      "tokenizer": {
+        "film_autocomplete_tokenizer": {
+          "type": "edge_ngram",
+          "min_gram": 2,
+          "max_gram": 15,
+          "token_chars": ["letter", "digit"]
+        }
+      },
+      "analyzer": {
+        "film_autocomplete": {
+          "type": "custom",
+          "tokenizer": "film_autocomplete_tokenizer",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  }
+}
+```
+
+`edge_ngram` est justement le tokenizer classique pour des débuts de mots, donc pour la saisie assistée.
+
+### Principe
+On indexe le début des mots pour pouvoir chercher pendant que l'utilisateur tape.
+
+```txt
+Interstellar → in, int, inte, inter, inters, etc.
+```
+
+---
+
+####  Ce que ce design nous apprend
+
+Dans cet exemple, l'analyseur n'est pas "linguistiquement parfait", mais il est **cohérent métier** :
+
+1. base films francophone,
+1. titres avec accents,
+1. requêtes utilisateur imprécises,
+1. synonymes de genres,
+1. recherche sur plusieurs champs.
+
+Autrement dit, un bon analyseur n'est pas seulement "technique", il doit refléter **la manière dont les utilisateurs cherchent**.
+        </textarea>
+      </section>
+    </div>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: 'slide',
+      backgroundTransition: 'fade',
+      width: 1920,
+      height: 1080,
+      margin: 0.06,
+      controls: true,
+      progress: true,
+      center: false,
+      plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
+    });
+  </script>
 </body>
 </html>
