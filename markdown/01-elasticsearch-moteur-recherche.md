@@ -380,9 +380,9 @@ Il faut utiliser :
 
 # Combiner texte + filtre
 
-On va revoir, `texte + filtre`, tout ça en détail dans le chapitre suivant `02_requetes`
+On reverra `texte + filtre` en détail dans le chapitre suivant `02_requetes`.
 
-Testez pour l'instant cette requête dans `Jupyter`
+Pour l'instant, testez cette requête dans `Jupyter` :
 
 ```json
 GET shakespeare/_search
@@ -399,8 +399,6 @@ GET shakespeare/_search
   }
 }
 ```
-
-Testez ce code dans Jupyter.
 
 | Élément | Rôle            |
 | ------- | --------------- |
