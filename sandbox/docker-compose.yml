@@ -67,6 +67,7 @@ services:
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - ./logs:/usr/share/logstash/logs:ro
+      - ./data:/data:ro
 
   jupyter:
     image: jupyter/minimal-notebook:python-3.11
