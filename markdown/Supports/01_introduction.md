@@ -313,6 +313,7 @@ GET shakespeare/_search
 ---
 
 > `term` cherche une valeur exacte dans un champ keyword, sans passer par l'analyzer.
+
 > `match` découpe le texte, `term` cherche exactement la valeur.
 
 ---
