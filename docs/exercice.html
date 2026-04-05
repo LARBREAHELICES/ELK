@@ -57,6 +57,20 @@
       background: rgba(56,189,248,0.08);
       color: #dbeafe;
     }
+    .content details {
+      margin: 12px 0;
+      border: 1px solid #36506b;
+      border-radius: 10px;
+      background: #0d1724;
+      padding: 10px 12px;
+    }
+    .content summary {
+      cursor: pointer;
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+    .content summary:hover { color: #bae6fd; }
+    .content details[open] summary { margin-bottom: 10px; }
     .content pre {
       margin: 10px 0;
       padding: 12px;
@@ -93,7 +107,7 @@
         <a href="exercices.html">Hub exos</a>
       </div>
     </div>
-    <p class="sub">Exercice unique charge depuis <code>markdown/Exercices/exercice.md</code>.</p>
+    <p class="sub">Réponses cachées disponibles au clic, avec versions JSON et Python (Jupyter).</p>
     <article class="content">
 <h1 id="exercice-1--mapping-et-types-de-champs">Exercice 1 — Mapping et
 types de champs</h1>
@@ -158,42 +172,137 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="
 <li>Quelle requête faut-il utiliser pour filtrer <code>play_name</code>
 ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p><code>text</code>: <code>text_entry</code><br />
+<code>keyword</code>: <code>play_name</code>, <code>speaker</code><br />
+numériques: <code>act</code>, <code>scene</code>, <code>year</code></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;question&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>mapping <span class="op">=</span> {</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;mappings&quot;</span>: {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;properties&quot;</span>: {</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;play_name&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;keyword&quot;</span>},</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;speaker&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;keyword&quot;</span>},</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;text_entry&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;text&quot;</span>},</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;act&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;integer&quot;</span>},</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;scene&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;integer&quot;</span>},</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;year&quot;</span>: {<span class="st">&quot;type&quot;</span>: <span class="st">&quot;integer&quot;</span>}</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>requests.put(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended&quot;</span>, json<span class="op">=</span>mapping)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> [</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;id&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;doc&quot;</span>: {</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;HAMLET&quot;</span>,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;To be or not to be&quot;</span>,</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;act&quot;</span>: <span class="dv">3</span>,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;scene&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;year&quot;</span>: <span class="dv">1603</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;id&quot;</span>: <span class="dv">2</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;doc&quot;</span>: {</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Macbeth&quot;</span>,</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;MACBETH&quot;</span>,</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;Is this a dagger which I see before me&quot;</span>,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;act&quot;</span>: <span class="dv">2</span>,</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;scene&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;year&quot;</span>: <span class="dv">1606</span>,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;id&quot;</span>: <span class="dv">3</span>,</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;doc&quot;</span>: {</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Othello&quot;</span>,</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;OTHELLO&quot;</span>,</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;One that loved not wisely but too well&quot;</span>,</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;act&quot;</span>: <span class="dv">5</span>,</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;scene&quot;</span>: <span class="dv">2</span>,</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;year&quot;</span>: <span class="dv">1604</span>,</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> item <span class="kw">in</span> docs:</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    requests.put(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_doc/</span><span class="sc">{</span>item[<span class="st">&#39;id&#39;</span>]<span class="sc">}</span><span class="ss">&quot;</span>, json<span class="op">=</span>item[<span class="st">&quot;doc&quot;</span>])</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>query_match <span class="op">=</span> {<span class="st">&quot;query&quot;</span>: {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;question&quot;</span>}}}</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>resp_match <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query_match)</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;MATCH&quot;</span>)</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp_match.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>query_term <span class="op">=</span> {<span class="st">&quot;query&quot;</span>: {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>}}}</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>resp_term <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query_term)</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;TERM&quot;</span>)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp_term.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-2--match-et-pertinence-score">Exercice 2 — match et
 pertinence (score)</h1>
 <h2 id="objectif-1">Objectif</h2>
 <p>Comprendre comment Elasticsearch classe les résultats.</p>
 <p>Ajoutez ces documents :</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/4</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span><span class="fu">,</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/5</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be a king&quot;</span><span class="fu">,</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/4</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span><span class="fu">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">shakespeare_extended/_doc/5</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;To be a king&quot;</span><span class="fu">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;act&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scene&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="dv">1603</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Faites la requête :</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;to be question&quot;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;to be question&quot;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-1">Questions</h3>
 <ol type="1">
 <li>Quel document apparaît en premier ?</li>
@@ -201,6 +310,61 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="
 <li>Quel document contient le plus de mots recherchés ?</li>
 <li>Que représente <code>_score</code> ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p>En général, le document <code>4</code> apparaît avant <code>5</code>
+car il contient plus de termes de la requête (<code>to</code>,
+<code>be</code>, <code>question</code>).<br />
+<code>_score</code> = score de pertinence calculé par Elasticsearch.</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;to be question&quot;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>requests.put(</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_doc/4&quot;</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    json<span class="op">=</span>{</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;HAMLET&quot;</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;To be or not to be that is the question&quot;</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;act&quot;</span>: <span class="dv">3</span>,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;scene&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;year&quot;</span>: <span class="dv">1603</span>,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>requests.put(</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_doc/5&quot;</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    json<span class="op">=</span>{</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;HAMLET&quot;</span>,</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;To be a king&quot;</span>,</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;act&quot;</span>: <span class="dv">4</span>,</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;scene&quot;</span>: <span class="dv">2</span>,</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;year&quot;</span>: <span class="dv">1603</span>,</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {<span class="st">&quot;query&quot;</span>: {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;to be question&quot;</span>}}}</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>hits <span class="op">=</span> resp.json().get(<span class="st">&quot;hits&quot;</span>, {}).get(<span class="st">&quot;hits&quot;</span>, [])</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> h <span class="kw">in</span> hits[:<span class="dv">5</span>]:</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(h.get(<span class="st">&quot;_id&quot;</span>), h.get(<span class="st">&quot;_score&quot;</span>), h.get(<span class="st">&quot;_source&quot;</span>, {}).get(<span class="st">&quot;text_entry&quot;</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-3--bool--must--filter">Exercice 3 — bool : must +
 filter</h1>
@@ -210,26 +374,70 @@ filter</h1>
 <blockquote>
 <p>Trouver les textes contenant "be" mais seulement dans Hamlet.</p>
 </blockquote>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-2">Questions</h3>
 <ol type="1">
 <li>Quel est le rôle de <code>must</code> ?</li>
 <li>Quel est le rôle de <code>filter</code> ?</li>
 <li>Est-ce que <code>filter</code> change le score ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p><code>must</code> fait la recherche texte et contribue au
+score.<br />
+<code>filter</code> limite les résultats, sans influencer
+<code>_score</code>.</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span>: {</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;bool&quot;</span>: {</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;must&quot;</span>: [</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;be&quot;</span>}}</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;filter&quot;</span>: [</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>}}</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-4--bool--should-or-logique">Exercice 4 — bool : should
 (OR logique)</h1>
@@ -239,22 +447,22 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="
 <p>Trouver les textes contenant "love" prononcés par Hamlet ou
 Othello.</p>
 </blockquote>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;love&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;OTHELLO&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;minimum_should_match&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;love&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;OTHELLO&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;minimum_should_match&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-3">Questions</h3>
 <ol type="1">
 <li>À quoi correspond <code>should</code> ?</li>
@@ -262,6 +470,56 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="
 <li>Que se passe-t-il si on met <code>minimum_should_match: 2</code>
 ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p><code>should</code> = logique OR (et/ou boost selon le
+contexte).<br />
+<code>minimum_should_match: 1</code> = au moins une condition
+<code>should</code> doit matcher.<br />
+Avec <code>2</code>, il faut que les 2 conditions <code>should</code>
+soient vraies.</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;love&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;OTHELLO&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;minimum_should_match&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span>: {</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;bool&quot;</span>: {</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;must&quot;</span>: [</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;love&quot;</span>}}</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;should&quot;</span>: [</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;HAMLET&quot;</span>}},</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;OTHELLO&quot;</span>}},</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;minimum_should_match&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-5--range-requête-sur-nombres">Exercice 5 — range
 (requête sur nombres)</h1>
@@ -270,18 +528,18 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="
 <blockquote>
 <p>Trouver les pièces écrites entre 1603 et 1605.</p>
 </blockquote>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1603</span><span class="fu">,</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lte&quot;</span><span class="fu">:</span> <span class="dv">1605</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1603</span><span class="fu">,</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lte&quot;</span><span class="fu">:</span> <span class="dv">1605</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-4">Questions</h3>
 <ol type="1">
 <li>Que signifie <code>gte</code> ?</li>
@@ -289,18 +547,62 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href=
 <li>Quelle pièce est la plus ancienne ?</li>
 <li>Quelle pièce est la plus récente ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p><code>gte</code> = greater than or equal (<code>&gt;=</code>)<br />
+<code>lte</code> = lower than or equal (<code>&lt;=</code>)<br />
+Avec les données de l’exercice, la plus ancienne est 1603 et la plus
+récente 1604 dans l’intervalle demandé.</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1603</span><span class="fu">,</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lte&quot;</span><span class="fu">:</span> <span class="dv">1605</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sort&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="st">&quot;asc&quot;</span> <span class="fu">}</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span>: {</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;range&quot;</span>: {</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;year&quot;</span>: {</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;gte&quot;</span>: <span class="dv">1603</span>,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;lte&quot;</span>: <span class="dv">1605</span>,</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;sort&quot;</span>: [{<span class="st">&quot;year&quot;</span>: <span class="st">&quot;asc&quot;</span>}],</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-6--tokens-et-_analyze">Exercice 6 — Tokens et
 _analyze</h1>
 <h2 id="objectif-5">Objectif</h2>
 <p>Comprendre comment Elasticsearch découpe le texte.</p>
 <p>Utilisez :</p>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">shakespeare_extended/_analyze</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;text_entry&quot;</span><span class="fu">,</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">shakespeare_extended/_analyze</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;text_entry&quot;</span><span class="fu">,</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-5">Questions</h3>
 <ol type="1">
 <li>Quels sont les tokens ?</li>
@@ -308,6 +610,37 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href=
 <li>Quand Elasticsearch crée ces tokens ?</li>
 <li>Quand Elasticsearch utilise ces tokens ?</li>
 </ol>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<p>Les tokens dépendent de l’analyzer du champ
+(<code>text_entry</code>).<br />
+Elasticsearch crée les tokens à l’indexation et réutilise l’analyse au
+moment de la recherche <code>match</code>.</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">shakespeare_extended/_analyze</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;text_entry&quot;</span><span class="fu">,</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be or not to be that is the question&quot;</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>payload <span class="op">=</span> {</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;field&quot;</span>: <span class="st">&quot;text_entry&quot;</span>,</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;text&quot;</span>: <span class="st">&quot;To be or not to be that is the question&quot;</span>,</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.post(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_analyze&quot;</span>, json<span class="op">=</span>payload)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [t[<span class="st">&quot;token&quot;</span>] <span class="cf">for</span> t <span class="kw">in</span> resp.json().get(<span class="st">&quot;tokens&quot;</span>, [])]</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(tokens)</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-7--requête-complète-niveau-technique">Exercice 7 —
 Requête complète (niveau technique)</h1>
@@ -315,24 +648,24 @@ Requête complète (niveau technique)</h1>
 <p>Trouver les textes contenant "be", seulement dans Hamlet, écrits
 après 1600, et favoriser ceux prononcés par HAMLET.</p>
 </blockquote>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1600</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1600</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="questions-6">Questions</h3>
 <p>Identifier :</p>
 <ul>
@@ -340,6 +673,62 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href=
 <li>la partie filtre</li>
 <li>la partie score</li>
 </ul>
+<details>
+<summary>Voir la réponse (JSON + Python Jupyter)</summary>
+
+<ul>
+<li>recherche: <code>must</code> (<code>match</code> sur
+<code>text_entry</code>)</li>
+<li>filtre: <code>filter</code> (<code>play_name</code> +
+<code>year</code>)</li>
+<li>score/boost: <code>should</code>
+(<code>speaker = HAMLET</code>)</li>
+</ul>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">shakespeare_extended/_search</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;must&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;match&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;text_entry&quot;</span><span class="fu">:</span> <span class="st">&quot;be&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;play_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Hamlet&quot;</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1600</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;should&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;term&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;speaker&quot;</span><span class="fu">:</span> <span class="st">&quot;HAMLET&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span>: {</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;bool&quot;</span>: {</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;must&quot;</span>: [</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;be&quot;</span>}}</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;filter&quot;</span>: [</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Hamlet&quot;</span>}},</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;range&quot;</span>: {<span class="st">&quot;year&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">1600</span>}}},</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;should&quot;</span>: [</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;HAMLET&quot;</span>}}</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="exercice-final--compréhension-globale">Exercice final —
 Compréhension globale</h1>
@@ -382,6 +771,74 @@ Compréhension globale</h1>
 </tr>
 </tbody>
 </table>
+<details>
+<summary>Voir la réponse (synthèse + Python Jupyter)</summary>
+
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>match</code></td>
+<td>recherche full-text sur champ <code>text</code></td>
+</tr>
+<tr>
+<td><code>term</code></td>
+<td>recherche exacte sur champ <code>keyword</code></td>
+</tr>
+<tr>
+<td><code>must</code></td>
+<td>condition obligatoire qui participe au score</td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>condition obligatoire sans impact score</td>
+</tr>
+<tr>
+<td><code>should</code></td>
+<td>préférence/boost (ou OR selon
+<code>minimum_should_match</code>)</td>
+</tr>
+<tr>
+<td><code>tokens</code></td>
+<td>unités de texte produites par l’analyzer</td>
+</tr>
+<tr>
+<td><code>index inversé</code></td>
+<td>structure terme -&gt; documents</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>ES_URL <span class="op">=</span> <span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> {</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span>: {</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;bool&quot;</span>: {</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;must&quot;</span>: [</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;match&quot;</span>: {<span class="st">&quot;text_entry&quot;</span>: <span class="st">&quot;love&quot;</span>}}</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;filter&quot;</span>: [</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;play_name&quot;</span>: <span class="st">&quot;Othello&quot;</span>}}</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;should&quot;</span>: [</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>                {<span class="st">&quot;term&quot;</span>: {<span class="st">&quot;speaker&quot;</span>: <span class="st">&quot;OTHELLO&quot;</span>}}</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> requests.get(<span class="ss">f&quot;</span><span class="sc">{</span>ES_URL<span class="sc">}</span><span class="ss">/shakespeare_extended/_search&quot;</span>, json<span class="op">=</span>query)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(json.dumps(resp.json(), indent<span class="op">=</span><span class="dv">2</span>, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span></code></pre></div>
+</details>
+
 <hr />
 <h1 id="objectif-pédagogique-global">Objectif pédagogique global</h1>
 <p>À la fin, les étudiants doivent comprendre :</p>

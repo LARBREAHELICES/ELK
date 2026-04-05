@@ -147,7 +147,7 @@ Puis on indexe les documents.
 
 **Indexer un document = insérer une donnée + la rendre recherchable.**
 
-Pour l'instant nous utiliserons le **mapping dynamique** et revoyons ce point dans le chapitre `03_mapping` un peu plus tard.
+Sans précision de votre part, Elasticsearch utilise le mapping dynamique.
 
 ---
 
@@ -372,8 +372,14 @@ GET shakespeare/_search
 
 ---
 
-> `term` cherche une valeur exacte dans un champ keyword, sans passer par l'analyzer.
-> `match` découpe le texte, `term` cherche exactement la valeur.
+### Rappel express
+
+| Requête | Champ cible | Analyzer | Usage |
+| ------- | ----------- | -------- | ----- |
+| `match` | `text`      | oui      | recherche dans le texte |
+| `term`  | `keyword`   | non      | valeur exacte |
+
+En une phrase : `term` cherche une valeur exacte dans un champ `keyword`, alors que `match` analyse le texte avant de chercher.
 
 ---
 
