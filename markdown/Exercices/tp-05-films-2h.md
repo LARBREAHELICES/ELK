@@ -26,7 +26,7 @@ Puis repondre a des questions produit simples (top genres, meilleurs films, etc.
 
 ---
 
-## Pre-requis (10 min)
+## Pre-requis 
 
 1. Verifier les services:
 
@@ -64,7 +64,7 @@ movie_id,user_id,rating,rated_at
 
 ---
 
-## Etape 1 - Pipeline catalog (30 min)
+## Etape 1 - Pipeline catalog 
 
 ### Travail
 
@@ -109,7 +109,7 @@ curl "http://localhost:9200/films-ratings/_search?pretty&size=3"
 
 ---
 
-## Etape 3 - Controle qualite (20 min)
+## Etape 3 - Controle qualite 
 
 ### Travail
 
@@ -133,7 +133,7 @@ curl -X GET "http://localhost:9200/films-ratings/_search?pretty" -H "Content-Typ
 
 ---
 
-## Etape 4 - Questions metier (25 min)
+## Etape 4 - Questions metier 
 
 Faire ces requetes:
 
@@ -144,7 +144,7 @@ Faire ces requetes:
 
 ---
 
-## Bonus (5 min)
+## Bonus
 
 - Ajouter un champ `rating_band` (`low`, `medium`, `high`) via `mutate` / condition.
 - Creer une requete qui compte les notes par `rating_band`.
