@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cours 3 - Le Mapping dans Elasticsearch</title>
+  <title>Cours 3 - Les agrégations Elasticsearch</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -48,231 +48,307 @@
     <div class="slides">
       <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
         <textarea data-template>
-# Le Mapping dans Elasticsearch
+# Les agrégations Elasticsearch
 
-## Qu'est-ce que le mapping ?
+### Query vs Aggregation
 
-Le **mapping** définit la structure des documents dans Elasticsearch.
+Une requête Elasticsearch peut faire deux choses différentes :
 
-C'est l'équivalent du schéma d'une table en base de données.
+| Objectif               | Élément Elasticsearch |
+| ---------------------- | --------------------- |
+| Trouver des documents  | query                 |
+| Analyser des documents | aggs                  |
 
-> Le mapping définit le type des champs et comment Elasticsearch va les indexer.
+Donc :
+
+```json
+GET index/_search
+{
+  "query": { ... },
+  "aggs": { ... }
+}
+```
+
+* `query` → sélectionne les documents
+* `aggs` → calcule sur ces documents
 
 ---
 
-## Exemple de mapping
+## Remarque importante
+
+Pour les agrégations sur des champs textuels, il faut utiliser **`.keyword`** et pas le champ `text`.
+
+Pourquoi ?
+
+- `text` = analysé → pas utilisable pour GROUP BY
+- `keyword` = valeur exacte → utilisable pour GROUP BY
 
 ```json
-PUT shakespeare
+"terms": {
+  "field": "speaker.keyword"
+}
+```
+
+| Champ   | Usage                     |
+| ------- | ------------------------- |
+| text    | recherche                 |
+| keyword | agrégation / tri / filtre |
+
+**Règle :**
+- Recherche → `text`
+- Agrégation → `keyword`
+
+---
+
+### Première agrégation : regrouper avec `terms`
+
+On veut compter le nombre de documents par pièce.
+
+```json
+GET shakespeare/_search
 {
-  "mappings": {
-    "properties": {
-      "play_name": { "type": "keyword" },
-      "speaker": { "type": "keyword" },
-      "text_entry": { "type": "text" }
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      }
     }
   }
 }
 ```
 
----
+Résultat :
 
-Ce mapping définit 3 champs :
+| play_name | count |
+| --------- | ----- |
+| Hamlet    | 3     |
+| Othello   | 2     |
+| Macbeth   | 2     |
 
-| Champ      | Type    |
-| ---------- | ------- |
-| play_name  | keyword |
-| speaker    | keyword |
-| text_entry | text    |
+`terms` = regrouper par valeur.
 
----
+Équivalent SQL :
 
-## Différence entre text et keyword
-
-C'est la chose la plus importante à comprendre.
-
-### Type text
-
-- Le texte est **analysé**
-- Il est découpé en mots (tokens)
-- Utilisé pour la recherche full-text
-- Utilise `match`
-
----
-
-### Type keyword
-
-- La valeur est **stockée telle quelle**
-- Pas découpée
-- Utilisé pour filtrer
-- Utilise `term`
-
----
-
-## Exemple concret
-
-Document :
-
-```json
-{
-  "speaker": "HAMLET",
-  "text_entry": "To be or not to be"
-}
-```
-
-### Si `speaker` = keyword
-
-```text
-HAMLET → doc 1
-```
-
-### Si `text_entry` = text
-
-```text
-to → doc 1
-be → doc 1
-not → doc 1
+```sql
+SELECT play_name, COUNT(*)
+FROM shakespeare
+GROUP BY play_name;
 ```
 
 ---
 
-Donc :
+### Agrégations numériques
 
-| Type    | Stockage       |
-| ------- | -------------- |
-| keyword | valeur entière |
-| text    | mots séparés   |
+Si on a un champ `year`, on peut faire des calculs :
 
----
-
-## Mapping dynamique
-
-Si on ne crée pas le mapping, Elasticsearch devine les types.
+| Calcul       | Agrégation |
+| ------------ | ---------- |
+| moyenne      | avg        |
+| minimum      | min        |
+| maximum      | max        |
+| somme        | sum        |
+| statistiques | stats      |
 
 Exemple :
 
 ```json
-PUT shakespeare/_doc/1
+GET shakespeare/_search
 {
-  "play_name": "Hamlet",
-  "speaker": "HAMLET",
-  "text_entry": "To be or not to be"
-}
-```
-
----
-
-Elasticsearch va deviner :
-
-| Champ      | Type    |
-| ---------- | ------- |
-| play_name  | keyword |
-| speaker    | keyword |
-| text_entry | text    |
-
-C'est le **mapping dynamique**.
-
-> Elasticsearch peut créer le mapping automatiquement.
-
----
-
-## 6. Voir le mapping
-
-```json
-GET shakespeare/_mapping
-```
-
-Cela permet de voir la structure de l'index.
-
----
-
-## 7. Pourquoi le mapping est important ?
-
-Parce que le type du champ détermine la requête :
-
-| Type    | Requête |
-| ------- | ------- |
-| text    | match   |
-| keyword | term    |
-
-Si on se trompe de type, la recherche ne marche pas correctement.
-
----
-
-## 8. Résumé
-
-| Type    | Sert à                   |
-| ------- | ------------------------ |
-| text    | rechercher dans le texte |
-| keyword | filtrer                  |
-| integer | nombres                  |
-| date    | dates                    |
-| boolean | true / false             |
-
----
-
-## 9. Schéma
-
-```text
-Mapping
-  ↓
-Définit type des champs
-  ↓
-Définit comment Elasticsearch indexe
-  ↓
-Définit comment on peut rechercher
-```
-
----
-
-## 10. Phrase très importante pour les étudiants
-
-> Le mapping définit comment les champs sont stockés et comment on pourra faire les recherches.
-
----
-
-## 11. Règle simple à retenir
-
-| Si on veut…                  | On met  |
-| ---------------------------- | ------- |
-| chercher dans une phrase     | text    |
-| filtrer (nom, catégorie, id) | keyword |
-
----
-
-## 12. Exemple complet
-
-Mapping :
-
-```json
-PUT shakespeare
-{
-  "mappings": {
-    "properties": {
-      "play_name": { "type": "keyword" },
-      "speaker": { "type": "keyword" },
-      "text_entry": { "type": "text" }
+  "size": 0,
+  "aggs": {
+    "moyenne_annee": {
+      "avg": {
+        "field": "year"
+      }
     }
   }
 }
 ```
 
+`size:0` indique que l'on ne souhaite pas les documents dans la recherche, seulement les statistiques.
+
 ---
 
-Requêtes :
+### Agrégation avec filtre
+
+On peut filtrer les documents avant de faire le calcul :
 
 ```json
-match → text_entry
-term → speaker
-term → play_name
+GET shakespeare/_search
+{
+  "query": {
+    "range": {
+      "year": {
+        "gte": 1600,
+        "lte": 1610
+      }
+    }
+  },
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      }
+    }
+  }
+}
+```
+
+On analyse seulement les documents entre 1600 et 1610.
+
+---
+
+### Agrégations imbriquées (GROUP BY + calcul)
+
+On veut la moyenne des années par pièce.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_piece": {
+      "terms": {
+        "field": "play_name.keyword"
+      },
+      "aggs": {
+        "moyenne_annee": {
+          "avg": {
+            "field": "year"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+SQL :
+
+```sql
+SELECT play_name, AVG(year)
+FROM shakespeare
+GROUP BY play_name;
 ```
 
 ---
 
-# Conclusion
+### Agrégation par intervalle
 
-> Le mapping est la structure de l'index.
-> Il définit le type des champs et donc la manière de rechercher.
+On veut regrouper par périodes.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_periode": {
+      "range": {
+        "field": "year",
+        "ranges": [
+          { "to": 1600 },
+          { "from": 1600, "to": 1605 },
+          { "from": 1605 }
+        ]
+      }
+    }
+  }
+}
+```
+
+Cela crée des groupes par intervalle de valeurs.
+
+---
+
+### Exercices
+
+1. Compter le nombre de documents par speaker
+2. Calculer l'année moyenne
+3. Trouver l'année min et max
+4. Compter le nombre de documents par pièce entre 1600 et 1610
+5. Calculer l'année moyenne par speaker
+6. Regrouper les documents par période (avant 1600, 1600–1605, après 1605)
+
+---
+
+## Agrégation `histogram`
+
+L'agrégation `histogram` permet de regrouper des valeurs numériques dans des intervalles de taille fixe.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_periode": {
+      "histogram": {
+        "field": "year",
+        "interval": 5
+      }
+    }
+  }
+}
+```
+
+Si `interval = 5`, Elasticsearch crée des groupes :
+
+* 1600–1605
+* 1605–1610
+* 1610–1615
+
+### Différence avec `range`
+
+| histogram         | range                         |
+| ----------------- | ----------------------------- |
+| intervalles fixes | intervalles définis à la main |
+
+---
+
+## Agrégation `date_histogram`
+
+`date_histogram` permet de regrouper des documents par intervalle de temps (jour, mois, année).
+
+### Exemple
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "aggs": {
+    "par_annee": {
+      "date_histogram": {
+        "field": "date",
+        "calendar_interval": "year"
+      }
+    }
+  }
+}
+```
+
+### Intervalles possibles
+
+| Intervalle | Signification |
+| ---------- | ------------- |
+| minute     | par minute    |
+| hour       | par heure     |
+| day        | par jour      |
+| month      | par mois      |
+| year       | par année     |
+
+---
+
+## Exercices
+
+1. Combien de répliques par pièce, et quelle est la longueur moyenne des répliques ?
+2. Top 5 des speakers avec le plus de répliques
+3. Nombre de speakers différents par pièce
+4. Longueur moyenne des répliques par speaker
+5. Pièce avec la réplique la plus longue
+6. Moyenne du nombre de répliques par pièce
+7. Histogramme de la longueur des répliques (intervalle 20)
+8. Nombre de répliques par année puis par pièce (agrégations imbriquées)
         </textarea>
       </section>
     </div>

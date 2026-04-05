@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice 03 - Agrégations</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #22d3ee;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17223b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #67e8f9; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Exercice 03 - Agrégations</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+        <a href="corrections.html">Corrections</a>
+      </div>
+    </div>
+    <p class="sub">Série d'exercices pour le cours 03 Agrégations Elasticsearch.</p>
+    <article class="content">
+<h1 id="exercice-03--agrégations-elasticsearch">Exercice 03 —
+Agrégations Elasticsearch</h1>
+<h2 id="contexte">Contexte</h2>
+<p>Travaillez sur l'index <code>shakespeare_extended</code>.</p>
+<p>Objectif : pratiquer les agrégations <code>terms</code>, métriques,
+agrégations imbriquées, <code>histogram</code> et pipeline.</p>
+<hr />
+<h2 id="exercice-1">Exercice 1</h2>
+<p>Compter le nombre de documents par pièce.</p>
+<p>Attendu : une agrégation <code>terms</code> sur
+<code>play_name.keyword</code>.</p>
+<hr />
+<h2 id="exercice-2">Exercice 2</h2>
+<p>Top 5 des speakers avec le plus de répliques.</p>
+<p>Attendu : <code>terms</code> sur <code>speaker.keyword</code> avec
+<code>size: 5</code>.</p>
+<hr />
+<h2 id="exercice-3">Exercice 3</h2>
+<p>Nombre de speakers différents par pièce.</p>
+<p>Attendu : <code>terms</code> par pièce + sous-agrégation
+<code>cardinality</code> sur <code>speaker.keyword</code>.</p>
+<hr />
+<h2 id="exercice-4">Exercice 4</h2>
+<p>Longueur moyenne des répliques par speaker.</p>
+<p>Attendu : <code>terms</code> par <code>speaker.keyword</code> +
+calcul de moyenne de longueur.</p>
+<p>Indice : utilisez un champ runtime <code>line_length</code> basé sur
+<code>text_entry.keyword.length()</code>.</p>
+<hr />
+<h2 id="exercice-5">Exercice 5</h2>
+<p>Pièce avec la réplique la plus longue.</p>
+<p>Attendu : regrouper par pièce et récupérer la plus grande longueur de
+réplique dans chaque bucket.</p>
+<hr />
+<h2 id="exercice-6">Exercice 6</h2>
+<p>Moyenne du nombre de répliques par pièce.</p>
+<p>Attendu : <code>terms</code> par pièce puis <code>avg_bucket</code>
+sur <code>par_piece._count</code>.</p>
+<hr />
+<h2 id="exercice-7">Exercice 7</h2>
+<p>Histogramme de la longueur des répliques (intervalle 20).</p>
+<p>Attendu : <code>histogram</code> sur la longueur,
+<code>interval: 20</code>.</p>
+<hr />
+<h2 id="exercice-8">Exercice 8</h2>
+<p>Nombre de répliques par année puis par pièce (agrégations
+imbriquées).</p>
+<p>Attendu : <code>terms</code> sur <code>year</code> puis
+<code>terms</code> sur <code>play_name.keyword</code>.</p>
+    </article>
+  </div>
+</body>
+</html>
