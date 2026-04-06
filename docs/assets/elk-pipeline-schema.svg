@@ -99,6 +99,4 @@
     <text class="link" x="1260" y="500">contrôle</text>
   </g>
 
-  <rect x="80" y="760" width="1440" height="80" rx="14" ry="14" fill="#0f172a" stroke="#334155"/>
-  <text class="boxText" x="116" y="808">Objectif pédagogique : relier clairement le flux technique (pipeline) aux usages étudiants (exploration, vérification, rendu).</text>
 </svg>
