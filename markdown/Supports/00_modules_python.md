@@ -316,9 +316,3 @@ Il faut voir Great Expectations comme :
 | Elasticsearch      | stockage            |
 | Kibana             | visualisation       |
 | Great Expectations | qualité des données |
-
----
-
-# Phrase simple pour un cours
-
-**Great Expectations permet de vérifier automatiquement la qualité des données avant de les utiliser.**
