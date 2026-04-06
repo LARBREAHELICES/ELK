@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Schéma du pipeline ELK</title>
+  <desc id="desc">Flux de données de la source vers Logstash, Elasticsearch, Kibana et Jupyter.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#0a0f1a"/>
+    </linearGradient>
+
+    <linearGradient id="cardSource" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+    <linearGradient id="cardLogstash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="cardElastic" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="cardKibana" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="cardJupyter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#020617" flood-opacity="0.4"/>
+    </filter>
+
+    <marker id="arrow" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,5 L0,10 z" fill="#cbd5e1"/>
+    </marker>
+
+    <style>
+      .title { font: 700 44px 'Inter', 'Segoe UI', sans-serif; fill: #f8fafc; letter-spacing: 0.2px; }
+      .subtitle { font: 500 22px 'Inter', 'Segoe UI', sans-serif; fill: #93c5fd; }
+      .boxTitle { font: 700 34px 'Inter', 'Segoe UI', sans-serif; fill: #ffffff; }
+      .boxText { font: 500 21px 'Inter', 'Segoe UI', sans-serif; fill: #e2e8f0; }
+      .link { font: 600 18px 'Inter', 'Segoe UI', sans-serif; fill: #cbd5e1; }
+      .linkBadge { fill: rgba(15, 23, 42, 0.92); stroke: #475569; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <g transform="translate(80,60)">
+    <text class="title">Pipeline ELK du cours</text>
+    <text class="subtitle" y="44">De l'ingestion brute à l'analyse exploitable</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="220" rx="22" ry="22" width="310" height="150" fill="url(#cardSource)"/>
+    <rect x="510" y="220" rx="22" ry="22" width="330" height="150" fill="url(#cardLogstash)"/>
+    <rect x="940" y="220" rx="22" ry="22" width="360" height="150" fill="url(#cardElastic)"/>
+
+    <rect x="790" y="540" rx="20" ry="20" width="280" height="140" fill="url(#cardKibana)"/>
+    <rect x="1120" y="540" rx="20" ry="20" width="280" height="140" fill="url(#cardJupyter)"/>
+  </g>
+
+  <g>
+    <text class="boxTitle" x="130" y="280">Sources</text>
+    <text class="boxText" x="130" y="318">CSV • logs • JSON</text>
+
+    <text class="boxTitle" x="545" y="280">Logstash</text>
+    <text class="boxText" x="545" y="318">parse • nettoie • route</text>
+
+    <text class="boxTitle" x="975" y="280">Elasticsearch</text>
+    <text class="boxText" x="975" y="318">indexe • recherche • agrège</text>
+
+    <text class="boxTitle" x="825" y="598">Kibana</text>
+    <text class="boxText" x="825" y="636">explore • visualise</text>
+
+    <text class="boxTitle" x="1155" y="598">Jupyter</text>
+    <text class="boxText" x="1155" y="636">teste • automatise</text>
+  </g>
+
+  <g stroke="#cbd5e1" stroke-width="5" fill="none" marker-end="url(#arrow)">
+    <line x1="410" y1="295" x2="500" y2="295"/>
+    <line x1="840" y1="295" x2="930" y2="295"/>
+    <line x1="1080" y1="370" x2="930" y2="530"/>
+    <line x1="1140" y1="370" x2="1260" y2="530"/>
+  </g>
+
+  <g>
+    <rect class="linkBadge" x="428" y="244" width="104" height="30" rx="10" ry="10"/>
+    <text class="link" x="446" y="265">ingestion</text>
+
+    <rect class="linkBadge" x="856" y="244" width="112" height="30" rx="10" ry="10"/>
+    <text class="link" x="874" y="265">indexation</text>
+
+    <text class="link" x="860" y="500">analyse</text>
+    <text class="link" x="1260" y="500">contrôle</text>
+  </g>
+
+  <rect x="80" y="760" width="1440" height="80" rx="14" ry="14" fill="#0f172a" stroke="#334155"/>
+  <text class="boxText" x="116" y="808">Objectif pédagogique : relier clairement le flux technique (pipeline) aux usages étudiants (exploration, vérification, rendu).</text>
+</svg>

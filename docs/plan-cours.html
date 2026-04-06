@@ -80,32 +80,7 @@ Dépôt du cours : [https://github.com/LARBREAHELICES/ELK](https://github.com/LA
 
 Schéma ELK du cours :
 
-```text
-                    +--------------------+
-                    | Sources de données |
-                    | CSV / logs / JSON  |
-                    +---------+----------+
-                              |
-                              v
-                    +--------------------+
-                    |      Logstash      |
-                    | parse / nettoie /  |
-                    | transforme / route |
-                    +---------+----------+
-                              |
-                              v
-                    +--------------------+
-                    |   Elasticsearch    |
-                    | indexe / recherche |
-                    | agrégations        |
-                    +-----+---------+----+
-                          |         |
-                          v         v
-               +----------------+  +----------------+
-               |     Kibana     |  |    Jupyter     |
-               | explore / vis. |  | tests / contrôles |
-               +----------------+  +----------------+
-```
+<img src="assets/elk-pipeline-schema.svg" alt="Schéma du pipeline ELK du cours" style="width: 100%; max-width: 1320px; border-radius: 14px; border: 1px solid #263043;" />
 
 ---
 
