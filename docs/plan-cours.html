@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan de cours ELK</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="assets/theme.css">
+  <style>
+    .reveal section { text-align: left; }
+    .reveal h1, .reveal h2 { text-transform: none; }
+    .reveal pre code { max-height: 70vh; }
+    .top-nav {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .top-nav a {
+      background: rgba(10, 10, 10, 0.82);
+      border: 1px solid #2b2b2b;
+      color: #e5e7eb;
+      text-decoration: none;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(3px);
+    }
+    .top-nav a:hover {
+      border-color: #7c3aed;
+      color: #ffffff;
+    }
+    .page-counter {
+      position: fixed;
+      left: 16px;
+      bottom: 14px;
+      z-index: 9999;
+      background: rgba(10, 10, 10, 0.82);
+      border: 1px solid #2b2b2b;
+      color: #e5e7eb;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav" aria-label="Navigation">
+    <a href="index.html">Accueil</a>
+    <a href="00-configuration-environnement.html">Setup env</a>
+    <a href="exercices.html">Exercices</a>
+  </div>
+
+  <div id="pageCounter" class="page-counter" aria-live="polite">1 / 1</div>
+
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
+        <textarea data-template>
+# Plan de cours ELK
+## Progression pédagogique orientée UX
+
+---
+
+## Introduction à ELK
+
+Pipeline cible du cours :
+
+```text
+Source (CSV / logs) -> Logstash -> Elasticsearch -> Kibana -> Jupyter
+```
+
+Ce que les étudiants doivent comprendre dès le départ :
+- où chaque outil intervient
+- ce qui transite entre les briques
+- où diagnostiquer en cas d'erreur
+
+---
+
+## Ordre des supports
+
+- `markdown/Supports/00_configuration.md`
+- `markdown/Supports/01_introduction.md`
+- `markdown/Supports/02_requetes.md`
+- `markdown/Supports/03_aggregation.md`
+- `markdown/Supports/03_02_agregation.md`
+- `markdown/Supports/04_mapping.md`
+- `markdown/Supports/05_analyser.md`
+- `markdown/Supports/00_01_logstash.md`
+- `markdown/Supports/00_logstash.md`
+- `markdown/Supports/00_modules_python.md`
+- TP films (`markdown/Exercices/tp-05-films-2h.md`)
+
+---
+
+## Bloc Fondations Elasticsearch
+
+Compétences visées :
+- comprendre index, document, champ
+- distinguer `text` et `keyword`
+- écrire les requêtes de base (`match`, `term`, `bool`)
+
+Supports :
+- `01_introduction.md`
+- `02_requetes.md`
+
+---
+
+## Bloc Analyse et lecture métier
+
+Compétences visées :
+- transformer des questions métier en agrégations
+- lire des distributions et comparer des segments
+- manipuler runtime fields / `emit` pour enrichir l'analyse
+
+Supports :
+- `03_aggregation.md`
+- `03_02_agregation.md`
+
+---
+
+## Bloc Modélisation de la recherche
+
+Compétences visées :
+- choisir un mapping cohérent
+- personnaliser l'analyse textuelle
+- préparer une recherche multi-champs plus pertinente
+
+Supports :
+- `04_mapping.md`
+- `05_analyser.md`
+
+---
+
+## Bloc Ingestion et qualité des données
+
+Compétences visées :
+- appliquer le flux `input -> filter -> output`
+- nettoyer et transformer les données avant indexation
+- exécuter, tester et rejouer un pipeline sans ambiguïté
+
+Supports :
+- `00_01_logstash.md` (logique de nettoyage)
+- `00_logstash.md` (exécution, conventions et cas TMDB)
+
+---
+
+## Bloc Automatisation avant TP
+
+Compétences visées :
+- piloter Elasticsearch depuis Jupyter
+- automatiser les vérifications de mapping, volume, qualité
+- préparer un rendu reproductible pour le TP
+
+Support :
+- `00_modules_python.md`
+
+---
+
+## Logique UX de la progression
+
+Principes de séquencement :
+- démarrer par une vue système claire (pipeline ELK)
+- introduire une seule difficulté nouvelle à la fois
+- passer des concepts aux manipulations, puis au cas réel
+- conserver des points de contrôle explicites entre chaque bloc
+
+Résultat attendu :
+- une montée en charge progressive
+- moins de friction au moment du TP
+- meilleure autonomie sur le debug
+
+---
+
+## Transition avant le TP
+
+> Vous savez maintenant lire, transformer et indexer les données avec ELK,
+> puis vérifier ces résultats depuis Python.
+> Le TP films applique ce workflow complet sur un dataset réel.
+        </textarea>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script src="assets/glossary.js"></script>
+  <script>
+    function updatePageCounter() {
+      var current = (Reveal.getSlidePastCount ? Reveal.getSlidePastCount() : 0) + 1;
+      var total = Reveal.getTotalSlides ? Reveal.getTotalSlides() : 1;
+      var el = document.getElementById('pageCounter');
+      if (el) el.textContent = current + ' / ' + total;
+    }
+
+    Reveal.initialize({
+      hash: true,
+      transition: 'slide',
+      backgroundTransition: 'fade',
+      width: 1920,
+      height: 1080,
+      margin: 0.06,
+      controls: true,
+      progress: true,
+      center: false,
+      plugins: [ RevealMarkdown, RevealHighlight ]
+    });
+
+    Reveal.on('ready', function () {
+      if (window.initGlossaryTooltips) window.initGlossaryTooltips();
+      updatePageCounter();
+    });
+    Reveal.on('slidechanged', updatePageCounter);
+    Reveal.on('fragmentshown', updatePageCounter);
+    Reveal.on('fragmenthidden', updatePageCounter);
+  </script>
+</body>
+</html>

@@ -1,16 +1,24 @@
-# Progression recommandée
-
-## Objectif global
-
-Construire une progression qui va:
-- des bases Elasticsearch
-- vers la recherche métier
-- puis vers l'ingestion réelle
-- et enfin vers l'automatisation avec Python avant le TP
+# Plan de cours ELK
+## Progression pédagogique orientée UX
 
 ---
 
-## Ordre des supports (référence)
+## Introduction à ELK
+
+Pipeline cible du cours :
+
+```text
+Source (CSV / logs) -> Logstash -> Elasticsearch -> Kibana -> Jupyter
+```
+
+Ce que les étudiants doivent comprendre dès le départ :
+- où chaque outil intervient
+- ce qui transite entre les briques
+- où diagnostiquer en cas d'erreur
+
+---
+
+## Ordre des supports
 
 - `markdown/Supports/00_configuration.md`
 - `markdown/Supports/01_introduction.md`
@@ -19,91 +27,94 @@ Construire une progression qui va:
 - `markdown/Supports/03_02_agregation.md`
 - `markdown/Supports/04_mapping.md`
 - `markdown/Supports/05_analyser.md`
+- `markdown/Supports/00_01_logstash.md`
 - `markdown/Supports/00_logstash.md`
 - `markdown/Supports/00_modules_python.md`
-- TP films (fichier dans `markdown/Exercices`)
+- TP films (`markdown/Exercices/tp-05-films-2h.md`)
 
 ---
 
-## Découpage pédagogique
+## Bloc Fondations Elasticsearch
 
-### Bloc A - Fondations Elasticsearch
+Compétences visées :
+- comprendre index, document, champ
+- distinguer `text` et `keyword`
+- écrire les requêtes de base (`match`, `term`, `bool`)
 
-- index, document, champ
-- mapping dynamique puis explicite
-- `text` vs `keyword`
-- analyzer, tokens, index inversé
-- requêtes de base: `match`, `term`, `bool`
-
-Support principal:
+Supports :
 - `01_introduction.md`
 - `02_requetes.md`
 
-### Bloc B - Analyse et exploration
+---
 
-- agrégations de base
-- agrégations avancées avec runtime fields / `emit`
-- lecture de résultats orientée analyse
+## Bloc Analyse et lecture métier
 
-Support principal:
+Compétences visées :
+- transformer des questions métier en agrégations
+- lire des distributions et comparer des segments
+- manipuler runtime fields / `emit` pour enrichir l'analyse
+
+Supports :
 - `03_aggregation.md`
 - `03_02_agregation.md`
 
-### Bloc C - Modélisation de la recherche
+---
 
-- mapping orienté cas métier
-- analyzers personnalisés
-- recherche multi-champs
+## Bloc Modélisation de la recherche
 
-Support principal:
+Compétences visées :
+- choisir un mapping cohérent
+- personnaliser l'analyse textuelle
+- préparer une recherche multi-champs plus pertinente
+
+Supports :
 - `04_mapping.md`
 - `05_analyser.md`
 
-### Bloc D - Ingestion réelle
+---
 
-- pipeline Logstash (`input -> filter -> output`)
-- parsing CSV
-- normalisation des types
-- stratégie de vérification
+## Bloc Ingestion et qualité des données
 
-Support principal:
-- `00_logstash.md`
+Compétences visées :
+- appliquer le flux `input -> filter -> output`
+- nettoyer et transformer les données avant indexation
+- exécuter, tester et rejouer un pipeline sans ambiguïté
 
-### Bloc E - Pilotage Python (à placer avant le TP)
+Supports :
+- `00_01_logstash.md` (logique de nettoyage)
+- `00_logstash.md` (exécution, conventions et cas TMDB)
 
-- connexion à Elasticsearch depuis Jupyter
-- création d'index et indexation via client Python
-- requêtes Python pour vérifier ingestion et qualité des résultats
-- préparation au rendu du TP (scripts reproductibles)
+---
 
-Support principal:
+## Bloc Automatisation avant TP
+
+Compétences visées :
+- piloter Elasticsearch depuis Jupyter
+- automatiser les vérifications de mapping, volume, qualité
+- préparer un rendu reproductible pour le TP
+
+Support :
 - `00_modules_python.md`
 
-Positionnement:
-- ce cours vient **après Logstash**
-- ce cours vient **avant le TP films**
+---
 
-Pourquoi ce placement:
-- les étudiants ont déjà les concepts Elasticsearch
-- ils appliquent ensuite ces concepts en code Python sans nouvelle couche théorique lourde
-- ils arrivent au TP avec une capacité de vérification plus fiable depuis notebook
+## Logique UX de la progression
+
+Principes de séquencement :
+- démarrer par une vue système claire (pipeline ELK)
+- introduire une seule difficulté nouvelle à la fois
+- passer des concepts aux manipulations, puis au cas réel
+- conserver des points de contrôle explicites entre chaque bloc
+
+Résultat attendu :
+- une montée en charge progressive
+- moins de friction au moment du TP
+- meilleure autonomie sur le debug
 
 ---
 
-## Transition proposée avant le TP
+## Transition avant le TP
 
-> Vous savez maintenant ingérer des données avec Logstash et interroger Elasticsearch en API REST.
-> On ajoute une couche pratique: piloter les mêmes opérations depuis Python dans Jupyter pour automatiser les vérifications.
-> Ensuite, vous appliquez ce workflow complet dans le TP films.
-
----
-
-## Remarque de cadrage sur `00_modules_python.md`
-
-Le support contient actuellement deux thèmes:
-- client Python Elasticsearch
-- qualité de données avec Great Expectations
-
-Pour la progression du cours ELK:
-- garder le bloc client Elasticsearch dans la séquence avant TP
-- traiter Great Expectations en ouverture vers data quality (extension ou séance dédiée)
+> Vous savez maintenant lire, transformer et indexer les données avec ELK,
+> puis vérifier ces résultats depuis Python.
+> Le TP films applique ce workflow complet sur un dataset réel.
