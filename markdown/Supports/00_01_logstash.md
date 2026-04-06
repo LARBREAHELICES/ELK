@@ -64,6 +64,74 @@ Dans la réalité, les données sont **sales** :
 
 ---
 
+# Contrôler la qualité des données
+
+Nettoyer ne suffit pas : il faut aussi **valider**.
+
+Principe :
+
+**Garbage in -> Garbage out**
+
+Types de contrôles utiles sur un dataset films :
+
+| Type         | Exemple                          |
+| ------------ | -------------------------------- |
+| Complétude   | `title` non vide                 |
+| Validité     | `vote_average` entre 0 et 10     |
+| Cohérence    | `release_date` au bon format     |
+| Unicité      | pas de doublon sur un identifiant |
+| Référentiel  | langue dans une liste autorisée  |
+
+---
+
+# Great Expectations (validation)
+
+Great Expectations permet d'écrire des règles de qualité de données.
+
+À retenir :
+
+- logique de test appliquée aux datasets
+- exécution possible dans Jupyter
+- rapport lisible pour savoir quelles lignes échouent
+
+Exemples de règles :
+
+- `expect_column_values_to_not_be_null`
+- `expect_column_values_to_be_between`
+- `expect_column_values_to_be_unique`
+- `expect_column_values_to_match_regex`
+
+---
+
+# Exemple rapide en Python (Jupyter)
+
+```python
+import great_expectations as gx
+import pandas as pd
+
+df = pd.DataFrame({
+    "title": ["Interstellar", "Blade Runner", "Amelie"],
+    "vote_average": [8.7, 15, 8.3],
+    "release_date": ["2014-11-05", "2017-10-04", ""]
+})
+
+validator = gx.from_pandas(df)
+
+validator.expect_column_values_to_not_be_null("title")
+validator.expect_column_values_to_be_between("vote_average", min_value=0, max_value=10)
+validator.expect_column_values_to_match_regex("release_date", r"^\d{4}-\d{2}-\d{2}$")
+
+result = validator.validate()
+print(result["success"])
+```
+
+Interprétation :
+
+- les lignes invalides sont détectées avant indexation
+- le rapport guide les corrections dans le pipeline
+
+---
+
 # Pipeline orienté nettoyage
 
 ```conf

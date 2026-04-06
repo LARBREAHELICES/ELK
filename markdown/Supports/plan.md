@@ -97,5 +97,5 @@ Avec ces notions :
 
 ## Transition vers la suite
 
-> Après cette introduction, on enchaîne sur la mise en pratique :
-> ingestion, mapping, recherche, agrégations, puis exploitation dans Kibana et Python.
+> Après cette introduction, on enchaîne sur :
+> configuration de l'environnement, prise en main Python/Jupyter, puis ingestion, mapping, recherche, agrégations et visualisation.
