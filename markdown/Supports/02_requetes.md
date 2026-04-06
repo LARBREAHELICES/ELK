@@ -202,6 +202,8 @@ OR speaker = OTHELLO
 | 1      | au moins une condition       |
 | 2      | deux conditions obligatoires |
 
+---
+
 Exemple avec score :
 
 ```json
@@ -430,11 +432,15 @@ GET shakespeare/_search
 | lt        | <             |
 
 
-## Exercice
+## Exercice 1
 
-1. Créez un exemple dans Jupyter qui illustre l'utilisation d'un `range`, puis inventez une requête combinée avec un `AND`, un `OR` et un `RANGE`.
+Créez un exemple dans Jupyter qui illustre l'utilisation d'un `range`, puis inventez une requête combinée avec un `AND`, un `OR` et un `RANGE`.
 
-2. Reprenez la même requête en mettant `minimum_should_match: 0` et observez la différence.
+---
+
+## Exercice 2
+
+Reprenez la même requête en mettant `minimum_should_match: 0` et observez la différence.
 
 ---
 
@@ -449,42 +455,6 @@ GET shakespeare/_search
 | LIKE    | match         |
 | =       | term          |
 | BETWEEN | range         |
-
----
-
-# Schéma d'une requête Elasticsearch
-
-```text
-query
- └── bool
-      ├── must
-      ├── should
-      ├── filter
-      └── must_not
-```
-
-Imbrication possible :
-
-```text
-bool
- └── must
-      └── bool
-           └── should
-```
-
----
-
-# Résumé
-
-| Élément  | Rôle                  |
-| -------- | --------------------- |
-| match    | recherche texte       |
-| term     | valeur exacte         |
-| must     | condition obligatoire |
-| filter   | filtrer               |
-| should   | améliorer le score    |
-| must_not | exclure               |
-| range    | intervalle            |
 
 ---
 
