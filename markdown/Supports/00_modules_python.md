@@ -280,7 +280,7 @@ On valide les données **avant indexation**.
 
 ---
 
-# Exemple concret pour ton projet
+# Exemple concret sur le jeu de données films
 
 Tests à faire sur films :
 

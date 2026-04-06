@@ -49,6 +49,7 @@
       <section data-markdown data-separator="^---\s*$" data-separator-vertical="^--\s*$" data-separator-notes="^Note:">
         <textarea data-template>
 
+
 # Analyseur et 
 
 ## Analyseurs personnalisés
@@ -533,6 +534,41 @@ Dans cet exemple, l'analyseur n'est pas "linguistiquement parfait", mais il est 
 1. recherche sur plusieurs champs.
 
 Autrement dit, un bon analyseur n'est pas seulement "technique", il doit refléter **la manière dont les utilisateurs cherchent**.
+
+---
+
+## Exercice technique : analyzer films
+
+Objectif : construire un analyzer orienté recherche de films et vérifier son impact concret sur les résultats.
+
+Travail demandé :
+
+1. Créer un index `films_lab` avec un analyzer `film_search_fr` :
+   - tokenizer `standard`
+   - filtres `lowercase`, `asciifolding`, `stop` (français), `synonym`
+1. Mapper `title`, `summary`, `genres` avec cet analyzer.
+1. Indexer au moins 6 films (dont un avec accent, un film fantasy, un film science-fiction).
+1. Tester l'analyzer avec `_analyze` sur :
+   - `Le seigneur des anneaux`
+   - `film sci fi espace`
+
+---
+
+### Livrables attendus
+
+1. Requête `PUT` complète de création d'index (settings + mappings).
+1. Requête `_bulk` d'indexation des films.
+1. Résultat `_analyze` commenté :
+   - quels tokens restent ?
+   - quels tokens sont supprimés ?
+1. Requête `multi_match` sur `title`, `summary`, `genres` avec boosts.
+1. Une requête `_explain` sur un document pour justifier le score.
+
+Critères de réussite :
+
+- une recherche `amelie` retrouve un titre avec `Amélie`,
+- une recherche `sci fi` remonte un film `science fiction`,
+- la justification du score est lisible via `_explain`.
         </textarea>
       </section>
     </div>

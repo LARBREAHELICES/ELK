@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Correction 05 - Analyseur</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #34d399;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #17303b 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #6ee7b7; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Correction 05 - Analyseur</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+        <a href="corrections.html">Page corrections</a>
+      </div>
+    </div>
+    <p class="sub">Correction de l'exercice technique du chapitre Analyseur.</p>
+    <article class="content">
+<h1 id="correction-05---analyzer-chapitre-05">Correction 05 - Analyzer
+(Chapitre 05)</h1>
+<h2 id="exercice-technique--analyzer-films">Exercice technique :
+analyzer films</h2>
+<h2 id="1-création-de-lindex-films_lab">1) Création de l'index
+<code>films_lab</code></h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">PUT</span> <span class="er">films_lab</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;analysis&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;film_stop_fr&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;stop&quot;</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;stopwords&quot;</span><span class="fu">:</span> <span class="st">&quot;_french_&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;film_synonyms&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;synonym&quot;</span><span class="fu">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;synonyms&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;sci fi, science fiction&quot;</span><span class="ot">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;sf, science fiction&quot;</span><span class="ot">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;heroic fantasy, fantasy&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>          <span class="ot">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;film_search_fr&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;custom&quot;</span><span class="fu">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;tokenizer&quot;</span><span class="fu">:</span> <span class="st">&quot;standard&quot;</span><span class="fu">,</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lowercase&quot;</span><span class="ot">,</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;asciifolding&quot;</span><span class="ot">,</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;film_stop_fr&quot;</span><span class="ot">,</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;film_synonyms&quot;</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>          <span class="ot">]</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;mappings&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;properties&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_search_fr&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_search_fr&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;genres&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_search_fr&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;year&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;rating&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;float&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="2-indexation-_bulk-de-films">2) Indexation <code>_bulk</code> de
+films</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="er">POST</span> <span class="er">films_lab/_bulk</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">1</span><span class="fu">}}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Le Fabuleux Destin d&#39;Amélie Poulain&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Une jeune femme transforme la vie des gens à Montmartre.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;comedie&quot;</span><span class="ot">,</span><span class="st">&quot;romance&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.3</span><span class="fu">}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">2</span><span class="fu">}}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Le Seigneur des Anneaux : La Communauté de l&#39;Anneau&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Un hobbit part en quête pour détruire un anneau.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;fantasy&quot;</span><span class="ot">,</span><span class="st">&quot;aventure&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.8</span><span class="fu">}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">3</span><span class="fu">}}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Interstellar&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Des astronautes traversent l&#39;espace et le temps.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;science fiction&quot;</span><span class="ot">,</span><span class="st">&quot;drame&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2014</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.7</span><span class="fu">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">4</span><span class="fu">}}</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Blade Runner 2049&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Une enquête dans un futur dystopique.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;science fiction&quot;</span><span class="ot">,</span><span class="st">&quot;thriller&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2017</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">8.0</span><span class="fu">}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">5</span><span class="fu">}}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Harry Potter à l&#39;école des sorciers&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Un jeune sorcier entre à Poudlard.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;fantasy&quot;</span><span class="ot">,</span><span class="st">&quot;aventure&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2001</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">7.6</span><span class="fu">}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;index&quot;</span><span class="fu">:{</span><span class="dt">&quot;_id&quot;</span><span class="fu">:</span><span class="dv">6</span><span class="fu">}}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;title&quot;</span><span class="fu">:</span><span class="st">&quot;Premier Contact&quot;</span><span class="fu">,</span><span class="dt">&quot;summary&quot;</span><span class="fu">:</span><span class="st">&quot;Une linguiste tente de communiquer avec des extraterrestres.&quot;</span><span class="fu">,</span><span class="dt">&quot;genres&quot;</span><span class="fu">:</span><span class="ot">[</span><span class="st">&quot;science fiction&quot;</span><span class="ot">,</span><span class="st">&quot;drame&quot;</span><span class="ot">]</span><span class="fu">,</span><span class="dt">&quot;year&quot;</span><span class="fu">:</span><span class="dv">2016</span><span class="fu">,</span><span class="dt">&quot;rating&quot;</span><span class="fu">:</span><span class="fl">7.9</span><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="3-vérification-avec-_analyze">3) Vérification avec
+<code>_analyze</code></h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films_lab/_analyze</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_search_fr&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;Le seigneur des anneaux&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Tokens attendus :</p>
+<ul>
+<li><code>seigneur</code></li>
+<li><code>anneaux</code></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films_lab/_analyze</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;analyzer&quot;</span><span class="fu">:</span> <span class="st">&quot;film_search_fr&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;film sci fi espace&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Tokens attendus :</p>
+<ul>
+<li><code>film</code></li>
+<li><code>science</code></li>
+<li><code>fiction</code></li>
+<li><code>espace</code></li>
+</ul>
+<p>Lecture :</p>
+<ul>
+<li><code>des</code> est supprimé par le filtre <code>stop</code>.</li>
+<li><code>sci fi</code> converge vers <code>science fiction</code> via
+le filtre <code>synonym</code>.</li>
+</ul>
+<hr />
+<h2 id="4-requête-multi_match-avec-boosts">4) Requête
+<code>multi_match</code> avec boosts</h2>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films_lab/_search</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;multi_match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="st">&quot;film sci fi espace&quot;</span><span class="fu">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;fields&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title^3&quot;</span><span class="ot">,</span> <span class="st">&quot;summary^2&quot;</span><span class="ot">,</span> <span class="st">&quot;genres^2&quot;</span><span class="ot">]</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Résultat attendu :</p>
+<ul>
+<li><code>Interstellar</code> et <code>Blade Runner 2049</code>
+remontent en haut, car <code>science fiction</code> est présent dans
+<code>genres</code>.</li>
+</ul>
+<hr />
+<h2 id="5-justification-du-score-avec-_explain">5) Justification du
+score avec <code>_explain</code></h2>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">films_lab/_explain/3</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;multi_match&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="st">&quot;film sci fi espace&quot;</span><span class="fu">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;fields&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title^3&quot;</span><span class="ot">,</span> <span class="st">&quot;summary^2&quot;</span><span class="ot">,</span> <span class="st">&quot;genres^2&quot;</span><span class="ot">]</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Points à vérifier dans la réponse :</p>
+<ul>
+<li>les termes de la requête analysée apparaissent
+(<code>science</code>, <code>fiction</code>, <code>espace</code>);</li>
+<li>la contribution des champs boostés (<code>summary^2</code>,
+<code>genres^2</code>) est visible dans le détail;</li>
+<li>le score final est la somme pondérée des correspondances.</li>
+</ul>
+<hr />
+<h2 id="synthèse">Synthèse</h2>
+<ul>
+<li>L'analyzer normalise les accents, retire les mots vides et gère les
+synonymes métier.</li>
+<li><code>_analyze</code> permet de valider le comportement réel avant
+d'indexer massivement.</li>
+<li><code>multi_match</code> + boosts améliore la pertinence.</li>
+<li><code>_explain</code> permet de justifier objectivement le
+classement.</li>
+</ul>
+    </article>
+  </div>
+  <script src="assets/glossary.js"></script>
+</body>
+</html>
