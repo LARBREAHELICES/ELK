@@ -1,5 +1,5 @@
 # Introduction
-## Parcours ELK du cours
+## ELK : bases théoriques avant la pratique
 
 ---
 
@@ -19,60 +19,80 @@ Schéma ELK du cours :
 
 ---
 
-## Bloc Fondations Elasticsearch
+## Repères historiques
 
-Compétences visées :
-- comprendre index, document, champ
-- distinguer `text` et `keyword`
-- écrire les requêtes de base (`match`, `term`, `bool`)
+- **2009** : naissance de **Logstash** (collecte et transformation de logs)
+- **2010** : première version publique d'**Elasticsearch**
+- **2013** : **Kibana** devient l'interface de visualisation la plus utilisée avec Elasticsearch
+- **2015+** : arrivée de **Beats** pour la collecte légère sur serveurs/postes
+- **2018** : l'écosystème est souvent présenté comme **Elastic Stack** (ELK + autres briques)
 
-Supports :
-- `01_introduction.md`
-- `02_requetes.md`
-
----
-
-## Bloc Analyse et lecture métier
-
-Compétences visées :
-- transformer des questions métier en agrégations
-- lire des distributions et comparer des segments
-- manipuler runtime fields / `emit` pour enrichir l'analyse
-
-Supports :
-- `03_aggregation.md`
-- `03_02_agregation.md`
+Le terme **ELK** reste très utilisé en pratique pour parler du pipeline central
+Logstash + Elasticsearch + Kibana.
 
 ---
 
-## Bloc Modélisation de la recherche
+## À quoi sert ELK
 
-Compétences visées :
-- choisir un mapping cohérent
-- personnaliser l'analyse textuelle
-- préparer une recherche multi-champs plus pertinente
+ELK sert à traiter des données volumineuses et hétérogènes pour :
 
-Supports :
-- `04_mapping.md`
-- `05_analyser.md`
+- centraliser des logs applicatifs et systèmes
+- rechercher rapidement dans de grands volumes de texte
+- produire des indicateurs (agrégations, tendances, anomalies)
+- visualiser les résultats dans des dashboards exploitables
 
 ---
 
-## Bloc Ingestion et qualité des données
+## Rôle des composants
 
-Compétences visées :
-- appliquer le flux `input -> filter -> output`
-- nettoyer et transformer les données avant indexation
-- exécuter, tester et rejouer un pipeline sans ambiguïté
-
-Supports :
-- `00_01_logstash.md` (logique de nettoyage)
-- `00_logstash.md` (exécution, conventions et cas TMDB)
+- **Source** : fichiers, logs applicatifs, exports CSV/JSON
+- **Logstash** : lit les données, parse, nettoie, transforme, enrichit
+- **Elasticsearch** : indexe les documents et répond aux requêtes
+- **Kibana** : explore les données et crée des visualisations
+- **Jupyter** : automatise les vérifications et les analyses en Python
 
 ---
 
-## Transition avant le TP
+## Cycle de traitement des données
 
-> Vous savez maintenant lire, transformer et indexer les données avec ELK,
-> puis vérifier ces résultats depuis Python.
-> Le TP films applique ce workflow complet sur un jeu de données réel.
+Du point de vue étudiant, le flux suit toujours cette logique :
+
+1. Lire les données brutes (`input`)
+2. Transformer les champs (`filter`)
+3. Indexer dans Elasticsearch (`output`)
+4. Vérifier le résultat (mapping, volume, qualité)
+5. Rechercher et analyser (requêtes + visualisation)
+
+---
+
+## Vocabulaire à maîtriser
+
+- **Index** : conteneur logique de documents
+- **Document** : objet JSON stocké dans Elasticsearch
+- **Champ** : propriété d'un document (ex: `title`, `release_date`)
+- **Mapping** : définition des types de champs
+- **Analyzer** : traitement texte pour la recherche full-text
+- **Agrégation** : calcul analytique (groupement, moyenne, histogramme, etc.)
+
+---
+
+## Pourquoi cette base est importante
+
+Sans ces notions :
+
+- on ingère mal les données (types incorrects, dates mal parsées)
+- les recherches deviennent incohérentes
+- les visualisations deviennent trompeuses
+
+Avec ces notions :
+
+- on construit des pipelines robustes
+- on interprète correctement les résultats
+- on peut passer rapidement d'un besoin métier à une requête fiable
+
+---
+
+## Transition vers la suite
+
+> Après cette introduction, on enchaîne sur la mise en pratique :
+> ingestion, mapping, recherche, agrégations, puis exploitation dans Kibana et Python.
