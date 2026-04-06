@@ -233,45 +233,12 @@ Définit comment on peut rechercher
 
 ---
 
-## 10. Phrase très importante pour les étudiants
-
-> Le mapping définit comment les champs sont stockés et comment on pourra faire les recherches.
-
----
-
-## 11. Règle simple à retenir
+## 10. Règle simple à retenir
 
 | Si on veut…                  | On met  |
 | ---------------------------- | ------- |
 | chercher dans une phrase     | text    |
 | filtrer (nom, catégorie, id) | keyword |
-
----
-
-## 12. Exemple complet
-
-Mapping :
-
-```json
-PUT shakespeare
-{
-  "mappings": {
-    "properties": {
-      "play_name": { "type": "keyword" },
-      "speaker": { "type": "keyword" },
-      "text_entry": { "type": "text" }
-    }
-  }
-}
-```
-
-Requêtes :
-
-```json
-match → text_entry
-term → speaker
-term → play_name
-```
 
 ---
 
