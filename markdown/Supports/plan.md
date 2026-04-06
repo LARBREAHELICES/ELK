@@ -1,5 +1,5 @@
-# Plan de cours ELK
-## Progression pédagogique orientée UX
+# Introduction
+## Parcours ELK du cours
 
 ---
 
@@ -11,26 +11,34 @@ Pipeline cible du cours :
 Source (CSV / logs) -> Logstash -> Elasticsearch -> Kibana -> Jupyter
 ```
 
-Ce que les étudiants doivent comprendre dès le départ :
-- où chaque outil intervient
-- ce qui transite entre les briques
-- où diagnostiquer en cas d'erreur
+Schéma ELK du cours :
 
----
-
-## Ordre des supports
-
-- `markdown/Supports/00_configuration.md`
-- `markdown/Supports/01_introduction.md`
-- `markdown/Supports/02_requetes.md`
-- `markdown/Supports/03_aggregation.md`
-- `markdown/Supports/03_02_agregation.md`
-- `markdown/Supports/04_mapping.md`
-- `markdown/Supports/05_analyser.md`
-- `markdown/Supports/00_01_logstash.md`
-- `markdown/Supports/00_logstash.md`
-- `markdown/Supports/00_modules_python.md`
-- TP films (`markdown/Exercices/tp-05-films-2h.md`)
+```text
+                    +--------------------+
+                    | Sources de données |
+                    | CSV / logs / JSON  |
+                    +---------+----------+
+                              |
+                              v
+                    +--------------------+
+                    |      Logstash      |
+                    | parse / nettoie /  |
+                    | transforme / route |
+                    +---------+----------+
+                              |
+                              v
+                    +--------------------+
+                    |   Elasticsearch    |
+                    | indexe / recherche |
+                    | agrégations        |
+                    +-----+---------+----+
+                          |         |
+                          v         v
+               +----------------+  +----------------+
+               |     Kibana     |  |    Jupyter     |
+               | explore / vis. |  | tests / contrôles |
+               +----------------+  +----------------+
+```
 
 ---
 
@@ -98,7 +106,7 @@ Support :
 
 ---
 
-## Logique UX de la progression
+## Logique de la progression
 
 Principes de séquencement :
 - démarrer par une vue système claire (pipeline ELK)
@@ -117,4 +125,4 @@ Résultat attendu :
 
 > Vous savez maintenant lire, transformer et indexer les données avec ELK,
 > puis vérifier ces résultats depuis Python.
-> Le TP films applique ce workflow complet sur un dataset réel.
+> Le TP films applique ce workflow complet sur un jeu de données réel.

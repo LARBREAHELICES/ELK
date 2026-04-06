@@ -14,7 +14,7 @@ Rôle de chaque brique :
 - **Kibana** permet d'explorer rapidement les résultats
 - **Jupyter** sert à vérifier et automatiser les contrôles depuis Python
 
-Objectif UX pour les étudiants :
+Objectif pédagogique :
 - comprendre le pipeline global avant d'entrer dans la syntaxe
 - appliquer un flux unique de bout en bout
 - garder un chemin de debug simple (input -> filter -> output)
@@ -36,7 +36,7 @@ Dans la réalité, les données sont **sales** :
 | Doublons             | même film importé 2 fois |
 | Colonnes décalées    | CSV mal formé            |
 
-**Le rôle principal du filter Logstash = corriger ces problèmes.**
+**Le rôle principal du filtre Logstash = corriger ces problèmes.**
 
 ---
 
