@@ -89,14 +89,14 @@
 <h1 id="tp-films-2h---logstash--elasticsearch-tmdb-10-000-films">TP
 Films (2h) - Logstash + Elasticsearch (TMDB 10 000 films)</h1>
 <h2 id="but-du-tp">But du TP</h2>
-<p>Construire une chaine d'ingestion complete avec <strong>un vrai
-dataset TMDB</strong>:</p>
+<p>Construire une chaine d'ingestion complete avec un dataset TMDB
+reel:</p>
 <ul>
 <li>ingestion CSV avec Logstash</li>
 <li>conversion des types</li>
 <li>parsing de date</li>
 <li>indexation Elasticsearch</li>
-<li>analyses metier simples</li>
+<li>analyses metier</li>
 </ul>
 <p>Duree cible: <strong>2 heures</strong>.</p>
 <hr />
@@ -121,196 +121,97 @@ dataset TMDB</strong>:</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /Users/antoinelucsko/Desktop/HETIC/ELK/sandbox</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Mettre la conf CSV en place (depuis le dossier Exercices)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Mettre la conf TP en place (fichier à compléter par les étudiants)</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ../markdown/Exercices/logstash.conf ./logstash.conf</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Verifier que le CSV TMDB est bien dans /data (monte dans le conteneur)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Vérifier le dataset</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> ./data/<span class="pp">*</span>TMDB<span class="pp">*</span>.csv</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Demarrer les services utiles</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Démarrer les services utiles</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose up <span class="at">-d</span> elasticsearch kibana logstash</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Tester la config Logstash</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose run <span class="at">--rm</span> logstash <span class="at">--config.test_and_exit</span> <span class="at">-f</span> /usr/share/logstash/pipeline/logstash.conf</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Forcer une reingestion propre (optionnel)</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Forcer une réingestion propre (optionnel)</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec logstash rm <span class="at">-f</span> /tmp/logstash_tmdb_movies.sincedb</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose restart logstash</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Suivre les logs</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose logs <span class="at">-f</span> <span class="at">--tail</span><span class="op">=</span>200 logstash</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Verification ingestion</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/tmdb-movies/_count?pretty&quot;</span></span></code></pre></div>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose logs <span class="at">-f</span> <span class="at">--tail</span><span class="op">=</span>200 logstash</span></code></pre></div>
 <hr />
-<h2 id="pre-requis-10-min">Pre-requis (10 min)</h2>
-<ol type="1">
-<li>Verifier les services:</li>
-</ol>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose ps</span></code></pre></div>
-<ol start="2" type="1">
-<li>Verifier la presence du CSV dans <code>sandbox/data</code>:</li>
-</ol>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> ./data/<span class="pp">*</span>TMDB<span class="pp">*</span>.csv</span></code></pre></div>
-<hr />
-<h2 id="etape-1---pipeline-logstash-tmdb-40-min">Etape 1 - Pipeline
-Logstash TMDB (40 min)</h2>
-<p>Le pipeline de depart est fourni ici:</p>
-<p><code>markdown/Exercices/logstash.conf</code></p>
-<p>Dans ce projet, il doit etre copie vers:</p>
-<p><code>sandbox/logstash.conf</code></p>
-<p>Contenu attendu:</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode conf"><code class="sourceCode toml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">input</span> <span class="er">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">file</span> <span class="er">{</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">path</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;/data/*TMDB*.csv&quot;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">start_position</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;beginning&quot;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sincedb_path</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;/tmp/logstash_tmdb_movies.sincedb&quot;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="dt">filter</span> <span class="er">{</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">csv</span> <span class="er">{</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">separator</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;,&quot;</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">quote_char</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&#39;&quot;&#39;</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">skip_header</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">true</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">columns</span> <span class="op">=</span><span class="er">&gt;</span> <span class="kw">[&quot;</span><span class="dt">index&quot;</span><span class="er">,</span> <span class="dt">&quot;title&quot;</span><span class="er">,</span> <span class="dt">&quot;original_language&quot;</span><span class="er">,</span> <span class="dt">&quot;release_date&quot;</span><span class="er">,</span> <span class="dt">&quot;popularity&quot;</span><span class="er">,</span> <span class="dt">&quot;vote_average&quot;</span><span class="er">,</span> <span class="dt">&quot;vote_count&quot;</span><span class="er">,</span> <span class="dt">&quot;overview&quot;</span><span class="er">]</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">mutate</span> <span class="er">{</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">rename</span> <span class="op">=</span><span class="er">&gt;</span> <span class="er">{</span> <span class="dt">&quot;index&quot;</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;movie_id&quot;</span> <span class="er">}</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">convert</span> <span class="op">=</span><span class="er">&gt;</span> <span class="er">{</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;movie_id&quot;</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;integer&quot;</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;popularity&quot;</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;float&quot;</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;vote_average&quot;</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;float&quot;</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;vote_count&quot;</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;integer&quot;</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">date</span> <span class="er">{</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">match</span> <span class="op">=</span><span class="er">&gt;</span> <span class="kw">[&quot;</span><span class="dt">release_date&quot;</span><span class="er">,</span> <span class="dt">&quot;dd-MM-yyyy&quot;</span><span class="er">]</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">target</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;release_date_ts&quot;</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="dt">output</span> <span class="er">{</span></span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="dt">elasticsearch</span> <span class="er">{</span></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">hosts</span> <span class="op">=</span><span class="er">&gt;</span> <span class="kw">[&quot;</span><span class="dt">http://elasticsearch:9200&quot;</span><span class="kw">]</span></span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">index</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">&quot;tmdb-movies&quot;</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span></span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">stdout</span> <span class="er">{</span> <span class="dt">codec</span> <span class="op">=</span><span class="er">&gt;</span> <span class="dt">rubydebug</span> <span class="er">}</span></span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
-<p>Lancer/relancer Logstash, puis verifier:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose restart logstash</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/tmdb-movies/_count?pretty&quot;</span></span></code></pre></div>
-<p>Checkpoint attendu:</p>
+<h2 id="etape-1---construire-le-pipeline-logstash-40-min">Etape 1 -
+Construire le pipeline Logstash (40 min)</h2>
+<h3 id="travail-demandé">Travail demandé</h3>
+<p>Créer/compléter <code>sandbox/logstash.conf</code> pour:</p>
 <ul>
-<li><code>count</code> proche de <code>10000</code> (pas
-<code>0</code>).</li>
+<li>lire le CSV TMDB depuis <code>/data</code></li>
+<li>parser les colonnes CSV</li>
+<li>ignorer le header</li>
+<li>renommer <code>index</code> en <code>movie_id</code></li>
+<li>convertir les types numériques</li>
+<li>parser <code>release_date</code> en champ date exploitable</li>
+<li>indexer dans <code>tmdb-movies</code></li>
+</ul>
+<h3 id="contraintes">Contraintes</h3>
+<ul>
+<li>le pipeline doit fonctionner avec le fichier CSV fourni</li>
+<li>les champs numériques ne doivent pas rester en texte</li>
+<li>le pipeline doit être relançable après suppression du
+<code>sincedb</code></li>
+</ul>
+<h3 id="vérification-minimale">Vérification minimale</h3>
+<ul>
+<li>l'index <code>tmdb-movies</code> existe</li>
+<li>le <code>count</code> est cohérent avec le volume attendu</li>
 </ul>
 <hr />
-<h2 id="etape-2---controle-qualite-20-min">Etape 2 - Controle qualite
+<h2 id="etape-2---contrôle-qualité-20-min">Etape 2 - Contrôle qualité
 (20 min)</h2>
-<p>Verifier mapping + echantillon:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/tmdb-movies/_mapping?pretty&quot;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:9200/tmdb-movies/_search?pretty&amp;size=3&quot;</span></span></code></pre></div>
-<p>Verifier les anomalies de date:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> GET <span class="st">&quot;http://localhost:9200/tmdb-movies/_search?pretty&quot;</span> <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="at">-d</span> <span class="st">&#39;{</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;query&quot;: {</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;bool&quot;: {</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="st">      &quot;must_not&quot;: [</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="st">        { &quot;exists&quot;: { &quot;field&quot;: &quot;release_date_ts&quot; } }</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="st">      ]</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="st">}&#39;</span></span></code></pre></div>
-<p>Checkpoint attendu:</p>
+<h3 id="travail-demandé-1">Travail demandé</h3>
+<p>Vérifier que:</p>
 <ul>
-<li><code>movie_id</code> en <code>integer</code></li>
-<li><code>popularity</code> / <code>vote_average</code> en
-<code>float</code></li>
-<li><code>vote_count</code> en <code>integer</code></li>
-<li>peu ou pas de documents sans <code>release_date_ts</code></li>
+<li><code>movie_id</code> est bien numérique</li>
+<li><code>popularity</code> et <code>vote_average</code> sont
+numériques</li>
+<li><code>vote_count</code> est numérique</li>
+<li>le champ date issu de <code>release_date</code> est bien
+présent</li>
+<li>les documents problématiques (date absente ou invalide) sont
+identifiés</li>
 </ul>
+<h3 id="questions">Questions</h3>
+<ol type="1">
+<li>Combien de documents n'ont pas de date parsée exploitable ?</li>
+<li>Quel est le type réel des champs numériques dans le mapping ?</li>
+<li>Avez-vous des valeurs anormales évidentes (ex:
+<code>vote_average</code> hors plage) ?</li>
+</ol>
 <hr />
 <h2 id="etape-3---analyses-metier-40-min">Etape 3 - Analyses metier (40
 min)</h2>
-<h3 id="requete-1---top-10-langues">Requete 1 - Top 10 langues</h3>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">tmdb-movies/_search</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aggs&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;top_languages&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;terms&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;original_language.keyword&quot;</span><span class="fu">,</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="dv">10</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<h3 id="requete-2---top-10-films-par-popularite">Requete 2 - Top 10
-films par popularite</h3>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">tmdb-movies/_search</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sort&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;popularity&quot;</span><span class="fu">:</span> <span class="st">&quot;desc&quot;</span> <span class="fu">}</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;_source&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title&quot;</span><span class="ot">,</span> <span class="st">&quot;popularity&quot;</span><span class="ot">,</span> <span class="st">&quot;vote_average&quot;</span><span class="ot">,</span> <span class="st">&quot;vote_count&quot;</span><span class="ot">]</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<h3 id="requete-3---films-solides-vote_count--1000">Requete 3 - Films
-"solides" (vote_count &gt;= 1000)</h3>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">tmdb-movies/_search</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bool&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;filter&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;vote_count&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="dv">1000</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;range&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;vote_average&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;gte&quot;</span><span class="fu">:</span> <span class="fl">7.5</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sort&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;vote_average&quot;</span><span class="fu">:</span> <span class="st">&quot;desc&quot;</span> <span class="fu">}</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;_source&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;title&quot;</span><span class="ot">,</span> <span class="st">&quot;vote_average&quot;</span><span class="ot">,</span> <span class="st">&quot;vote_count&quot;</span><span class="ot">]</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<h3 id="requete-4---evolution-des-sorties-par-annee">Requete 4 -
-Evolution des sorties (par annee)</h3>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">GET</span> <span class="er">tmdb-movies/_search</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aggs&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;releases_by_year&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;date_histogram&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;release_date_ts&quot;</span><span class="fu">,</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;calendar_interval&quot;</span><span class="fu">:</span> <span class="st">&quot;year&quot;</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Écrire vos requêtes Elasticsearch pour répondre aux questions
+suivantes:</p>
+<ol type="1">
+<li>Quelles sont les 10 langues les plus représentées ?</li>
+<li>Quels sont les 10 films les plus populaires ?</li>
+<li>Quels films ont une note élevée <strong>et</strong> un volume de
+votes significatif ?</li>
+<li>Comment évolue le volume de sorties de films par année ?</li>
+</ol>
+<h3 id="contraintes-1">Contraintes</h3>
+<ul>
+<li>utilisez des agrégations quand c'est nécessaire</li>
+<li>limitez les champs retournés quand vous listez les films</li>
+<li>ajoutez un tri pertinent dans les listes</li>
+</ul>
 <hr />
 <h2 id="bonus-10-min">Bonus (10 min)</h2>
 <ol type="1">
-<li>Ajouter un champ <code>quality_band</code>:</li>
-</ol>
-<ul>
-<li><code>A</code> si <code>vote_average &gt;= 8</code></li>
-<li><code>B</code> si <code>vote_average &gt;= 7</code></li>
-<li><code>C</code> sinon</li>
-</ul>
-<ol start="2" type="1">
-<li>Compter les films par <code>quality_band</code>.</li>
+<li>Créer une logique de classement <code>quality_band</code>
+(<code>A</code>, <code>B</code>, <code>C</code>) basée sur
+<code>vote_average</code>.</li>
+<li>Compter le nombre de films par <code>quality_band</code>.</li>
 </ol>
 <hr />
 <h2 id="erreurs-frequentes-a-corriger-vite">Erreurs frequentes (a
@@ -319,44 +220,41 @@ corriger vite)</h2>
 <li><code>count = 0</code></li>
 </ol>
 <ul>
-<li>verifier que le CSV est bien dans <code>./data</code></li>
-<li>verifier que <code>sandbox/logstash.conf</code> est bien la conf
-CSV</li>
+<li>vérifier le chemin du CSV dans le conteneur
+(<code>/data/...</code>)</li>
+<li>vérifier que <code>sandbox/logstash.conf</code> est bien pris en
+compte</li>
 </ul>
 <ol start="2" type="1">
-<li>Pas de reinjection apres modif de conf</li>
+<li>Pas de réingestion après modification</li>
 </ol>
 <ul>
-<li>supprimer <code>sincedb</code> puis redemarrer:</li>
+<li>supprimer le <code>sincedb</code>, puis redémarrer Logstash</li>
 </ul>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec logstash rm <span class="at">-f</span> /tmp/logstash_tmdb_movies.sincedb</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose restart logstash</span></code></pre></div>
 <ol start="3" type="1">
-<li>Erreur de parsing CSV</li>
+<li>Parsing CSV instable</li>
 </ol>
 <ul>
-<li>verifier <code>separator</code>, <code>quote_char</code> et
-<code>columns</code></li>
-<li>lire les logs: <code>docker compose logs -f logstash</code></li>
+<li>vérifier <code>separator</code>, <code>quote_char</code>,
+<code>columns</code>, <code>skip_header</code></li>
 </ul>
 <hr />
 <h2 id="livrables-attendus">Livrables attendus</h2>
 <ol type="1">
-<li>Le pipeline Logstash utilise
+<li>Le pipeline Logstash utilisé
 (<code>sandbox/logstash.conf</code>)</li>
-<li>Les commandes de verification (<code>_count</code>,
+<li>Les commandes de vérification (<code>_count</code>,
 <code>_mapping</code>, <code>_search</code>)</li>
-<li>Les 4 requetes metier</li>
-<li>Une interpretation courte (2-3 lignes) pour chaque requete</li>
+<li>Les requêtes utilisées pour les 4 questions métier</li>
+<li>Une interprétation courte (2-3 lignes) pour chaque question</li>
 </ol>
 <hr />
 <h2 id="grille-de-temps-recommandee">Grille de temps recommandee</h2>
 <ul>
-<li>0:00 -&gt; 0:10: setup + copie dataset</li>
+<li>0:00 -&gt; 0:10: setup Docker</li>
 <li>0:10 -&gt; 0:50: pipeline + ingestion</li>
-<li>0:50 -&gt; 1:10: qualite de donnees</li>
-<li>1:10 -&gt; 1:50: analyses metier</li>
+<li>0:50 -&gt; 1:10: contrôle qualité</li>
+<li>1:10 -&gt; 1:50: analyses métier</li>
 <li>1:50 -&gt; 2:00: bonus + rendu</li>
 </ul>
     </article>

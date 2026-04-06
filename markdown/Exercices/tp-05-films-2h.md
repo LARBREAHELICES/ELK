@@ -2,12 +2,12 @@
 
 ## But du TP
 
-Construire une chaine d'ingestion complete avec **un vrai dataset TMDB**:
+Construire une chaine d'ingestion complete avec un dataset TMDB reel:
 - ingestion CSV avec Logstash
 - conversion des types
 - parsing de date
 - indexation Elasticsearch
-- analyses metier simples
+- analyses metier
 
 Duree cible: **2 heures**.
 
@@ -38,260 +38,124 @@ Volume: **10 001 lignes** (1 header + 10 000 films).
 ```bash
 cd /Users/antoinelucsko/Desktop/HETIC/ELK/sandbox
 
-# Mettre la conf CSV en place (depuis le dossier Exercices)
+# Mettre la conf TP en place (fichier à compléter par les étudiants)
 cp ../markdown/Exercices/logstash.conf ./logstash.conf
 
-# Verifier que le CSV TMDB est bien dans /data (monte dans le conteneur)
+# Vérifier le dataset
 ls -lh ./data/*TMDB*.csv
 
-# Demarrer les services utiles
+# Démarrer les services utiles
 docker compose up -d elasticsearch kibana logstash
 
 # Tester la config Logstash
 docker compose run --rm logstash --config.test_and_exit -f /usr/share/logstash/pipeline/logstash.conf
 
-# Forcer une reingestion propre (optionnel)
+# Forcer une réingestion propre (optionnel)
 docker compose exec logstash rm -f /tmp/logstash_tmdb_movies.sincedb
 docker compose restart logstash
 
-# Suivre les logs
+# Logs
 docker compose logs -f --tail=200 logstash
-
-# Verification ingestion
-curl "http://localhost:9200/tmdb-movies/_count?pretty"
 ```
 
 ---
 
-## Pre-requis (10 min)
+## Etape 1 - Construire le pipeline Logstash (40 min)
 
-1. Verifier les services:
+### Travail demandé
 
-```bash
-docker compose ps
-```
+Créer/compléter `sandbox/logstash.conf` pour:
+- lire le CSV TMDB depuis `/data`
+- parser les colonnes CSV
+- ignorer le header
+- renommer `index` en `movie_id`
+- convertir les types numériques
+- parser `release_date` en champ date exploitable
+- indexer dans `tmdb-movies`
 
-2. Verifier la presence du CSV dans `sandbox/data`:
+### Contraintes
 
-```bash
-ls -lh ./data/*TMDB*.csv
-```
+- le pipeline doit fonctionner avec le fichier CSV fourni
+- les champs numériques ne doivent pas rester en texte
+- le pipeline doit être relançable après suppression du `sincedb`
 
----
+### Vérification minimale
 
-## Etape 1 - Pipeline Logstash TMDB (40 min)
-
-Le pipeline de depart est fourni ici:
-
-`markdown/Exercices/logstash.conf`
-
-Dans ce projet, il doit etre copie vers:
-
-`sandbox/logstash.conf`
-
-Contenu attendu:
-
-```conf
-input {
-  file {
-    path => "/data/*TMDB*.csv"
-    start_position => "beginning"
-    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
-  }
-}
-
-filter {
-  csv {
-    separator => ","
-    quote_char => '"'
-    skip_header => true
-    columns => ["index", "title", "original_language", "release_date", "popularity", "vote_average", "vote_count", "overview"]
-  }
-
-  mutate {
-    rename => { "index" => "movie_id" }
-    convert => {
-      "movie_id" => "integer"
-      "popularity" => "float"
-      "vote_average" => "float"
-      "vote_count" => "integer"
-    }
-  }
-
-  date {
-    match => ["release_date", "dd-MM-yyyy"]
-    target => "release_date_ts"
-  }
-}
-
-output {
-  elasticsearch {
-    hosts => ["http://elasticsearch:9200"]
-    index => "tmdb-movies"
-  }
-
-  stdout { codec => rubydebug }
-}
-```
-
-Lancer/relancer Logstash, puis verifier:
-
-```bash
-docker compose restart logstash
-curl "http://localhost:9200/tmdb-movies/_count?pretty"
-```
-
-Checkpoint attendu:
-- `count` proche de `10000` (pas `0`).
+- l'index `tmdb-movies` existe
+- le `count` est cohérent avec le volume attendu
 
 ---
 
-## Etape 2 - Controle qualite (20 min)
+## Etape 2 - Contrôle qualité (20 min)
 
-Verifier mapping + echantillon:
+### Travail demandé
 
-```bash
-curl "http://localhost:9200/tmdb-movies/_mapping?pretty"
-curl "http://localhost:9200/tmdb-movies/_search?pretty&size=3"
-```
+Vérifier que:
+- `movie_id` est bien numérique
+- `popularity` et `vote_average` sont numériques
+- `vote_count` est numérique
+- le champ date issu de `release_date` est bien présent
+- les documents problématiques (date absente ou invalide) sont identifiés
 
-Verifier les anomalies de date:
+### Questions
 
-```bash
-curl -X GET "http://localhost:9200/tmdb-movies/_search?pretty" -H "Content-Type: application/json" -d '{
-  "query": {
-    "bool": {
-      "must_not": [
-        { "exists": { "field": "release_date_ts" } }
-      ]
-    }
-  }
-}'
-```
-
-Checkpoint attendu:
-- `movie_id` en `integer`
-- `popularity` / `vote_average` en `float`
-- `vote_count` en `integer`
-- peu ou pas de documents sans `release_date_ts`
+1. Combien de documents n'ont pas de date parsée exploitable ?
+2. Quel est le type réel des champs numériques dans le mapping ?
+3. Avez-vous des valeurs anormales évidentes (ex: `vote_average` hors plage) ?
 
 ---
 
 ## Etape 3 - Analyses metier (40 min)
 
-### Requete 1 - Top 10 langues
+Écrire vos requêtes Elasticsearch pour répondre aux questions suivantes:
 
-```json
-GET tmdb-movies/_search
-{
-  "size": 0,
-  "aggs": {
-    "top_languages": {
-      "terms": {
-        "field": "original_language.keyword",
-        "size": 10
-      }
-    }
-  }
-}
-```
+1. Quelles sont les 10 langues les plus représentées ?
+2. Quels sont les 10 films les plus populaires ?
+3. Quels films ont une note élevée **et** un volume de votes significatif ?
+4. Comment évolue le volume de sorties de films par année ?
 
-### Requete 2 - Top 10 films par popularite
+### Contraintes
 
-```json
-GET tmdb-movies/_search
-{
-  "size": 10,
-  "sort": [
-    { "popularity": "desc" }
-  ],
-  "_source": ["title", "popularity", "vote_average", "vote_count"]
-}
-```
-
-### Requete 3 - Films "solides" (vote_count >= 1000)
-
-```json
-GET tmdb-movies/_search
-{
-  "query": {
-    "bool": {
-      "filter": [
-        { "range": { "vote_count": { "gte": 1000 } } },
-        { "range": { "vote_average": { "gte": 7.5 } } }
-      ]
-    }
-  },
-  "sort": [
-    { "vote_average": "desc" }
-  ],
-  "_source": ["title", "vote_average", "vote_count"]
-}
-```
-
-### Requete 4 - Evolution des sorties (par annee)
-
-```json
-GET tmdb-movies/_search
-{
-  "size": 0,
-  "aggs": {
-    "releases_by_year": {
-      "date_histogram": {
-        "field": "release_date_ts",
-        "calendar_interval": "year"
-      }
-    }
-  }
-}
-```
+- utilisez des agrégations quand c'est nécessaire
+- limitez les champs retournés quand vous listez les films
+- ajoutez un tri pertinent dans les listes
 
 ---
 
 ## Bonus (10 min)
 
-1. Ajouter un champ `quality_band`:
-- `A` si `vote_average >= 8`
-- `B` si `vote_average >= 7`
-- `C` sinon
-
-2. Compter les films par `quality_band`.
+1. Créer une logique de classement `quality_band` (`A`, `B`, `C`) basée sur `vote_average`.
+2. Compter le nombre de films par `quality_band`.
 
 ---
 
 ## Erreurs frequentes (a corriger vite)
 
 1. `count = 0`
-- verifier que le CSV est bien dans `./data`
-- verifier que `sandbox/logstash.conf` est bien la conf CSV
+- vérifier le chemin du CSV dans le conteneur (`/data/...`)
+- vérifier que `sandbox/logstash.conf` est bien pris en compte
 
-2. Pas de reinjection apres modif de conf
-- supprimer `sincedb` puis redemarrer:
+2. Pas de réingestion après modification
+- supprimer le `sincedb`, puis redémarrer Logstash
 
-```bash
-docker compose exec logstash rm -f /tmp/logstash_tmdb_movies.sincedb
-docker compose restart logstash
-```
-
-3. Erreur de parsing CSV
-- verifier `separator`, `quote_char` et `columns`
-- lire les logs: `docker compose logs -f logstash`
+3. Parsing CSV instable
+- vérifier `separator`, `quote_char`, `columns`, `skip_header`
 
 ---
 
 ## Livrables attendus
 
-1. Le pipeline Logstash utilise (`sandbox/logstash.conf`)
-2. Les commandes de verification (`_count`, `_mapping`, `_search`)
-3. Les 4 requetes metier
-4. Une interpretation courte (2-3 lignes) pour chaque requete
+1. Le pipeline Logstash utilisé (`sandbox/logstash.conf`)
+2. Les commandes de vérification (`_count`, `_mapping`, `_search`)
+3. Les requêtes utilisées pour les 4 questions métier
+4. Une interprétation courte (2-3 lignes) pour chaque question
 
 ---
 
 ## Grille de temps recommandee
 
-- 0:00 -> 0:10: setup + copie dataset
+- 0:00 -> 0:10: setup Docker
 - 0:10 -> 0:50: pipeline + ingestion
-- 0:50 -> 1:10: qualite de donnees
-- 1:10 -> 1:50: analyses metier
+- 0:50 -> 1:10: contrôle qualité
+- 1:10 -> 1:50: analyses métier
 - 1:50 -> 2:00: bonus + rendu
