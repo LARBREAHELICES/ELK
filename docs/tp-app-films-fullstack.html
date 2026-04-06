@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TP Application Films Full-Stack</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121722;
+      --line: #263043;
+      --text: #edf2f7;
+      --muted: #a5b0c2;
+      --accent: #f59e0b;
+      --code-bg: #0a0e16;
+      --code-border: #243049;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 600px at 10% -10%, #3a2b17 0%, var(--bg) 56%), var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { width: min(1100px, 92vw); margin: 28px auto 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); color: var(--accent); }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .sub { color: var(--muted); margin: 8px 0 20px; }
+    .content {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), #10141d);
+      padding: 20px;
+    }
+    .content h1, .content h2, .content h3 { color: #e2e8f0; margin-top: 22px; }
+    .content h1 { font-size: 30px; color: #fbbf24; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 18px; }
+    .content p, .content li { color: var(--text); }
+    .content hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+    .content pre {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #d1fae5;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .content code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #bae6fd;
+    }
+    .content pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>TP Application Films Full-Stack</h1>
+      <div>
+        <a href="index.html">Accueil</a>
+        <a href="exercices.html">Hub exos</a>
+        <a href="corrections.html">Corrections</a>
+      </div>
+    </div>
+    <p class="sub">TP de synthèse full-stack : React, FastAPI, Logstash, Elasticsearch, Kibana.</p>
+    <article class="content">
+<h1 id="tp-application-films-full-stack">TP Application Films
+Full-Stack</h1>
+<h2 id="objectif">Objectif</h2>
+<p>Concevoir une application de recherche films connectée de bout en
+bout :</p>
+<ul>
+<li>ingestion CSV avec Logstash</li>
+<li>indexation et recherche dans Elasticsearch</li>
+<li>API FastAPI comme point d'entrée unique</li>
+<li>interface React + TypeScript + TanStack Query</li>
+<li>exploration et contrôle dans Kibana</li>
+</ul>
+<hr />
+<h2 id="contexte-technique">Contexte technique</h2>
+<p>Dossier de travail :</p>
+<p><code>/Users/antoinelucsko/Desktop/HETIC/ELK/app-films</code></p>
+<p>Stack attendue :</p>
+<ul>
+<li>Front : React + TypeScript + TanStack Query</li>
+<li>Back : FastAPI</li>
+<li>Data pipeline : Logstash -&gt; Elasticsearch</li>
+<li>Dataviz : Kibana</li>
+</ul>
+<hr />
+<h2 id="préparation-de-lenvironnement">Préparation de
+l'environnement</h2>
+<ol type="1">
+<li>Copier la configuration d'environnement.</li>
+<li>Vérifier que le CSV TMDB est présent dans
+<code>app-films/data</code>.</li>
+<li>Démarrer la stack Docker.</li>
+<li>Vérifier que les services sont accessibles.</li>
+</ol>
+<p>Commandes de départ :</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /Users/antoinelucsko/Desktop/HETIC/ELK/app-films</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example .env</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ../sandbox/data/<span class="pp">*</span>TMDB<span class="pp">*</span>.csv ./data/</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose up <span class="at">-d</span> <span class="at">--build</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose ps</span></code></pre></div>
+<hr />
+<h2 id="étape-1---ingestion-et-qualité-des-données">Étape 1 - Ingestion
+et qualité des données</h2>
+<p>Travail demandé :</p>
+<ul>
+<li>valider que Logstash lit bien le fichier CSV TMDB</li>
+<li>vérifier l'index cible <code>tmdb-movies</code></li>
+<li>contrôler le mapping des champs clés (<code>title</code>,
+<code>release_date</code>, <code>vote_average</code>,
+<code>vote_count</code>)</li>
+<li>identifier les documents incomplets ou mal parsés</li>
+</ul>
+<p>Questions :</p>
+<ol type="1">
+<li>Quel est le volume de documents indexés dans
+<code>tmdb-movies</code> ?</li>
+<li>Quels champs sont de type numérique ?</li>
+<li>Quel champ sert de date exploitable pour les tris temporels ?</li>
+<li>Combien de documents n'ont pas de résumé exploitable ?</li>
+</ol>
+<hr />
+<h2 id="étape-2---api-fastapi-moteur-de-recherche-unique">Étape 2 - API
+FastAPI (moteur de recherche unique)</h2>
+<p>Travail demandé :</p>
+<p>Implémenter ou compléter les endpoints suivants :</p>
+<ul>
+<li><code>GET /health</code></li>
+<li><code>GET /search</code> avec paramètres :
+<ul>
+<li><code>q</code>, <code>page</code>, <code>size</code>,
+<code>sort</code></li>
+<li><code>language</code>, <code>min_rating</code>,
+<code>year_from</code>, <code>year_to</code></li>
+</ul></li>
+<li><code>GET /suggest</code> pour l'auto-complétion sur les titres</li>
+</ul>
+<p>Contraintes :</p>
+<ul>
+<li>l'API ne doit pas exposer Elasticsearch directement au front</li>
+<li>la pagination doit être stable</li>
+<li>la réponse doit inclure les résultats et au moins une facette
+(langue)</li>
+</ul>
+<p>Questions :</p>
+<ol type="1">
+<li>Quelle structure de réponse renvoyez-vous pour
+<code>GET /search</code> ?</li>
+<li>Quels modes de tri sont disponibles et comment sont-ils appliqués
+?</li>
+<li>Quelle stratégie utilisez-vous pour les suggestions
+(<code>/suggest</code>) ?</li>
+</ol>
+<hr />
+<h2 id="étape-3---front-react--typescript--tanstack-query">Étape 3 -
+Front React + TypeScript + TanStack Query</h2>
+<p>Travail demandé :</p>
+<p>Construire une interface qui permet :</p>
+<ul>
+<li>recherche texte</li>
+<li>filtres (langue, note minimale, période)</li>
+<li>tri</li>
+<li>pagination</li>
+<li>affichage clair des cartes films</li>
+<li>auto-complétion sur le champ recherche</li>
+</ul>
+<p>Contraintes UX :</p>
+<ul>
+<li>état de chargement visible</li>
+<li>état vide explicite</li>
+<li>état erreur lisible</li>
+<li>aucune requête Elasticsearch directe depuis le navigateur</li>
+</ul>
+<p>Questions :</p>
+<ol type="1">
+<li>Quels <code>queryKey</code> TanStack Query utilisez-vous ?</li>
+<li>Comment évitez-vous les requêtes trop fréquentes lors de la saisie
+?</li>
+<li>Quelles informations affichez-vous dans chaque carte film ?</li>
+</ol>
+<hr />
+<h2 id="étape-4---contrôle-dans-kibana">Étape 4 - Contrôle dans
+Kibana</h2>
+<p>Travail demandé :</p>
+<ul>
+<li>créer une Data View sur <code>tmdb-movies</code></li>
+<li>vérifier les champs disponibles</li>
+<li>produire un mini tableau de bord avec :
+<ul>
+<li>répartition par langue</li>
+<li>top films par popularité</li>
+<li>évolution du volume de sorties par année</li>
+</ul></li>
+</ul>
+<p>Questions :</p>
+<ol type="1">
+<li>Quelle visualisation est la plus adaptée pour chaque indicateur
+?</li>
+<li>Quels filtres globaux appliquez-vous pour analyser une période
+précise ?</li>
+<li>Que constatez-vous sur la distribution des langues ?</li>
+</ol>
+<hr />
+<h2 id="étape-5---validation-bout-en-bout">Étape 5 - Validation bout en
+bout</h2>
+<p>Démontrer le flux complet :</p>
+<p><code>CSV -&gt; Logstash -&gt; Elasticsearch -&gt; FastAPI -&gt; React -&gt; Kibana</code></p>
+<p>Checklist de validation :</p>
+<ol type="1">
+<li>Une recherche simple retourne des films attendus.</li>
+<li>Un filtre langue modifie bien les résultats.</li>
+<li>La pagination renvoie des pages différentes.</li>
+<li>Les suggestions remontent des titres cohérents.</li>
+<li>Kibana affiche les mêmes ordres de grandeur que l'API.</li>
+</ol>
+<hr />
+<h2 id="livrables-attendus">Livrables attendus</h2>
+<ol type="1">
+<li>Le dépôt <code>app-films</code> fonctionnel.</li>
+<li>Les endpoints FastAPI documentés via <code>/docs</code>.</li>
+<li>Une capture du front avec recherche + filtres.</li>
+<li>Une capture Kibana du dashboard.</li>
+<li>Une note technique courte :
+<ul>
+<li>choix de query Elasticsearch</li>
+<li>choix TanStack Query</li>
+<li>principales limites observées</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="critères-dévaluation">Critères d'évaluation</h2>
+<ul>
+<li>Robustesse technique (pipeline + API + front)</li>
+<li>Pertinence des requêtes Elasticsearch</li>
+<li>Qualité de l'intégration front/back</li>
+<li>Lisibilité de l'interface</li>
+<li>Qualité de l'analyse finale</li>
+</ul>
+    </article>
+  </div>
+  <script src="assets/glossary.js"></script>
+</body>
+</html>
