@@ -1,3 +1,4 @@
+
 # Introduction
 ## ELK : bases théoriques avant la pratique
 
@@ -13,7 +14,9 @@ Source (CSV / logs) -> Logstash -> Elasticsearch -> Kibana -> Jupyter
 
 Dépôt du cours : [https://github.com/LARBREAHELICES/ELK](https://github.com/LARBREAHELICES/ELK)
 
-Schéma ELK du cours :
+---
+
+## Schéma ELK du cours
 
 <img src="assets/elk-pipeline-schema.svg" alt="Schéma du pipeline ELK du cours" style="width: 100%; max-width: 1320px; border-radius: 14px; border: 1px solid #263043;" />
 
