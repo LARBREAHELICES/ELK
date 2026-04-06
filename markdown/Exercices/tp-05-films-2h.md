@@ -33,6 +33,36 @@ Volume: **10 001 lignes** (1 header + 10 000 films).
 
 ---
 
+## Demarrage Docker (copier-coller)
+
+```bash
+cd /Users/antoinelucsko/Desktop/HETIC/ELK/sandbox
+
+# Mettre la conf CSV en place (depuis le dossier Exercices)
+cp ../markdown/Exercices/logstash.conf ./logstash.conf
+
+# Verifier que le CSV TMDB est bien dans /data (monte dans le conteneur)
+ls -lh ./data/*TMDB*.csv
+
+# Demarrer les services utiles
+docker compose up -d elasticsearch kibana logstash
+
+# Tester la config Logstash
+docker compose run --rm logstash --config.test_and_exit -f /usr/share/logstash/pipeline/logstash.conf
+
+# Forcer une reingestion propre (optionnel)
+docker compose exec logstash rm -f /tmp/logstash_tmdb_movies.sincedb
+docker compose restart logstash
+
+# Suivre les logs
+docker compose logs -f --tail=200 logstash
+
+# Verification ingestion
+curl "http://localhost:9200/tmdb-movies/_count?pretty"
+```
+
+---
+
 ## Pre-requis (10 min)
 
 1. Verifier les services:
@@ -41,23 +71,30 @@ Volume: **10 001 lignes** (1 header + 10 000 films).
 docker compose ps
 ```
 
-2. Copier le fichier dans le dossier lu par Logstash:
+2. Verifier la presence du CSV dans `sandbox/data`:
 
 ```bash
-mkdir -p logs/films
-cp "sandbox/data/Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv" logs/films/tmdb_movies.csv
+ls -lh ./data/*TMDB*.csv
 ```
 
 ---
 
 ## Etape 1 - Pipeline Logstash TMDB (40 min)
 
-Creer `pipelines/tmdb_movies.conf` avec:
+Le pipeline de depart est fourni ici:
+
+`markdown/Exercices/logstash.conf`
+
+Dans ce projet, il doit etre copie vers:
+
+`sandbox/logstash.conf`
+
+Contenu attendu:
 
 ```conf
 input {
   file {
-    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
+    path => "/data/*TMDB*.csv"
     start_position => "beginning"
     sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
   }
@@ -92,6 +129,8 @@ output {
     hosts => ["http://elasticsearch:9200"]
     index => "tmdb-movies"
   }
+
+  stdout { codec => rubydebug }
 }
 ```
 
@@ -101,6 +140,9 @@ Lancer/relancer Logstash, puis verifier:
 docker compose restart logstash
 curl "http://localhost:9200/tmdb-movies/_count?pretty"
 ```
+
+Checkpoint attendu:
+- `count` proche de `10000` (pas `0`).
 
 ---
 
@@ -126,6 +168,12 @@ curl -X GET "http://localhost:9200/tmdb-movies/_search?pretty" -H "Content-Type:
   }
 }'
 ```
+
+Checkpoint attendu:
+- `movie_id` en `integer`
+- `popularity` / `vote_average` en `float`
+- `vote_count` en `integer`
+- peu ou pas de documents sans `release_date_ts`
 
 ---
 
@@ -211,9 +259,29 @@ GET tmdb-movies/_search
 
 ---
 
+## Erreurs frequentes (a corriger vite)
+
+1. `count = 0`
+- verifier que le CSV est bien dans `./data`
+- verifier que `sandbox/logstash.conf` est bien la conf CSV
+
+2. Pas de reinjection apres modif de conf
+- supprimer `sincedb` puis redemarrer:
+
+```bash
+docker compose exec logstash rm -f /tmp/logstash_tmdb_movies.sincedb
+docker compose restart logstash
+```
+
+3. Erreur de parsing CSV
+- verifier `separator`, `quote_char` et `columns`
+- lire les logs: `docker compose logs -f logstash`
+
+---
+
 ## Livrables attendus
 
-1. Le pipeline Logstash `tmdb_movies.conf`
+1. Le pipeline Logstash utilise (`sandbox/logstash.conf`)
 2. Les commandes de verification (`_count`, `_mapping`, `_search`)
 3. Les 4 requetes metier
 4. Une interpretation courte (2-3 lignes) pour chaque requete
