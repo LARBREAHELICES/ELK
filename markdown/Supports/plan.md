@@ -11,6 +11,8 @@ Pipeline cible du cours :
 Source (CSV / logs) -> Logstash -> Elasticsearch -> Kibana -> Jupyter
 ```
 
+Dépôt du cours : [https://github.com/LARBREAHELICES/ELK](https://github.com/LARBREAHELICES/ELK)
+
 Schéma ELK du cours :
 
 ```text
