@@ -21,6 +21,30 @@ Objectif pédagogique :
 
 ---
 
+## Charger le fichier avant de nettoyer (input)
+
+Avant les filtres (`csv`, `mutate`, `date`), il faut d'abord **lire le fichier** avec un `input file`.
+
+```conf
+input {
+  file {
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
+    start_position => "beginning"
+    sincedb_path => "/tmp/logstash_tmdb_movies.sincedb"
+  }
+}
+```
+
+À retenir :
+- `path` : chemin du fichier **dans le conteneur Logstash**
+- `start_position => "beginning"` : lit depuis le début au premier lancement
+- `sincedb_path` : mémorise la position de lecture (à supprimer pour rejouer l'ingestion)
+
+Ordre logique du pipeline :
+`input file` -> `filter (nettoyage)` -> `output (Elasticsearch)`
+
+---
+
 ## Le vrai problème en ingestion
 
 Dans la réalité, les données sont **sales** :
