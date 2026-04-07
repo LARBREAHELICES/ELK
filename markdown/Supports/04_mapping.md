@@ -134,7 +134,7 @@ C'est le **mapping dynamique**.
 
 ---
 
-## 6. Voir le mapping
+## Voir le mapping
 
 ```json
 GET shakespeare/_mapping
@@ -144,7 +144,7 @@ Cela permet de voir la structure de l'index.
 
 ---
 
-## 7. Pourquoi le mapping est important ?
+## Pourquoi le mapping est important ?
 
 Parce que le type du champ détermine la requête :
 
@@ -157,7 +157,16 @@ Si on se trompe de type, la recherche ne marche pas correctement.
 
 ---
 
-## 8. Résumé
+## Règle simple à retenir
+
+| Si on veut…                  | On met  |
+| ---------------------------- | ------- |
+| chercher dans une phrase     | text    |
+| filtrer (nom, catégorie, id) | keyword |
+
+---
+
+## Résumé
 
 | Type    | Sert à                   |
 | ------- | ------------------------ |
@@ -166,29 +175,6 @@ Si on se trompe de type, la recherche ne marche pas correctement.
 | integer | nombres                  |
 | date    | dates                    |
 | boolean | true / false             |
-
----
-
-## 9. Schéma
-
-```text
-Mapping
-  ↓
-Définit type des champs
-  ↓
-Définit comment Elasticsearch indexe
-  ↓
-Définit comment on peut rechercher
-```
-
----
-
-## 10. Règle simple à retenir
-
-| Si on veut…                  | On met  |
-| ---------------------------- | ------- |
-| chercher dans une phrase     | text    |
-| filtrer (nom, catégorie, id) | keyword |
 
 ---
 
