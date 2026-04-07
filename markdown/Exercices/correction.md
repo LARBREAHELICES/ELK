@@ -295,6 +295,202 @@ run_search({
 
 ---
 
+# Partie correction — 10 exercices de synthèse (`shakespeare`)
+
+## Correction synthèse 1 — lignes de HAMLET (exact)
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "term": {
+      "speaker.keyword": "HAMLET"
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 2 — `love` ET `death`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } },
+        { "match": { "text_entry": "death" } }
+      ]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 3 — `night` dans Hamlet
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "night" } }
+      ],
+      "filter": [
+        { "term": { "play_name.keyword": "Hamlet" } }
+      ]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 4 — exclure Macbeth
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        { "term": { "play_name.keyword": "Macbeth" } }
+      ]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 5 — HAMLET ou OTHELLO
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "term": { "speaker.keyword": "HAMLET" } },
+        { "term": { "speaker.keyword": "OTHELLO" } }
+      ],
+      "minimum_should_match": 1
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 6 — `speech_number` entre 1 et 20
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "range": {
+      "speech_number": {
+        "gte": 1,
+        "lte": 20
+      }
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 7 — contient `king`, exclut `queen`
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "king" } }
+      ],
+      "must_not": [
+        { "match": { "text_entry": "queen" } }
+      ]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 8 — requête imbriquée
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "bool": {
+            "should": [
+              { "match": { "text_entry": "blood" } },
+              { "match": { "text_entry": "fire" } }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              { "term": { "speaker.keyword": "HAMLET" } },
+              { "term": { "speaker.keyword": "LADY MACBETH" } }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 9 — `multi_match` avec boost
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "ghost king",
+      "fields": ["text_entry", "speaker", "play_name^3"]
+    }
+  },
+  "size": 3
+}
+```
+
+## Correction synthèse 10 — requête complète
+
+```json
+GET shakespeare/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "text_entry": "love" } }
+      ],
+      "filter": [
+        { "term": { "play_name.keyword": "Hamlet" } }
+      ],
+      "should": [
+        { "term": { "speaker.keyword": "HAMLET" } },
+        { "term": { "speaker.keyword": "HORATIO" } }
+      ],
+      "minimum_should_match": 1
+    }
+  },
+  "size": 3
+}
+```
+
+---
+
 ## Exercice 9 — `multi_match` + filtre
 
 - Rechercher `love` dans `text_entry` et `play_name`.

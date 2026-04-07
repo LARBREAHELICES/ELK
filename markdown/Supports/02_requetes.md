@@ -469,20 +469,6 @@ Elasticsearch traite une requête en trois étapes :
 
 ---
 
-# Schéma global
-
-```text
-Recherche (must)
-        ↓
-Filtre (filter)
-        ↓
-Classement (should)
-        ↓
-Résultats
-```
-
----
-
 # Exercices
 
 1. Trouver toutes les phrases de Hamlet
@@ -576,3 +562,35 @@ GET shakespeare/_search
 
 1. Chercher **"ghost"** dans `text_entry`, `speaker`, `play_name`, avec `speaker` boosté x2.
 2. Chercher **"love"** dans `text_entry` et `play_name`, seulement dans la pièce **Hamlet**.
+
+---
+
+# exercices de synthèse — index de référence `shakespeare` (1/2)
+
+Consigne :
+
+* Écrire une requête JSON par exercice.
+* Utiliser uniquement l'index `shakespeare`.
+* Vérifier rapidement les 3 premiers résultats (`size: 3`) quand c'est pertinent.
+
+1. Retrouver toutes les lignes de **HAMLET** avec une recherche exacte sur le champ `speaker.keyword`.
+2. Retrouver les lignes qui contiennent à la fois **love** et **death** dans `text_entry`.
+3. Retrouver les lignes où `play_name.keyword = "Hamlet"` et où `text_entry` contient **night**.
+4. Retrouver toutes les lignes sauf celles de la pièce **Macbeth**.
+5. Retrouver les lignes prononcées par **HAMLET** ou **OTHELLO** avec `minimum_should_match: 1`.
+
+---
+
+#  exercices de synthèse — index de référence `shakespeare` (2/2)
+
+6. Retrouver les lignes dont `speech_number` est compris entre **1** et **20**.
+7. Retrouver les lignes qui contiennent **king** mais exclure celles qui contiennent **queen**.
+8. Faire une requête imbriquée :
+   - texte contient **blood** ou **fire**
+   - ET speaker est **HAMLET** ou **LADY MACBETH**
+9. Faire un `multi_match` sur `text_entry`, `play_name`, `speaker` avec la requête **ghost king** et un boost sur `play_name^3`.
+10. Faire une requête complète avec :
+    - `must`: `match` sur **love**
+    - `filter`: `term` sur `play_name.keyword = "Hamlet"`
+    - `should`: `term` sur `speaker.keyword = "HAMLET"` ou `"HORATIO"`
+    - `minimum_should_match: 1`
