@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Kibana Monitoring - Performance & Errors</title>
+  <desc id="desc">Mock performance dashboard with response time percentiles, throughput and error budget.</desc>
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1527"/>
+      <stop offset="100%" stop-color="#12253f"/>
+    </linearGradient>
+    <linearGradient id="latency" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <style>
+      .panel{fill:#111f33;stroke:#2a3e5d;stroke-width:1.2;rx:16}
+      .title{fill:#f1f5f9;font:700 25px 'SF Pro Display',Arial,sans-serif}
+      .label{fill:#9eb4d1;font:500 18px 'SF Pro Text',Arial,sans-serif}
+      .metric{fill:#f8fafc;font:700 42px 'SF Pro Display',Arial,sans-serif}
+      .good{fill:#34d399;font:700 17px 'SF Pro Text',Arial,sans-serif}
+      .bad{fill:#fb7185;font:700 17px 'SF Pro Text',Arial,sans-serif}
+      .axis{stroke:#2c4265;stroke-width:1}
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg3)"/>
+  <rect x="24" y="24" width="1392" height="64" class="panel"/>
+  <text x="52" y="64" class="title">Kibana APM - Website Performance & Error Budget</text>
+  <text x="1080" y="64" class="label">Env: production | service: web-frontend</text>
+
+  <rect x="24" y="102" width="270" height="160" class="panel"/>
+  <text x="46" y="148" class="label">Throughput</text>
+  <text x="46" y="210" class="metric">1 892 rpm</text>
+  <text x="46" y="240" class="good">Stable traffic</text>
+
+  <rect x="308" y="102" width="270" height="160" class="panel"/>
+  <text x="330" y="148" class="label">p50 Latency</text>
+  <text x="330" y="210" class="metric">124 ms</text>
+  <text x="330" y="240" class="good">Good</text>
+
+  <rect x="592" y="102" width="270" height="160" class="panel"/>
+  <text x="614" y="148" class="label">p95 Latency</text>
+  <text x="614" y="210" class="metric">361 ms</text>
+  <text x="614" y="240" class="bad">Watch checkout API</text>
+
+  <rect x="876" y="102" width="270" height="160" class="panel"/>
+  <text x="898" y="148" class="label">p99 Latency</text>
+  <text x="898" y="210" class="metric">702 ms</text>
+  <text x="898" y="240" class="bad">Spikes detected</text>
+
+  <rect x="1160" y="102" width="256" height="160" class="panel"/>
+  <text x="1182" y="148" class="label">Error Budget</text>
+  <text x="1182" y="210" class="metric">72%</text>
+  <text x="1182" y="240" class="good">Remaining this month</text>
+
+  <rect x="24" y="280" width="926" height="596" class="panel"/>
+  <text x="48" y="322" class="title">Latency Percentiles Over Time</text>
+
+  <line x1="76" y1="816" x2="920" y2="816" class="axis"/>
+  <line x1="76" y1="360" x2="76" y2="816" class="axis"/>
+  <line x1="76" y1="742" x2="920" y2="742" class="axis"/>
+  <line x1="76" y1="668" x2="920" y2="668" class="axis"/>
+  <line x1="76" y1="594" x2="920" y2="594" class="axis"/>
+  <line x1="76" y1="520" x2="920" y2="520" class="axis"/>
+  <line x1="76" y1="446" x2="920" y2="446" class="axis"/>
+
+  <polyline points="92,728 160,710 228,704 296,686 364,692 432,672 500,668 568,654 636,646 704,634 772,622 840,616 908,606"
+            fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="92,666 160,652 228,648 296,624 364,636 432,610 500,602 568,586 636,574 704,560 772,548 840,538 908,524"
+            fill="none" stroke="url(#latency)" stroke-width="4.5" stroke-linecap="round"/>
+  <polyline points="92,582 160,568 228,562 296,530 364,544 432,516 500,500 568,484 636,468 704,454 772,436 840,418 908,404"
+            fill="none" stroke="#fb7185" stroke-width="4" stroke-linecap="round"/>
+
+  <text x="98" y="848" class="label">00:00</text>
+  <text x="252" y="848" class="label">04:00</text>
+  <text x="406" y="848" class="label">08:00</text>
+  <text x="560" y="848" class="label">12:00</text>
+  <text x="714" y="848" class="label">16:00</text>
+  <text x="846" y="848" class="label">20:00</text>
+
+  <circle cx="116" cy="870" r="7" fill="#34d399"/><text x="130" y="876" class="label">p50</text>
+  <circle cx="194" cy="870" r="7" fill="#22d3ee"/><text x="208" y="876" class="label">p95</text>
+  <circle cx="272" cy="870" r="7" fill="#fb7185"/><text x="286" y="876" class="label">p99</text>
+
+  <rect x="970" y="280" width="446" height="286" class="panel"/>
+  <text x="994" y="322" class="title">Error Rate by Endpoint</text>
+  <text x="994" y="362" class="label">/checkout</text>
+  <rect x="994" y="370" width="310" height="22" rx="8" fill="#253b5a"/>
+  <rect x="994" y="370" width="210" height="22" rx="8" fill="#fb7185"/>
+  <text x="1318" y="387" class="label">1.18%</text>
+
+  <text x="994" y="420" class="label">/api/login</text>
+  <rect x="994" y="428" width="310" height="22" rx="8" fill="#253b5a"/>
+  <rect x="994" y="428" width="128" height="22" rx="8" fill="#f59e0b"/>
+  <text x="1318" y="445" class="label">0.72%</text>
+
+  <text x="994" y="478" class="label">/search</text>
+  <rect x="994" y="486" width="310" height="22" rx="8" fill="#253b5a"/>
+  <rect x="994" y="486" width="82" height="22" rx="8" fill="#22d3ee"/>
+  <text x="1318" y="503" class="label">0.29%</text>
+
+  <text x="994" y="536" class="label">/home</text>
+  <rect x="994" y="544" width="310" height="22" rx="8" fill="#253b5a"/>
+  <rect x="994" y="544" width="44" height="22" rx="8" fill="#34d399"/>
+  <text x="1318" y="561" class="label">0.08%</text>
+
+  <rect x="970" y="590" width="446" height="286" class="panel"/>
+  <text x="994" y="632" class="title">SLO Burn Rate</text>
+  <line x1="1010" y1="812" x2="1388" y2="812" class="axis"/>
+  <line x1="1010" y1="666" x2="1388" y2="666" class="axis"/>
+  <polyline points="1020,792 1060,786 1100,776 1140,760 1180,740 1220,718 1260,700 1300,690 1340,682 1380,676"
+            fill="none" stroke="#fb7185" stroke-width="5" stroke-linecap="round"/>
+  <text x="1014" y="846" class="label">Mon</text>
+  <text x="1098" y="846" class="label">Tue</text>
+  <text x="1182" y="846" class="label">Wed</text>
+  <text x="1266" y="846" class="label">Thu</text>
+  <text x="1350" y="846" class="label">Fri</text>
+  <text x="994" y="688" class="label">Current burn rate: 1.6x</text>
+</svg>

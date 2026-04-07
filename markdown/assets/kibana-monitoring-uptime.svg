@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Kibana Monitoring - Uptime & Availability</title>
+  <desc id="desc">Mock uptime dashboard with checks and status timeline for website availability.</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07131f"/>
+      <stop offset="100%" stop-color="#172a3f"/>
+    </linearGradient>
+    <style>
+      .panel{fill:#0f1c2f;stroke:#2c3f5f;stroke-width:1.1;rx:15}
+      .title{fill:#eff6ff;font:700 25px 'SF Pro Display',Arial,sans-serif}
+      .label{fill:#9eb3cf;font:500 18px 'SF Pro Text',Arial,sans-serif}
+      .value{fill:#f8fafc;font:700 44px 'SF Pro Display',Arial,sans-serif}
+      .ok{fill:#4ade80;font:700 17px 'SF Pro Text',Arial,sans-serif}
+      .warn{fill:#f59e0b;font:700 17px 'SF Pro Text',Arial,sans-serif}
+      .axis{stroke:#2e4365;stroke-width:1}
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg2)"/>
+  <rect x="24" y="22" width="1392" height="64" class="panel"/>
+  <text x="52" y="62" class="title">Kibana Uptime - Website synthetic checks</text>
+  <text x="1072" y="62" class="label">Period: last 7 days</text>
+
+  <rect x="24" y="100" width="332" height="160" class="panel"/>
+  <text x="48" y="148" class="label">Global Availability</text>
+  <text x="48" y="212" class="value">99.94%</text>
+  <text x="48" y="242" class="ok">Within target (&gt; 99.90%)</text>
+
+  <rect x="372" y="100" width="332" height="160" class="panel"/>
+  <text x="396" y="148" class="label">Failed Checks</text>
+  <text x="396" y="212" class="value">27</text>
+  <text x="396" y="242" class="warn">Mostly on /checkout endpoint</text>
+
+  <rect x="720" y="100" width="332" height="160" class="panel"/>
+  <text x="744" y="148" class="label">p95 Availability Latency</text>
+  <text x="744" y="212" class="value">724 ms</text>
+  <text x="744" y="242" class="ok">No sustained degradation</text>
+
+  <rect x="1068" y="100" width="348" height="160" class="panel"/>
+  <text x="1092" y="148" class="label">SSL Certificate</text>
+  <text x="1092" y="212" class="value">14 days</text>
+  <text x="1092" y="242" class="warn">Renewal reminder active</text>
+
+  <rect x="24" y="280" width="936" height="596" class="panel"/>
+  <text x="48" y="322" class="title">HTTP Monitor Status Timeline</text>
+  <line x1="72" y1="830" x2="930" y2="830" class="axis"/>
+
+  <rect x="72" y="370" width="116" height="30" rx="8" fill="#4ade80"/>
+  <rect x="194" y="370" width="64" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="264" y="370" width="124" height="30" rx="8" fill="#4ade80"/>
+  <rect x="394" y="370" width="80" height="30" rx="8" fill="#ef4444"/>
+  <rect x="480" y="370" width="150" height="30" rx="8" fill="#4ade80"/>
+  <rect x="636" y="370" width="70" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="712" y="370" width="184" height="30" rx="8" fill="#4ade80"/>
+
+  <rect x="72" y="430" width="200" height="30" rx="8" fill="#4ade80"/>
+  <rect x="278" y="430" width="72" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="356" y="430" width="188" height="30" rx="8" fill="#4ade80"/>
+  <rect x="550" y="430" width="84" height="30" rx="8" fill="#ef4444"/>
+  <rect x="640" y="430" width="256" height="30" rx="8" fill="#4ade80"/>
+
+  <rect x="72" y="490" width="140" height="30" rx="8" fill="#4ade80"/>
+  <rect x="218" y="490" width="90" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="314" y="490" width="166" height="30" rx="8" fill="#4ade80"/>
+  <rect x="486" y="490" width="78" height="30" rx="8" fill="#ef4444"/>
+  <rect x="570" y="490" width="326" height="30" rx="8" fill="#4ade80"/>
+
+  <rect x="72" y="550" width="96" height="30" rx="8" fill="#4ade80"/>
+  <rect x="174" y="550" width="68" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="248" y="550" width="222" height="30" rx="8" fill="#4ade80"/>
+  <rect x="476" y="550" width="60" height="30" rx="8" fill="#ef4444"/>
+  <rect x="542" y="550" width="354" height="30" rx="8" fill="#4ade80"/>
+
+  <rect x="72" y="610" width="232" height="30" rx="8" fill="#4ade80"/>
+  <rect x="310" y="610" width="58" height="30" rx="8" fill="#f59e0b"/>
+  <rect x="374" y="610" width="142" height="30" rx="8" fill="#4ade80"/>
+  <rect x="522" y="610" width="74" height="30" rx="8" fill="#ef4444"/>
+  <rect x="602" y="610" width="294" height="30" rx="8" fill="#4ade80"/>
+
+  <text x="56" y="392" class="label">Paris</text>
+  <text x="56" y="452" class="label">Frankfurt</text>
+  <text x="56" y="512" class="label">Virginia</text>
+  <text x="56" y="572" class="label">Tokyo</text>
+  <text x="56" y="632" class="label">Sydney</text>
+
+  <text x="76" y="860" class="label">Mon</text>
+  <text x="216" y="860" class="label">Tue</text>
+  <text x="356" y="860" class="label">Wed</text>
+  <text x="496" y="860" class="label">Thu</text>
+  <text x="636" y="860" class="label">Fri</text>
+  <text x="776" y="860" class="label">Sat</text>
+  <text x="886" y="860" class="label">Sun</text>
+
+  <rect x="976" y="280" width="440" height="286" class="panel"/>
+  <text x="1000" y="322" class="title">Status Distribution</text>
+  <circle cx="1030" cy="388" r="10" fill="#4ade80"/><text x="1052" y="395" class="label">Up: 96.7%</text>
+  <circle cx="1030" cy="430" r="10" fill="#f59e0b"/><text x="1052" y="437" class="label">Degraded: 2.1%</text>
+  <circle cx="1030" cy="472" r="10" fill="#ef4444"/><text x="1052" y="479" class="label">Down: 1.2%</text>
+
+  <path d="M1272 428 L1338 360 A96 96 0 0 1 1367 451 Z" fill="#4ade80"/>
+  <path d="M1272 428 L1367 451 A96 96 0 0 1 1232 512 Z" fill="#f59e0b"/>
+  <path d="M1272 428 L1232 512 A96 96 0 0 1 1338 360 Z" fill="#ef4444"/>
+  <circle cx="1272" cy="428" r="40" fill="#0f1c2f"/>
+
+  <rect x="976" y="590" width="440" height="286" class="panel"/>
+  <text x="1000" y="632" class="title">Recent Incidents</text>
+  <text x="1000" y="680" class="label">2026-04-05 14:31 UTC | /checkout | 4m 12s | Resolved</text>
+  <text x="1000" y="726" class="label">2026-04-03 09:10 UTC | /api/login | 2m 08s | Resolved</text>
+  <text x="1000" y="772" class="label">2026-04-01 21:42 UTC | DNS timeout | 1m 34s | Resolved</text>
+</svg>

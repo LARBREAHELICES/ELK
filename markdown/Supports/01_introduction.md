@@ -27,6 +27,91 @@ Il ne stocke pas seulement des données → il construit des **structures de rec
 
 ---
 
+# Exemple fil rouge de l'introduction
+
+Vous allez manipuler Elasticsearch comme si vous suiviez la santé d'un site web e-commerce.
+
+## Objectif de ce cas
+
+1. Identifier les endpoints qui échouent
+2. Comprendre les pics de latence
+3. Relier les logs bruts à une visualisation Kibana
+
+---
+
+## Données brutes (logs applicatifs)
+
+```json
+PUT web_monitoring/_doc/1
+{
+  "timestamp": "2026-04-07T09:00:00Z",
+  "endpoint": "/checkout",
+  "status": 500,
+  "response_time_ms": 812,
+  "message": "Timeout payment provider"
+}
+```
+
+```json
+PUT web_monitoring/_doc/2
+{
+  "timestamp": "2026-04-07T09:00:05Z",
+  "endpoint": "/search",
+  "status": 200,
+  "response_time_ms": 142,
+  "message": "Search request completed"
+}
+```
+
+---
+
+```json
+PUT web_monitoring/_doc/3
+{
+  "timestamp": "2026-04-07T09:00:08Z",
+  "endpoint": "/checkout",
+  "status": 200,
+  "response_time_ms": 265,
+  "message": "Payment accepted"
+}
+```
+
+## Questions que vous allez pouvoir résoudre
+
+1. Quel endpoint génère le plus d'erreurs ?
+2. Où la latence devient-elle critique ?
+3. Quels messages reviennent le plus souvent dans les logs ?
+
+---
+
+## Exemple réel de dataviz Kibana (Lens)
+
+<img src="https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/blt5bf7610cab1034cf/68b775ef981e9660952a236f/screenshot-lens-switch-chart-index-landing-page.webp" alt="Capture d'écran Kibana Lens" style="width: 92%; max-width: 1180px; max-height: 68vh; border-radius: 12px; border: 1px solid #2b3a55;" />
+
+---
+
+## Exemple de lecture rapide
+
+```json
+GET web_monitoring/_search
+{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "endpoint": "/checkout" } }
+      ],
+      "must": [
+        { "match": { "message": "timeout" } }
+      ]
+    }
+  }
+}
+```
+
+Ce cas fil rouge vous servira ensuite pour comprendre les requêtes, les agrégations, les analyseurs et les dashboards.
+
+---
+
 # Structure d'Elasticsearch
 
 | Base SQL        | Elasticsearch        |

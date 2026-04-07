@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Kibana Monitoring - Website Overview</title>
+  <desc id="desc">Mock dashboard showing website traffic, response time, error rate and geo traffic.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#0f2238"/>
+    </linearGradient>
+    <linearGradient id="lineA" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="lineB" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <style>
+      .panel{fill:#111b2e;stroke:#23324d;stroke-width:1.2;rx:16}
+      .muted{fill:#8fa4c0;font:500 20px 'SF Pro Text',Arial,sans-serif}
+      .h1{fill:#e5eefb;font:700 26px 'SF Pro Display',Arial,sans-serif}
+      .kpi{fill:#f8fafc;font:700 38px 'SF Pro Display',Arial,sans-serif}
+      .small{fill:#97abc8;font:500 17px 'SF Pro Text',Arial,sans-serif}
+      .tag{fill:#4ade80;font:700 18px 'SF Pro Text',Arial,sans-serif}
+      .axis{stroke:#2b3e5f;stroke-width:1}
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="28" y="24" width="1384" height="60" class="panel"/>
+  <text x="54" y="63" class="h1">Kibana - Website Monitoring Overview</text>
+  <text x="1030" y="63" class="muted">Last 24 hours | auto-refresh 30s</text>
+
+  <rect x="28" y="100" width="330" height="156" class="panel"/>
+  <text x="52" y="144" class="muted">Requests / min</text>
+  <text x="52" y="200" class="kpi">12 460</text>
+  <text x="52" y="232" class="tag">+8.4% vs yesterday</text>
+
+  <rect x="374" y="100" width="330" height="156" class="panel"/>
+  <text x="398" y="144" class="muted">Avg Response Time</text>
+  <text x="398" y="200" class="kpi">182 ms</text>
+  <text x="398" y="232" class="tag">SLO: &lt; 250 ms</text>
+
+  <rect x="720" y="100" width="330" height="156" class="panel"/>
+  <text x="744" y="144" class="muted">Error Rate (5xx)</text>
+  <text x="744" y="200" class="kpi">0.37%</text>
+  <text x="744" y="232" class="tag">Healthy</text>
+
+  <rect x="1066" y="100" width="346" height="156" class="panel"/>
+  <text x="1090" y="144" class="muted">Uptime</text>
+  <text x="1090" y="200" class="kpi">99.96%</text>
+  <text x="1090" y="232" class="tag">30 days rolling</text>
+
+  <rect x="28" y="276" width="908" height="596" class="panel"/>
+  <text x="52" y="316" class="h1">Traffic & Response Time</text>
+  <line x1="72" y1="790" x2="900" y2="790" class="axis"/>
+  <line x1="72" y1="350" x2="72" y2="790" class="axis"/>
+  <line x1="72" y1="700" x2="900" y2="700" class="axis"/>
+  <line x1="72" y1="610" x2="900" y2="610" class="axis"/>
+  <line x1="72" y1="520" x2="900" y2="520" class="axis"/>
+  <line x1="72" y1="430" x2="900" y2="430" class="axis"/>
+
+  <polyline points="90,700 160,662 230,675 300,628 370,640 440,592 510,610 580,560 650,572 720,530 790,548 860,512"
+            fill="none" stroke="url(#lineA)" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="90,612 160,606 230,590 300,602 370,584 440,570 510,562 580,552 650,548 720,530 790,522 860,506"
+            fill="none" stroke="url(#lineB)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+
+  <circle cx="860" cy="512" r="7" fill="#22d3ee"/>
+  <circle cx="860" cy="506" r="7" fill="#ef4444"/>
+  <text x="96" y="826" class="small">00:00</text>
+  <text x="252" y="826" class="small">04:00</text>
+  <text x="408" y="826" class="small">08:00</text>
+  <text x="564" y="826" class="small">12:00</text>
+  <text x="720" y="826" class="small">16:00</text>
+  <text x="846" y="826" class="small">20:00</text>
+
+  <rect x="956" y="276" width="456" height="286" class="panel"/>
+  <text x="980" y="316" class="h1">Top Pages by Visits</text>
+  <rect x="980" y="342" width="340" height="24" rx="8" fill="#1f324d"/>
+  <rect x="980" y="342" width="312" height="24" rx="8" fill="#38bdf8"/>
+  <text x="980" y="338" class="small">/home</text>
+
+  <rect x="980" y="392" width="340" height="24" rx="8" fill="#1f324d"/>
+  <rect x="980" y="392" width="264" height="24" rx="8" fill="#22d3ee"/>
+  <text x="980" y="388" class="small">/pricing</text>
+
+  <rect x="980" y="442" width="340" height="24" rx="8" fill="#1f324d"/>
+  <rect x="980" y="442" width="220" height="24" rx="8" fill="#2dd4bf"/>
+  <text x="980" y="438" class="small">/blog/elk-observability</text>
+
+  <rect x="980" y="492" width="340" height="24" rx="8" fill="#1f324d"/>
+  <rect x="980" y="492" width="180" height="24" rx="8" fill="#34d399"/>
+  <text x="980" y="488" class="small">/status</text>
+
+  <rect x="956" y="586" width="456" height="286" class="panel"/>
+  <text x="980" y="626" class="h1">Traffic by Region</text>
+  <circle cx="1030" cy="712" r="12" fill="#22d3ee"/><text x="1052" y="718" class="small">EU - 46%</text>
+  <circle cx="1030" cy="752" r="12" fill="#38bdf8"/><text x="1052" y="758" class="small">NA - 31%</text>
+  <circle cx="1030" cy="792" r="12" fill="#2dd4bf"/><text x="1052" y="798" class="small">APAC - 17%</text>
+  <circle cx="1030" cy="832" r="12" fill="#f59e0b"/><text x="1052" y="838" class="small">Other - 6%</text>
+
+  <path d="M1282 746 L1318 660 A86 86 0 0 1 1360 742 Z" fill="#22d3ee"/>
+  <path d="M1282 746 L1360 742 A86 86 0 0 1 1333 814 Z" fill="#38bdf8"/>
+  <path d="M1282 746 L1333 814 A86 86 0 0 1 1238 804 Z" fill="#2dd4bf"/>
+  <path d="M1282 746 L1238 804 A86 86 0 0 1 1318 660 Z" fill="#f59e0b"/>
+  <circle cx="1282" cy="746" r="38" fill="#111b2e"/>
+</svg>
