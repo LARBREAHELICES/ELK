@@ -541,6 +541,18 @@ Lancer l'ingestion :
 docker compose exec logstash logstash -f /usr/share/logstash/pipeline/logstash.conf
 ```
 
+Rejouer l'ingestion complète (cas le plus fréquent en TP) :
+
+```bash
+docker compose exec logstash rm -f /tmp/tmdb_movies.sincedb
+docker compose restart logstash
+```
+
+Ce que cela fait :
+
+* suppression du `sincedb` -> Logstash oublie la position de lecture précédente
+* `restart logstash` -> le pipeline repart et relit le fichier depuis le début
+
 Vérifier dans Elasticsearch :
 
 ```bash
