@@ -2,9 +2,6 @@
 
 ## Introduction 
 
-Voici une **petite note de synthèse** à mettre au début du cours :
-
----
 
 ## Note de synthèse — Agrégations et runtime fields
 
