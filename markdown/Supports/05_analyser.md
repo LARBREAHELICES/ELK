@@ -233,7 +233,9 @@ Un analyzer custom = **tokenizer + filtres** pour adapter la recherche à notre 
 
 C'est exactement comme un **pipeline de traitement de texte**.
 
-##  Cas Pratique Complet : Base De Films (Analyse Et Recherche)
+---
+
+## Cas pratique complet : base de films
 
 L'idée métier est simple : dans un catalogue de films, les utilisateurs tapent souvent des requêtes comme :
 
@@ -242,6 +244,10 @@ L'idée métier est simple : dans un catalogue de films, les utilisateurs tapent
 - `sci fi espace`
 - `film fantastique peter jackson`
 
+---
+
+### Objectif d'analyse
+
 On veut donc un analyseur qui :
 
 - découpe correctement le texte avec `standard`,
@@ -249,6 +255,8 @@ On veut donc un analyseur qui :
 - enlève les accents avec `asciifolding`,
 - supprime les mots vides avec `stop`,
 - gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l'API `_analyze` sert à inspecter les tokens produits. ([Elastic][1])
+
+---
 
 #### Création de l'index
 
@@ -303,6 +311,8 @@ PUT films
     }
 }
 ```
+
+---
 
 ##### Pourquoi cet analyseur est pertinent ici
 
