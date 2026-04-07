@@ -395,25 +395,6 @@ Permet :
 
 ---
 
-# Pipeline de nettoyage — ordre correct
-
-Toujours cet ordre :
-
-```text
-1. Parse (csv / grok / json)
-2. Nettoyer texte (strip, lowercase, gsub)
-3. Convert types
-4. Corriger valeurs (if)
-5. Date
-6. Drop erreurs
-7. Générer ID
-8. Output
-```
-
-Si on change l’ordre → erreurs fréquentes.
-
----
-
 # Exemple réel de nettoyage complet
 
 ```conf
@@ -467,3 +448,109 @@ Logstash sert surtout à :
 Donc :
 
 **Logstash = nettoyage + transformation + préparation des données.**
+
+---
+
+# Cas pratique guidé (TMDB) - objectif et préparation
+
+Dataset cible :
+`Latest 10000 Movies Dataset from TMDB export 2026-04-05 16-03-36.csv`
+
+Préparation recommandée (plus simple à manipuler) :
+
+1. Copier/renommer le fichier en `tmdb_movies.csv`
+2. Le placer dans le dossier monté pour Logstash
+3. Créer un index cible `tmdb_movies_clean`
+
+Chemin dans le conteneur Logstash :
+
+```text
+/usr/share/logstash/logs/films/tmdb_movies.csv
+```
+
+Objectif :
+
+* ingérer proprement le CSV
+* corriger les champs principaux
+* vérifier rapidement la qualité dans Elasticsearch
+
+---
+
+# Cas pratique guidé (TMDB) - étape 1 pipeline minimal
+
+```conf
+input {
+  file {
+    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
+    start_position => "beginning"
+    sincedb_path => "/tmp/tmdb_movies.sincedb"
+  }
+}
+
+filter {
+  csv {
+    separator => ","
+    skip_header => true
+    columns => ["id","title","original_language","release_date","popularity","vote_average","vote_count","overview"]
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://elasticsearch:9200"]
+    index => "tmdb_movies_clean"
+  }
+}
+```
+
+---
+
+# Cas pratique guidé (TMDB) - étape 2 nettoyage méthodique
+
+Ajouts utiles dans `filter` :
+
+```conf
+mutate {
+  strip => ["title", "overview"]
+  lowercase => ["original_language"]
+  gsub => ["vote_count", "[^0-9]", ""]
+  convert => {
+    "vote_count" => "integer"
+    "vote_average" => "float"
+    "popularity" => "float"
+  }
+}
+
+if [vote_average] > 10 { mutate { replace => { "vote_average" => 10 } } }
+if [vote_average] < 0 { mutate { replace => { "vote_average" => 0 } } }
+if [title] == "" { drop {} }
+
+date { match => ["release_date", "dd-MM-yyyy", "yyyy-MM-dd"] target => "@timestamp" }
+```
+
+Principe :
+parse -> nettoyer -> convertir -> corriger -> dater -> supprimer invalides.
+
+---
+
+# Cas pratique guidé (TMDB) - étape 3 exécution et validation
+
+Lancer l'ingestion :
+
+```bash
+docker compose exec logstash logstash -f /usr/share/logstash/pipeline/logstash.conf
+```
+
+Vérifier dans Elasticsearch :
+
+```bash
+curl -s "http://localhost:9200/tmdb_movies_clean/_count?pretty"
+curl -s "http://localhost:9200/tmdb_movies_clean/_search?size=3&pretty"
+```
+
+Checklist de fin :
+
+* `title` non vide
+* `vote_average` borné entre 0 et 10
+* `vote_count` bien numérique
+* `original_language` homogène (minuscule)
