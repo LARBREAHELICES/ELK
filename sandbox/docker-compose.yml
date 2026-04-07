@@ -70,7 +70,9 @@ services:
       - ./data:/data:ro
 
   jupyter:
-    image: jupyter/minimal-notebook:python-3.11
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
     container_name: jupyter
     depends_on:
       postgres:
