@@ -254,7 +254,7 @@ On veut donc un analyseur qui :
 - mette en minuscules,
 - enlève les accents avec `asciifolding`,
 - supprime les mots vides avec `stop`,
-- gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l'API `_analyze` sert à inspecter les tokens produits. ([Elastic][1])
+- gère quelques synonymes métier comme `sci fi => science fiction`. Elasticsearch permet justement de créer un analyseur personnalisé en combinant un tokenizer et des token filters. Le tokenizer `standard` est le plus généraliste, `asciifolding` transforme par exemple `à` en `a`, et l'API `_analyze` sert à inspecter les tokens produits.
 
 ---
 
@@ -262,12 +262,13 @@ On veut donc un analyseur qui :
 
 ```json
 PUT films
+{
  "settings": {
         "analysis": {
             "filter": {
                 "film_elision_fr": {
                     "type": "elision",
-                    "articles_case": True,
+                    "articles_case": true,
                     "articles": ["l", "d", "c", "j", "m", "n", "s", "t", "qu"]
                 },
                 "film_stop_fr": {
@@ -370,6 +371,8 @@ Ici :
 
 #### Requête simple sur le titre
 
+Dans cette requête l'analyseur qu'on a défini plus haut s'applique (voir les settings).
+
 ```json
 GET films/_search
 {
@@ -444,6 +447,10 @@ C'est un bon cas d'usage full-text.
 ####  Variante utile : autocomplétion sur le titre
 
 Pour une vraie base de films, on ajoute souvent un second champ pour l'autocomplete. Par exemple :
+
+#### Caractères acceptés
+- "letter" → lettres (a-z, A-Z)
+- "digit"  → chiffres (0-9)
 
 ```json
 PUT films_autocomplete
