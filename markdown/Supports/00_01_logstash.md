@@ -496,7 +496,7 @@ output {
 Relancer proprement la lecture complète :
 
 ```bash
-docker compose exec logstash rm -f /tmp/films_csv.sincedb
+docker compose exec logstash rm -f /tmp/films.sincedb
 docker compose restart logstash
 ```
 
@@ -671,3 +671,80 @@ Checklist de fin :
 * `vote_count` bien numérique
 * `original_language` homogène (minuscule)
 
+---
+
+# Remarque importante - `sincedb`
+
+`sincedb` est la mémoire de lecture du plugin `file`.
+
+Il stocke la position dans le fichier (offset).
+
+Conséquence :
+- si la position est mémorisée, Logstash ne relit pas depuis le début
+- si la position n'est pas mémorisée, Logstash relit tout le fichier
+
+---
+
+## Exemple concret TP (rejouer facilement)
+
+Configuration TP :
+
+```conf
+input {
+  file {
+    path => "/usr/share/logstash/logs/films.csv"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    mode => "read"
+  }
+}
+```
+
+Effet concret :
+- vous supprimez l'index `films_logstash`
+- vous redémarrez Logstash
+- le CSV est relu entièrement
+- l'index est recréé automatiquement
+
+---
+
+## Exemple concret production (logs continus)
+
+Cas réel : logs applicatifs `/var/log/app/app.log`.
+
+```conf
+input {
+  file {
+    path => "/var/log/app/app.log"
+    start_position => "end"
+    sincedb_path => "/usr/share/logstash/data/sincedb/app_logs.sincedb"
+    mode => "tail"
+  }
+}
+```
+
+Pourquoi :
+- `mode => "tail"` suit les nouvelles lignes
+- `start_position => "end"` évite de rejouer tout l'historique
+- `sincedb` persistant évite les doublons après restart
+
+---
+
+## Exemple concret production (batch CSV)
+
+Cas réel : import nocturne `orders.csv`.
+
+```conf
+input {
+  file {
+    path => "/data/orders.csv"
+    start_position => "beginning"
+    sincedb_path => "/usr/share/logstash/data/sincedb/orders_batch.sincedb"
+    mode => "read"
+  }
+}
+```
+
+Règle pratique :
+- TP : `sincedb_path => "/dev/null"` pour rejouer vite
+- prod : `sincedb_path` persistant pour stabilité et idempotence
