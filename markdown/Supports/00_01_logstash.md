@@ -14,11 +14,6 @@ Rôle de chaque brique :
 - **Kibana** permet d'explorer rapidement les résultats
 - **Jupyter** sert à vérifier et automatiser les contrôles depuis Python
 
-Objectif pédagogique :
-- comprendre le pipeline global avant d'entrer dans la syntaxe
-- appliquer un flux unique de bout en bout
-- garder un chemin de debug simple (input -> filter -> output)
-
 ---
 
 ## Charger le fichier avant de nettoyer (input)
@@ -81,54 +76,6 @@ Types de contrôles utiles sur un dataset films :
 | Cohérence    | `release_date` au bon format     |
 | Unicité      | pas de doublon sur un identifiant |
 | Référentiel  | langue dans une liste autorisée  |
-
----
-
-# Great Expectations (validation)
-
-Great Expectations permet d'écrire des règles de qualité de données.
-
-À retenir :
-
-- logique de test appliquée aux datasets
-- exécution possible dans Jupyter
-- rapport lisible pour savoir quelles lignes échouent
-
-Exemples de règles :
-
-- `expect_column_values_to_not_be_null`
-- `expect_column_values_to_be_between`
-- `expect_column_values_to_be_unique`
-- `expect_column_values_to_match_regex`
-
----
-
-# Exemple rapide en Python (Jupyter)
-
-```python
-import great_expectations as gx
-import pandas as pd
-
-df = pd.DataFrame({
-    "title": ["Interstellar", "Blade Runner", "Amelie"],
-    "vote_average": [8.7, 15, 8.3],
-    "release_date": ["2014-11-05", "2017-10-04", ""]
-})
-
-validator = gx.from_pandas(df)
-
-validator.expect_column_values_to_not_be_null("title")
-validator.expect_column_values_to_be_between("vote_average", min_value=0, max_value=10)
-validator.expect_column_values_to_match_regex("release_date", r"^\d{4}-\d{2}-\d{2}$")
-
-result = validator.validate()
-print(result["success"])
-```
-
-Interprétation :
-
-- les lignes invalides sont détectées avant indexation
-- le rapport guide les corrections dans le pipeline
 
 ---
 
@@ -430,7 +377,7 @@ filter {
 
 ---
 
-# Ce qu’il faut retenir (le plus important du cours)
+# Ce qu'il faut retenir (le plus important du cours)
 
 Logstash sert surtout à :
 
@@ -505,7 +452,7 @@ output {
 
 ---
 
-# Cas pratique guidé (TMDB) - étape 2 nettoyage méthodique
+# Cas pratique (TMDB) - étape 2 nettoyage méthodique
 
 Ajouts utiles dans `filter` :
 
@@ -533,7 +480,7 @@ parse -> nettoyer -> convertir -> corriger -> dater -> supprimer invalides.
 
 ---
 
-# Cas pratique guidé (TMDB) - étape 3 exécution et validation
+# Cas pratique (TMDB) - étape 3 exécution et validation
 
 Lancer l'ingestion :
 
@@ -566,3 +513,150 @@ Checklist de fin :
 * `vote_average` borné entre 0 et 10
 * `vote_count` bien numérique
 * `original_language` homogène (minuscule)
+
+---
+##  TP - étape 1 : jeu de données
+
+Créer un fichier `films.csv` :
+
+```csv
+title,year,rating,genre,released_at
+Batman Begins,2005,8.2,Action,2005-06-15
+The Dark Knight,2008,9.0,Action,2008-07-18
+Interstellar,2014,8.7,Sci-Fi,2014-11-07
+Amelie,2001,8.3,Romance,2001-04-25
+```
+
+Le placer dans le dossier monté vers Logstash, par exemple :
+
+```bash
+mkdir -p logs/films
+cp films.csv logs/films/films.csv
+```
+
+Dans le conteneur, le chemin devient :
+`/usr/share/logstash/logs/films/films.csv`
+
+---
+
+##  TP - étape 2 : pipeline `logstash.conf`
+
+```conf
+input {
+  file {
+    path => "/usr/share/logstash/logs/films/films.csv"
+    start_position => "beginning"
+    sincedb_path => "/tmp/films_csv.sincedb"
+    mode => "read"
+  }
+}
+
+filter {
+  csv {
+    separator => ","
+    skip_header => true
+    columns => ["title", "year", "rating", "genre", "released_at"]
+  }
+
+  mutate {
+    convert => {
+      "year" => "integer"
+      "rating" => "float"
+    }
+    strip => ["title", "genre", "released_at"]
+  }
+
+  date {
+    match => ["released_at", "yyyy-MM-dd"]
+    target => "@timestamp"
+  }
+
+  ruby {
+    code => '
+      t = event.get("title")
+      event.set("title_length", t.length) unless t.nil?
+    '
+  }
+
+  if [rating] >= 8.8 {
+    mutate { add_field => { "rating_band" => "excellent" } }
+  } else if [rating] >= 8.0 {
+    mutate { add_field => { "rating_band" => "very_good" } }
+  } else {
+    mutate { add_field => { "rating_band" => "good" } }
+  }
+}
+
+output {
+  stdout { codec => rubydebug }
+
+  elasticsearch {
+    hosts => ["http://elasticsearch:9200"]
+    index => "films_logstash"
+  }
+}
+```
+
+---
+
+## TP - étape 3 : exécuter et vérifier
+
+Relancer proprement la lecture complète :
+
+```bash
+docker compose exec logstash rm -f /tmp/films_csv.sincedb
+docker compose restart logstash
+```
+
+Ce qui se passe :
+- le fichier `sincedb` est supprimé, donc la position de lecture est remise à zéro
+- au redémarrage, Logstash relit le CSV depuis le début
+- `rubydebug` affiche chaque événement transformé dans les logs du conteneur
+
+Exemple d'événement attendu :
+
+```json
+{
+  "title": "The Dark Knight",
+  "year": 2008,
+  "rating": 9.0,
+  "genre": "Action",
+  "released_at": "2008-07-18",
+  "title_length": 15,
+  "rating_band": "excellent",
+  "@timestamp": "2008-07-18T00:00:00.000Z"
+}
+```
+
+Vérification côté Elasticsearch :
+
+```bash
+curl -s "http://localhost:9200/films_logstash/_count?pretty"
+curl -s "http://localhost:9200/films_logstash/_search?size=5&pretty"
+```
+
+---
+
+##  TP - étape 4 : variation guidée
+
+Ajouter deux enrichissements :
+1. `decade` à partir de `year`
+2. `era` avec `old` (< 2010) ou `modern` (>= 2010)
+
+```conf
+ruby {
+  code => '
+    y = event.get("year")
+    event.set("decade", (y / 10) * 10) unless y.nil?
+  '
+}
+
+if [year] < 2010 {
+  mutate { add_field => { "era" => "old" } }
+} else {
+  mutate { add_field => { "era" => "modern" } }
+}
+```
+
+À retenir :
+`input` lit, `filter` transforme, `output` envoie.
