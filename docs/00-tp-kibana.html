@@ -61,7 +61,7 @@
       font-size: 24px;
     }
     h3 {
-      margin: 0 0 8px;
+      margin: 10px 0 8px;
       font-size: 19px;
       color: #cdd6e5;
     }
@@ -97,17 +97,6 @@
       border-radius: 12px;
       margin-top: 10px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-    }
-    th, td {
-      border: 1px solid #2a3243;
-      padding: 8px 10px;
-      text-align: left;
-    }
-    th { background: #111a2a; }
   </style>
 </head>
 <body>
@@ -129,55 +118,15 @@
     </section>
 
     <section class="card">
-      <h2>Étape 1 - Vérifier les données</h2>
-      <pre><code>GET shakespeare/_count</code></pre>
-      <p>Attendu : <code>count &gt; 0</code>.</p>
-    </section>
-
-    <section class="card">
-      <h2>Étape 2 - Ouvrir Visualize Library</h2>
-      <p><code>Analytics</code> -> <code>Visualize Library</code> -> <code>Create new visualization</code></p>
-      <img src="assets/tp-kibana-01.png" alt="Capture Kibana 1 - Visualize Library">
-    </section>
-
-    <section class="card">
-      <h2>Étape 3 - Choisir Lens</h2>
-      <p>Dans la fenêtre de création, sélectionner <strong>Lens</strong>.</p>
-      <img src="assets/tp-kibana-02.png" alt="Capture Kibana 2 - Choix Lens">
-    </section>
-
-    <section class="card">
-      <h2>Étape 4 - Lens #1 : répliques par pièce</h2>
+      <h2>Étape 0 - Commencer par le champ datetime</h2>
+      <p>Pourquoi c'est important :</p>
       <ul>
-        <li>Type : <code>Bar vertical</code></li>
-        <li>Horizontal axis : <code>play_name</code></li>
-        <li>Vertical axis : <code>Count of records</code></li>
+        <li>Kibana utilise un champ date pour les graphiques temporels</li>
+        <li>Le filtre de temps global dépend de ce champ</li>
+        <li>Sans date, certaines visualisations semblent vides</li>
       </ul>
-      <img src="assets/tp-kibana-03.png" alt="Capture Kibana 3 - Lens bar chart">
-    </section>
 
-    <section class="card">
-      <h2>Étape 5 - Lens #2 : top 5 speakers</h2>
-      <ul>
-        <li>Horizontal axis : <code>speaker</code></li>
-        <li>Vertical axis : <code>Count</code></li>
-        <li>Tri : <code>Descending</code></li>
-        <li>Limite : <code>5</code></li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>Étape 6 - Lens #3 : moyenne des années</h2>
-      <ul>
-        <li>Horizontal axis : <code>play_name</code></li>
-        <li>Vertical axis : <code>Average(year)</code></li>
-      </ul>
-      <p><code>Count</code> = volume, <code>Average</code> = métrique calculée.</p>
-    </section>
-
-    <section class="card">
-      <h2>Étape 7 (option) - Timeline</h2>
-      <h3>7.1 Ajouter le mapping</h3>
+      <h3>0.1 Créer le champ <code>year_date</code></h3>
       <pre><code>PUT shakespeare/_mapping
 {
   "properties": {
@@ -185,7 +134,7 @@
   }
 }</code></pre>
 
-      <h3>7.2 Alimenter <code>year_date</code></h3>
+      <h3>0.2 Alimenter <code>year_date</code> depuis <code>year</code></h3>
       <pre><code>POST shakespeare/_update_by_query
 {
   "script": {
@@ -197,16 +146,97 @@
   }
 }</code></pre>
 
-      <h3>7.3 Config Lens</h3>
+      <h3>0.3 Contrôle rapide</h3>
+      <pre><code>GET shakespeare/_search
+{
+  "size": 1,
+  "_source": ["year", "year_date"]
+}</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>Étape 1 - Vérifier les données</h2>
+      <pre><code>GET shakespeare/_count</code></pre>
+      <p>Attendu : <code>count &gt; 0</code>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Étape 2 - Créer le Data View</h2>
+      <p>Chemin : <code>Stack Management</code> -> <code>Data Views</code></p>
+      <ul>
+        <li>Name : <code>shakespeare</code></li>
+        <li>Index pattern : <code>shakespeare</code></li>
+        <li>Time field : <code>year_date</code> (recommandé)</li>
+      </ul>
+      <p>Si vous ne faites pas de timeline, vous pouvez <code>Skip time field</code>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Étape 3 - Ouvrir Visualize Library</h2>
+      <p><code>Analytics</code> -> <code>Visualize Library</code> -> <code>Create new visualization</code></p>
+      <img src="assets/tp-kibana-01.png" alt="Capture Kibana 1 - Visualize Library">
+    </section>
+
+    <section class="card">
+      <h2>Étape 4 - Choisir Lens et comprendre les autres choix</h2>
+      <p>Pour ce TP, choisir <strong>Lens</strong> :</p>
+      <ul>
+        <li>éditeur drag-and-drop rapide</li>
+        <li>idéal pour démarrer et prototyper</li>
+      </ul>
+      <img src="assets/tp-kibana-02.png" alt="Capture Kibana 2 - Choix Lens">
+
+      <h3>Les autres choix de la fenêtre</h3>
+      <ul>
+        <li><code>Maps</code> : cartes géographiques</li>
+        <li><code>TSVB</code> : séries temporelles avancées</li>
+        <li><code>Custom visualization</code> : Vega, visuels très personnalisés</li>
+        <li><code>Aggregation based</code> : ancien éditeur orienté agrégations</li>
+        <li><code>Text</code> : bloc texte dans un dashboard</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Étape 5 - Lens #1 : répliques par pièce</h2>
+      <ul>
+        <li>Type : <code>Bar vertical</code></li>
+        <li>Horizontal axis : <code>play_name</code></li>
+        <li>Vertical axis : <code>Count of records</code></li>
+      </ul>
+      <img src="assets/tp-kibana-03.png" alt="Capture Kibana 3 - Lens bar chart">
+    </section>
+
+    <section class="card">
+      <h2>Étape 6 - Lens #2 : top 5 speakers</h2>
+      <ul>
+        <li>Horizontal axis : <code>speaker</code></li>
+        <li>Vertical axis : <code>Count</code></li>
+        <li>Tri : <code>Descending</code></li>
+        <li>Limite : <code>5</code></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Étape 7 - Lens #3 : moyenne des années</h2>
+      <ul>
+        <li>Horizontal axis : <code>play_name</code></li>
+        <li>Vertical axis : <code>Average(year)</code></li>
+      </ul>
+      <p><code>Count</code> = volume, <code>Average</code> = métrique calculée.</p>
+    </section>
+
+    <section class="card">
+      <h2>Étape 8 (option) - Timeline dans Lens</h2>
       <ul>
         <li>Type : <code>Line</code></li>
         <li>X-axis : <code>Date histogram(year_date)</code></li>
         <li>Y-axis : <code>Count</code></li>
       </ul>
+      <p>Si le graphique est vide : élargir le time range et vérifier le Data View.</p>
     </section>
 
     <section class="card">
-      <h2>Étape 8 - Dashboard final</h2>
+      <h2>Étape 9 - Dashboard final</h2>
       <p>Dans <code>Dashboard</code> -> <code>Create</code>, ajouter :</p>
       <ul>
         <li>Répliques par pièce</li>
@@ -218,10 +248,11 @@
     <section class="card">
       <h2>Checklist de rendu</h2>
       <ol>
+        <li>Champ <code>year_date</code> créé et alimenté</li>
         <li>Data View <code>shakespeare</code> prêt</li>
         <li>3 visualisations Lens minimum</li>
         <li>1 dashboard final</li>
-        <li>Explication de chaque axe : horizontal = regroupement, vertical = calcul</li>
+        <li>Explication des axes : horizontal = regroupement, vertical = calcul</li>
       </ol>
     </section>
   </div>
