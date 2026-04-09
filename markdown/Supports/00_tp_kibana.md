@@ -14,7 +14,32 @@ Objectif du TP : construire un dashboard lisible et expliquer chaque visuel.
 
 ---
 
-## Étape 0 — Commencer par le champ datetime
+## Étape 0 — Vérifier le prérequis (index avant Kibana)
+
+Important :
+
+- Kibana ne crée pas l'index Elasticsearch
+- Kibana crée un **Data View** qui pointe vers un index existant
+
+Ordre correct :
+
+1. index Elasticsearch existant (ici `shakespeare`)
+2. Data View Kibana (`shakespeare`)
+3. visualisations Lens
+
+Contrôle rapide :
+
+```json
+GET _cat/indices/shakespeare?v
+```
+
+```json
+GET shakespeare/_count
+```
+
+---
+
+## Étape 1 — Commencer par le champ datetime
 
 Pourquoi c'est important :
 
@@ -57,16 +82,6 @@ GET shakespeare/_search
   "_source": ["year", "year_date"]
 }
 ```
-
----
-
-## Étape 1 — Vérifier les données
-
-```json
-GET shakespeare/_count
-```
-
-Attendu : `count > 0`.
 
 ---
 
