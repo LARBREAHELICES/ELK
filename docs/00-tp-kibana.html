@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TP 00 - Kibana pas à pas</title>
+  <style>
+    :root {
+      --bg: #0b0f16;
+      --panel: #121826;
+      --line: #2a3243;
+      --text: #e6edf7;
+      --muted: #a7b3c7;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1100px 600px at 20% -20%, #1b2a4a 0%, var(--bg) 55%), var(--bg);
+      line-height: 1.55;
+    }
+    .wrap {
+      width: min(1100px, 92vw);
+      margin: 28px auto 56px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .top h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: clamp(28px, 4vw, 42px);
+    }
+    .top a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,.2);
+    }
+    .sub {
+      color: var(--muted);
+      margin: 0 0 18px;
+    }
+    .card {
+      background: linear-gradient(180deg, var(--panel), #0f1420);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+      color: #cdd6e5;
+    }
+    p { margin: 0 0 10px; }
+    ul, ol { margin: 6px 0 0 20px; }
+    li { margin: 4px 0; }
+    code {
+      background: #0d1320;
+      border: 1px solid #263043;
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+    pre {
+      margin: 10px 0 0;
+      background: #0d1320;
+      border: 1px solid #263043;
+      border-radius: 10px;
+      overflow-x: auto;
+      padding: 12px;
+    }
+    pre code {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      white-space: pre;
+    }
+    img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #263043;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      border: 1px solid #2a3243;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    th { background: #111a2a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>TP 00 - Kibana pas à pas</h1>
+      <a href="exercices.html">Retour Exercices</a>
+    </div>
+    <p class="sub">Dataset <code>shakespeare</code> - parcours guidé pour construire un dashboard lisible.</p>
+
+    <section class="card">
+      <h2>Objectif</h2>
+      <ol>
+        <li>Créer une visualisation Lens : répliques par pièce</li>
+        <li>Créer une visualisation Lens : top speakers</li>
+        <li>Créer une visualisation Lens : moyenne des années</li>
+        <li>Assembler un dashboard final</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Étape 1 - Vérifier les données</h2>
+      <pre><code>GET shakespeare/_count</code></pre>
+      <p>Attendu : <code>count &gt; 0</code>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Étape 2 - Ouvrir Visualize Library</h2>
+      <p><code>Analytics</code> -> <code>Visualize Library</code> -> <code>Create new visualization</code></p>
+      <img src="assets/tp-kibana-01.png" alt="Capture Kibana 1 - Visualize Library">
+    </section>
+
+    <section class="card">
+      <h2>Étape 3 - Choisir Lens</h2>
+      <p>Dans la fenêtre de création, sélectionner <strong>Lens</strong>.</p>
+      <img src="assets/tp-kibana-02.png" alt="Capture Kibana 2 - Choix Lens">
+    </section>
+
+    <section class="card">
+      <h2>Étape 4 - Lens #1 : répliques par pièce</h2>
+      <ul>
+        <li>Type : <code>Bar vertical</code></li>
+        <li>Horizontal axis : <code>play_name</code></li>
+        <li>Vertical axis : <code>Count of records</code></li>
+      </ul>
+      <img src="assets/tp-kibana-03.png" alt="Capture Kibana 3 - Lens bar chart">
+    </section>
+
+    <section class="card">
+      <h2>Étape 5 - Lens #2 : top 5 speakers</h2>
+      <ul>
+        <li>Horizontal axis : <code>speaker</code></li>
+        <li>Vertical axis : <code>Count</code></li>
+        <li>Tri : <code>Descending</code></li>
+        <li>Limite : <code>5</code></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Étape 6 - Lens #3 : moyenne des années</h2>
+      <ul>
+        <li>Horizontal axis : <code>play_name</code></li>
+        <li>Vertical axis : <code>Average(year)</code></li>
+      </ul>
+      <p><code>Count</code> = volume, <code>Average</code> = métrique calculée.</p>
+    </section>
+
+    <section class="card">
+      <h2>Étape 7 (option) - Timeline</h2>
+      <h3>7.1 Ajouter le mapping</h3>
+      <pre><code>PUT shakespeare/_mapping
+{
+  "properties": {
+    "year_date": { "type": "date" }
+  }
+}</code></pre>
+
+      <h3>7.2 Alimenter <code>year_date</code></h3>
+      <pre><code>POST shakespeare/_update_by_query
+{
+  "script": {
+    "source": """
+      if (ctx._source.year != null) {
+        ctx._source.year_date = ctx._source.year + '-01-01T00:00:00Z';
+      }
+    """
+  }
+}</code></pre>
+
+      <h3>7.3 Config Lens</h3>
+      <ul>
+        <li>Type : <code>Line</code></li>
+        <li>X-axis : <code>Date histogram(year_date)</code></li>
+        <li>Y-axis : <code>Count</code></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Étape 8 - Dashboard final</h2>
+      <p>Dans <code>Dashboard</code> -> <code>Create</code>, ajouter :</p>
+      <ul>
+        <li>Répliques par pièce</li>
+        <li>Top speakers</li>
+        <li>Moyenne des années</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Checklist de rendu</h2>
+      <ol>
+        <li>Data View <code>shakespeare</code> prêt</li>
+        <li>3 visualisations Lens minimum</li>
+        <li>1 dashboard final</li>
+        <li>Explication de chaque axe : horizontal = regroupement, vertical = calcul</li>
+      </ol>
+    </section>
+  </div>
+  <script src="assets/glossary.js"></script>
+</body>
+</html>
