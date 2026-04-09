@@ -1,256 +1,208 @@
-# Cours 4 - Kibana Dataviz
-## De la requete full-text a la lecture analytique fiable
+# TP 00 — Kibana pas à pas
+## Dataset `shakespeare`
+
+Objectif du TP : construire un dashboard lisible et expliquer chaque visuel.
 
 ---
 
-## Objectif du chapitre
+## Ce que vous allez produire
 
-- Comprendre precisement ce que Kibana fait (et ne fait pas)
-- Construire des analyses lisibles dans Discover, Lens, Dashboard
-- Relier chaque visuel a une requete Elasticsearch verifiable
-- Mettre en place des pratiques de qualite et de validation
-
----
-
-
-## Reperes theoriques (moteur + interface)
-
-- Kibana est une interface de requetage/visualisation, pas une base de donnees
-- Elasticsearch execute les requetes et calcule les aggregations
-- Un visuel Lens est une traduction UI d'un DSL Elasticsearch
-- Sans mapping coherent (`text`, `keyword`, numerique), un dashboard peut mentir
+1. Une visualisation Lens : répliques par pièce
+2. Une visualisation Lens : top speakers
+3. Une visualisation Lens : moyenne des années
+4. Un dashboard qui regroupe ces visualisations
 
 ---
 
-## Jeu de donnees de reference Shakespeare
+## Étape 0 — Vérifier le prérequis (index avant Kibana)
 
-```bash
-curl -X PUT "http://localhost:9200/shakespeare" -H "Content-Type: application/json" -d '{
-  "mappings": {
-    "properties": {
-      "line_id":       { "type": "integer" },
-      "play_name":     { "type": "keyword" },
-      "speech_number": { "type": "integer" },
-      "line_number":   { "type": "keyword" },
-      "speaker":       { "type": "keyword" },
-      "text_entry":    { "type": "text" }
-    }
-  }
-}'
-```
+Important :
 
-```bash
-# Option A - full dataset (recommande)
-curl -L "https://raw.githubusercontent.com/grokify/kibana-tutorial-go/refs/heads/master/shakespeare.json" \
-  -o sandbox/data/shakespeare.json
+- Kibana ne crée pas l'index Elasticsearch
+- Kibana crée un **Data View** qui pointe vers un index existant
 
-curl -X POST "http://localhost:9200/shakespeare/_bulk?pretty" \
-  -H "Content-Type: application/x-ndjson" \
-  --data-binary @sandbox/data/shakespeare.json
+Ordre correct :
 
-# Option B - echantillon local rapide
-curl -X POST "http://localhost:9200/shakespeare/_bulk" \
-  -H "Content-Type: application/x-ndjson" \
-  --data-binary @sandbox/data/shakespeare_sample.ndjson
+1. index Elasticsearch existant (ici `shakespeare`)
+2. Data View Kibana (`shakespeare`)
+3. visualisations Lens
 
-curl -X POST "http://localhost:9200/shakespeare/_refresh"
-curl "http://localhost:9200/shakespeare/_count?pretty"
-```
-
-Ce que fait le code:
-- Cree un schema propre pour Kibana
-- Charge un echantillon Shakespeare full-text
-- Garantit une demo reproductible pour Discover/Lens
-
----
-
-## <span class="glossary-term" data-definition="Configuration Kibana qui decrit quels index lire et comment exposer leurs champs.">Data View</span>: contrat entre Kibana et les index
-
-Actions:
-- Stack Management -> Data Views -> Create
-- Pattern: `shakespeare`
-- Time field: none
-
-Ce que cela change:
-- Kibana connait les champs disponibles et leurs types
-- Les menus Lens/Discover proposent les bons champs
-
-Repere theorique:
-- Data View = metadata de lecture, pas duplication des donnees
-
----
-
-## <span class="glossary-term" data-definition="Ecran Kibana pour explorer les documents bruts et filtrer en KQL.">Discover</span>: lecture analytique des lignes
-
-Actions concretes:
-- Ajouter colonnes: `play_name`, `speaker`, `speech_number`, `text_entry`
-- Trier par `speech_number` decroissant
-- Sauvegarder une recherche "Shakespeare - controle qualite"
-
-Exemples KQL:
-
-```text
-speaker: "HAMLET"
-play_name: "Macbeth" and text_entry: "sleep"
-play_name: "Romeo and Juliet" and text_entry: "sun"
-```
-
-Ce que fait le code (KQL):
-- Traduit une intention analytique en filtre instantane
-- Permet de valider la coherence des documents avant visualisation
-
----
-
-## KQL vs DSL: quand utiliser quoi
-
-- KQL: rapide pour l'exploration interactive
-- DSL JSON: indispensable pour validation technique et partage precis
-
-Exemple DSL equivalent a un filtre Discover:
+Contrôle rapide :
 
 ```json
-GET shakespeare/_search
+GET _cat/indices/shakespeare?v
+```
+
+```json
+GET shakespeare/_count
+```
+
+---
+
+## Étape 1 — Commencer par le champ datetime
+
+Pourquoi c'est important :
+
+- Kibana utilise un champ date pour les graphiques temporels
+- le filtre de temps global dépend de ce champ
+- sans date, certaines visualisations semblent vides
+
+Créer le champ `year_date` :
+
+```json
+PUT shakespeare/_mapping
 {
-  "query": {
-    "bool": {
-      "filter": [
-        { "term": { "play_name": "Macbeth" } }
-      ],
-      "must": [
-        { "match": { "text_entry": "sleep" } }
-      ]
-    }
+  "properties": {
+    "year_date": { "type": "date" }
   }
 }
 ```
 
-Repere theorique:
-- Le DSL est la source de verite de ce que Kibana execute
+Alimenter `year_date` à partir de `year` :
 
----
+```json
+POST shakespeare/_update_by_query
+{
+  "script": {
+    "source": """
+      if (ctx._source.year != null) {
+        ctx._source.year_date = ctx._source.year + '-01-01T00:00:00Z';
+      }
+    """
+  }
+}
+```
 
-## <span class="glossary-term" data-definition="Editeur de visualisations Kibana qui construit des aggregations via une interface graphique.">Lens</span> 1: volume de lignes par piece
-
-Configuration Lens:
-- Horizontal axis: `play_name`
-- Metric: Count
-
-Ce que cela represente:
-- Repartition du corpus par oeuvre
-- Base de comparaison entre pieces
-
-Verification Dev Tools:
+Contrôle rapide :
 
 ```json
 GET shakespeare/_search
 {
-  "size": 0,
-  "aggs": {
-    "by_play": {
-      "terms": { "field": "play_name" }
-    }
-  }
+  "size": 1,
+  "_source": ["year", "year_date"]
 }
 ```
 
 ---
 
-## Lens 2: top personnages
+## Étape 2 — Créer le Data View
 
-Objectif:
-- Identifier les personnages les plus presents
+Chemin : `Stack Management` -> `Data Views`
 
-Configuration:
-- Horizontal axis: `speaker`
-- Metric: Count
-- Sort by: Desc
-- Size: 10
+- Name : `shakespeare`
+- Index pattern : `shakespeare`
+- Time field : `year_date` (recommandé)
 
-Repere theorique:
-- `terms` sur `keyword` permet un top-N stable
+Si vous ne faites pas de timeline : vous pouvez `Skip time field`.
 
 ---
 
-## Lens 3: formule (part de Macbeth)
+## Étape 3 — Ouvrir la Visualize Library
 
-Exemple de formule Lens:
-- `count(kql='play_name: "Macbeth"') / count()`
+Chemin :
 
-Interet:
-- Exprimer une proportion dans le visuel
-- Evaluer rapidement le poids relatif d'une piece
+`Analytics` -> `Visualize Library` -> `Create new visualization`
 
-Verification DSL (idee):
-- `filter` agg sur Macbeth + total global
+<img src="assets/tp-kibana-01.png" alt="Capture Kibana 1 - Visualize Library" style="display:block;margin:12px auto 0;max-height:60vh;width:auto;max-width:100%;border:1px solid #263043;border-radius:12px;" />
 
 ---
 
-## Dashboard: composition et interactions
+## Étape 4 — Choisir Lens et comprendre les autres choix
 
-Structure conseillee:
-- Panel 1: volume par piece
-- Panel 2: top speakers
-- Panel 3: distribution `speech_number`
-- Panel 4: table des lignes full-text
+Dans cette fenêtre, choisir **Lens** pour ce TP.
 
-Bonnes pratiques:
-- Titre explicite oriente interpretation
-- Filtres globaux epingles (pinned filters)
-- Pas plus de 6-8 panels pour garder la lisibilite
+<img src="assets/tp-kibana-02.png" alt="Capture Kibana 2 - Choix Lens" style="display:block;margin:12px auto 0;max-height:60vh;width:auto;max-width:100%;border:1px solid #263043;border-radius:12px;" />
 
----
+Lens : éditeur drag-and-drop simple et rapide (idéal pour démarrer).
 
-## Exemples visuels: monitoring site web (style Kibana)
+Autres choix de la fenêtre :
 
-### Vue globale trafic + latence
-
-![Kibana monitoring overview](assets/kibana-monitoring-overview.svg)
-
-### Disponibilite et uptime
-
-![Kibana monitoring uptime](assets/kibana-monitoring-uptime.svg)
-
-### Performance applicative et erreurs
-
-![Kibana monitoring performance](assets/kibana-monitoring-performance.svg)
+- `Maps` : cartes géographiques
+- `TSVB` : séries temporelles avancées
+- `Custom visualization` : Vega / cas très personnalisés
+- `Aggregation based` : ancien éditeur orienté agrégations
+- `Text` : bloc texte dans un dashboard
 
 ---
 
-## Controls et filtres globaux
+## Étape 5 — Lens #1 : répliques par pièce
 
-Exemples de controls a ajouter:
-- Dropdown sur `play_name`
-- Dropdown sur `speaker`
-- Range slider sur `speech_number`
+Configuration :
 
-Ce que cela apporte:
-- Navigation analytique sans ecrire de requete
-- Explorations comparatives rapides en demo
+- Type : `Bar vertical`
+- Horizontal axis : `play_name`
+- Vertical axis : `Count of records`
 
----
-
-## <span class="glossary-term" data-definition="Fonction Kibana qui affiche la requete Elasticsearch exacte envoyee par un visuel.">Inspect</span> et validation technique
-
-Dans Kibana:
-- Sur un panel -> Inspect -> Requests
-- Copier la requete envoyee
-- Rejouer dans Dev Tools
-
-Ce que cela garantit:
-- Le graphique correspond bien a une requete attendue
-- La narration analytique est techniquement verifiable
+But : compter les répliques par pièce.
 
 ---
 
-## Qualite, biais et interpretation
+## Étape 6 — Repère visuel dans Lens
 
-A verifier avant diffusion:
-- Echantillon representatif du corpus complet
-- Effets de tokenization bien compris sur le full-text
-- Differences `match` vs `term` explicitees
-- Perimetre de filtre clairement indique
+Résultat attendu pour une visualisation barres sur `play_name`.
 
-Repere theorique:
-- Une visualisation est une hypothese sur les donnees, pas une preuve automatique
+<img src="assets/tp-kibana-03.png" alt="Capture Kibana 3 - Lens bar chart" style="display:block;margin:12px auto 0;max-height:60vh;width:auto;max-width:100%;border:1px solid #263043;border-radius:12px;" />
 
 ---
+
+## Étape 7 — Lens #2 : top 5 speakers
+
+Créer une nouvelle visualisation Lens :
+
+- Horizontal axis : `speaker`
+- Vertical axis : `Count`
+- Sort : `Descending`
+- Limit : `5`
+
+Question : quel speaker parle le plus ?
+
+---
+
+## Étape 8 — Lens #3 : moyenne des années
+
+Créer une troisième visualisation Lens :
+
+- Horizontal axis : `play_name`
+- Vertical axis : `Average(year)`
+
+À retenir :
+
+- `Count` = volume
+- `Average` = métrique calculée
+
+---
+
+## Étape 9 (option) — Timeline dans Lens
+
+Si `year_date` existe :
+
+- Type : `Line`
+- X-axis : `Date histogram(year_date)`
+- Y-axis : `Count`
+
+Si le graphique est vide :
+
+- élargir le time range
+- vérifier que le Data View utilise bien `year_date`
+
+---
+
+## Étape 10 — Construire le dashboard
+
+Dans `Dashboard` -> `Create`, ajouter :
+
+- Répliques par pièce
+- Top speakers
+- Moyenne des années
+
+Résultat attendu : un écran unique de lecture rapide.
+
+---
+
+## Checklist de rendu
+
+1. Champ `year_date` créé et alimenté
+2. Data View `shakespeare` prêt
+3. 3 visualisations Lens minimum
+4. 1 dashboard final
+5. Explication claire des axes : horizontal = regroupement, vertical = calcul

@@ -472,12 +472,11 @@ Amelie,2001,8.3,Romance,2001-04-25
 Le placer dans le dossier monté vers Logstash, par exemple :
 
 ```bash
-mkdir -p logs/films
-cp films.csv logs/films/films.csv
+cp films.csv logs/films.csv
 ```
 
 Dans le conteneur, le chemin devient :
-`/usr/share/logstash/logs/films/films.csv`
+`/usr/share/logstash/logs/films.csv`
 
 ---
 
@@ -486,9 +485,9 @@ Dans le conteneur, le chemin devient :
 ```conf
 input {
   file {
-    path => "/usr/share/logstash/logs/films/films.csv"
-    start_position => "beginning"
-    sincedb_path => "/tmp/films_csv.sincedb"
+    path => "/usr/share/logstash/logs/films.csv"
+     start_position => "beginning"
+    sincedb_path => "/dev/null"
     mode => "read"
   }
 }
@@ -619,7 +618,7 @@ Préparation recommandée (plus simple à manipuler) :
 Chemin dans le conteneur Logstash :
 
 ```text
-/usr/share/logstash/logs/films/tmdb_movies.csv
+/usr/share/logstash/logs/tmdb_movies.csv
 ```
 
 Objectif :
@@ -635,7 +634,7 @@ Objectif :
 ```conf
 input {
   file {
-    path => "/usr/share/logstash/logs/films/tmdb_movies.csv"
+    path => "/usr/share/logstash/logs/tmdb_movies.csv"
     start_position => "beginning"
     sincedb_path => "/tmp/tmdb_movies.sincedb"
   }

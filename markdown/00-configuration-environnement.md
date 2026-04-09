@@ -37,8 +37,6 @@ docker compose version
 
 Placez dans `sandbox`
 
----
-
 # Démarrer les conteneurs
 
 ```bash
@@ -50,8 +48,6 @@ Vérifier :
 ```bash
 docker ps
 ```
-
----
 
 Vous devez voir :
 
@@ -133,8 +129,6 @@ http://elasticsearch:9200
         ↓
 Conteneur Elasticsearch
 ```
-
----
 
 Important :
 

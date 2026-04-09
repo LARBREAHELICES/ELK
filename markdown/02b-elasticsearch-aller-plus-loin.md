@@ -1,423 +1,199 @@
-# Cours 2B - Aller plus loin avec Elasticsearch
-## Comprendre la modelisation et la pertinence en profondeur
+# Partie avancée — `emit` dans Elasticsearch
+
+## Introduction 
+
+
+## Note de synthèse — Agrégations et runtime fields
+
+Les agrégations et les runtime fields sont très puissants, mais ils peuvent être coûteux en calcul.
+
+En particulier :
+
+- les agrégations s'exécutent sur beaucoup de documents
+- les scripts (`runtime`, `emit`) consomment du CPU
+- cela peut devenir lent sur de gros volumes de données
+
+Règle pratique :
+
+- pour explorer / tester → runtime fields + `emit`
+- pour la production → créer un vrai champ indexé
+- éviter les scripts sur des millions de documents
+- toujours tester avec `size: 0` pour ne pas récupérer les documents inutilement
+
+**Idée clé :**
+Ce qui est pratique n'est pas toujours performant.
 
 ---
 
-## Le vrai modele mental
+`emit` est utilisé dans les **runtime fields** ou les **scripted aggregations** pour **émettre une valeur calculée** qu'Elasticsearch pourra ensuite agréger.
 
-Quand on debute, on pense souvent:
+En gros :
 
-- Elasticsearch = une base JSON avec recherche
-
-Le modele correct est plutot:
-
-- Elasticsearch = un moteur qui transforme les documents en structures optimisees pour la recherche texte, les filtres et les aggregations
-
-Point d'entree principal:
-
-- API <span class="glossary-term" data-definition="API Elasticsearch principale pour interroger les index avec le Query DSL.">`_search`</span>
-- langage <span class="glossary-term" data-definition="Langage JSON d'Elasticsearch pour composer des requetes de recherche, filtre et aggregation.">Query DSL</span>
+> `emit()` permet de créer une valeur calculée à la volée.
 
 ---
 
+## Runtime field avec `emit`
 
-## Ce qui change par rapport a SQL
+On peut créer un champ calculé sans modifier l'index.
 
-SQL raisonne surtout en:
-
-- tables, lignes, colonnes
-- jointures
-- filtres exacts
-
-Elasticsearch raisonne surtout en:
-
-- index, documents, champs
-- analyse de texte
-- pertinence et score
-- filtres + aggregations
-
----
-
-## Ce que devient un champ `text`
-
-Exemple:
-
-```json
-{
-  "text_entry": "To be, or not to be: that is the question."
-}
-```
-
-Avec un type `text`, Elasticsearch prepare la valeur pour le plein texte:
-
-- decoupage en tokens
-- normalisation
-- indexation des termes
-
-Conclusion:
-
-- la phrase n'est pas seulement stockee, elle devient cherchable efficacement
-
----
-
-## Pourquoi `match` et `term` ne repondent pas au meme besoin
-
-`match`:
-
-- requete plein texte
-- a utiliser sur des champs `text`
-
-`term`:
-
-- correspondance exacte
-- a utiliser sur des champs `keyword`
-
-Regle d'or:
-
-- `match` sur `text`
-- `term` sur `keyword`
-
----
-
-## Choix de modelisation: `text`, `keyword`, ou les deux
-
-Un meme champ peut etre expose en <span class="glossary-term" data-definition="Sous-champs d'un meme champ principal pour supporter plusieurs usages (ex: text + keyword).">multi-fields</span>.
-
-Exemple:
-
-```json
-"speaker": {
-  "type": "text",
-  "fields": {
-    "keyword": { "type": "keyword" }
-  }
-}
-```
-
-Usages:
-
-- `speaker` pour recherche textuelle
-- `speaker.keyword` pour filtre exact, tri et aggregations
-
----
-
-## Deux modeles utiles pour Shakespeare
-
-Modele simple (pedagogique):
-
-- `play_name` en `keyword`
-- `speaker` en `keyword`
-- `text_entry` en `text`
-
-Modele pro (plus flexible):
-
-- `play_name` en `text + keyword`
-- `speaker` en `text + keyword`
-- `text_entry` en `text`
-
----
-
-## Le role de `bool`
-
-La requete <span class="glossary-term" data-definition="Requete de composition qui combine must, filter, should et must_not.">`bool`</span> sert a construire des recherches realistes.
-
-Exemple:
+Exemple : calculer la longueur d'une réplique.
 
 ```json
 GET shakespeare/_search
 {
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "text_entry": "love" } }
-      ],
-      "filter": [
-        { "term": { "play_name": "Othello" } }
-      ]
-    }
-  }
-}
-```
-
----
-
-## Difference fine: `must`, `filter`, `should`
-
-- `must`: obligatoire, logique de recherche
-- `filter`: obligatoire, contrainte structuree
-- `should`: souhaitable, peut booster certains documents
-
-Exemple:
-
-```json
-GET shakespeare/_search
-{
-  "query": {
-    "bool": {
-      "must": [
-        { "term": { "play_name": "Hamlet" } }
-      ],
-      "should": [
-        { "match": { "text_entry": "question" } },
-        { "match": { "text_entry": "time" } }
-      ]
-    }
-  }
-}
-```
-
----
-
-## La notion de score
-
-Avec une requete full-text (`match`), chaque hit recoit un `_score`.
-
-Interpretation:
-
-- plus le score est eleve, plus la pertinence estimee est forte
-
-Conclusion:
-
-- Elasticsearch n'est pas juste un moteur de filtre
-- c'est un moteur de classement par pertinence
-
----
-
-## Penser cas d'usage avant requete
-
-Cas A: retrouver une phrase connue
-
-- champ `text`
-- requete `match`
-
-Cas B: filtrer sur une piece precise
-
-- champ `keyword`
-- requete `term`
-
-Cas C: recherche metier
-
-- `match` + `term`
-- composition avec `bool`
-
----
-
-## Le Bulk API n'est pas un detail
-
-Le <span class="glossary-term" data-definition="API d'indexation en masse en NDJSON: une ligne action puis une ligne document.">Bulk API</span> indexe plusieurs operations en une requete.
-
-Format:
-
-```json
-{"index":{"_id":"1"}}
-{"line_id":1,"play_name":"Hamlet", ...}
-{"index":{"_id":"2"}}
-{"line_id":2,"play_name":"Hamlet", ...}
-```
-
-A retenir:
-
-- ce n'est pas du JSON classique
-- c'est du NDJSON operationnel
-
----
-
-## Pourquoi mapping explicite au debut
-
-Le mapping dynamique peut aider, mais pour apprendre il vaut mieux definir explicitement les types.
-
-Pourquoi:
-
-- forcer les bons choix `text` vs `keyword`
-- eviter les surprises de requetage
-- apprendre a modeliser la recherche (pas seulement stocker du JSON)
-
----
-
-## Ce qu'on peut changer et ce qu'on change difficilement
-
-On peut generalement:
-
-- ajouter des champs
-- ajouter des multi-fields
-
-On change difficilement:
-
-- le type d'un champ deja peuple
-
-Consequence:
-
-- en cas d'erreur de type, strategie standard = <span class="glossary-term" data-definition="Copie des donnees vers un nouvel index avec un nouveau mapping, puis bascule applicative.">reindexation</span>
-
----
-
-## Version plus pro avec normalizer
-
-Exemple:
-
-```json
-PUT shakespeare
-{
-  "settings": {
-    "analysis": {
-      "normalizer": {
-        "lowercase_normalizer": {
-          "type": "custom",
-          "filter": ["lowercase"]
-        }
+  "size": 0,
+  "runtime_mappings": {
+    "line_length": {
+      "type": "long",
+      "script": {
+        "source": "emit(doc['text_entry.keyword'].value.length())"
       }
     }
   },
-  "mappings": {
-    "properties": {
-      "line_id": { "type": "integer" },
-      "play_name": {
-        "type": "keyword",
-        "normalizer": "lowercase_normalizer"
-      },
-      "speech_number": { "type": "integer" },
-      "line_number": { "type": "keyword" },
-      "speaker": {
-        "type": "keyword",
-        "normalizer": "lowercase_normalizer"
-      },
-      "text_entry": { "type": "text" }
+  "aggs": {
+    "longueur_moyenne": {
+      "avg": {
+        "field": "line_length"
+      }
     }
   }
 }
 ```
 
----
+### Ce que fait `emit`
 
-## Pourquoi apprendre Query DSL tot
+```js
+emit(valeur)
+```
 
-Bonne habitude:
+→ envoie la valeur dans le champ calculé.
 
-- utiliser `_search` avec corps JSON
-- exprimer clairement les clauses
-
-Mauvaise habitude:
-
-- rester en recherche URL simplifiee (`q=...`) pour des cas complexes
+Sans `emit`, Elasticsearch ne peut pas récupérer la valeur.
 
 ---
 
-## Niveaux de maturite Elasticsearch
+## Exemple : année regroupée par décennie
 
-Niveau 1:
-
-- stockage + recherche simple (`match`, `term`)
-
-Niveau 2:
-
-- mapping reflechi (`text`, `keyword`, multi-fields)
-
-Niveau 3:
-
-- composition de requetes (`bool`, `must`, `filter`, `should`)
-
-Niveau 4:
-
-- conception de moteur (pertinence, qualite, reindexation)
-
----
-
-## Les 3 decisions de conception a prendre
-
-A. Quel type de champ?
-
-- `text`, `keyword`, ou les deux
-
-B. Quel type de requete?
-
-- `match`, `term`, `bool`
-
-C. Quel besoin metier reel?
-
-- retrouver un mot
-- filtrer une entite
-- classer par pertinence
-
----
-
-## Progression intellectuelle recommandee
-
-1. Quel champ est concerne?
-2. Champ analyse ou exact?
-3. Requete adaptee?
-4. Contrainte metier supplementaire?
-5. Combinaison dans `bool`?
-
----
-
-## Exemple raisonne complet
-
-Besoin:
-
-- "je veux les repliques de Lady Macbeth qui parlent de spot"
-
-Traduction:
-
-- `speaker` exact -> `term`
-- `text_entry` plein texte -> `match`
+On veut regrouper par décennie (1600, 1610, etc.).
 
 ```json
 GET shakespeare/_search
 {
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "text_entry": "spot" } }
-      ],
-      "filter": [
-        { "term": { "speaker": "LADY MACBETH" } }
-      ]
+  "size": 0,
+  "runtime_mappings": {
+    "decade": {
+      "type": "long",
+      "script": {
+        "source": "emit((doc['year'].value / 10) * 10)"
+      }
+    }
+  },
+  "aggs": {
+    "par_decennie": {
+      "terms": {
+        "field": "decade"
+      }
     }
   }
 }
 ```
 
----
+SQL équivalent :
 
-## Point cle pour un developpeur
-
-Elasticsearch, ce n'est pas seulement "ecrire une requete JSON".
-
-C'est surtout:
-
-- un probleme de modelisation
-- un probleme d'indexation
-- un probleme de strategie de requete
-
-La qualite des resultats depend d'abord de ces choix.
+```sql
+SELECT FLOOR(year/10)*10 AS decade, COUNT(*)
+FROM shakespeare
+GROUP BY decade;
+```
 
 ---
 
-## Exercices associes (partie Exos)
+## Exemple : catégoriser des valeurs - Painless
 
-Pour pratiquer ce module, allez dans:
+Le langage utilisé est Painless, propre à Elasticsearch.
 
-- `Exercices Elasticsearch Shakespeare` (Hub exos)
+On veut créer des catégories :
 
-Bloc recommande:
+* court
+* moyen
+* long
 
-- Bloc 0B - Aller plus loin (issus du Cours 02B)
-- Exercice F: choisir `match` vs `term`
-- Exercice G: combiner `must` et `filter`
-- Exercice H: utiliser `should` pour booster
-- Exercice I: tester une modelisation multi-fields
-- Exercice J: utiliser un normalizer sur `keyword`
-- Exercice K: strategie de correction par reindexation
+Attention, `text_entry.keyword` doit être de type keyword pas text.
+
+```json
+GET shakespeare/_search
+{
+  "size": 0,
+  "runtime_mappings": {
+    "categorie_longueur": {
+      "type": "keyword",
+      "script": {
+        "source": """
+          int len = doc['text_entry.keyword'].value.length();
+          if (len < 50) emit("court");
+          else if (len < 100) emit("moyen");
+          else emit("long");
+        """
+      }
+    }
+  },
+  "aggs": {
+    "par_categorie": {
+      "terms": {
+        "field": "categorie_longueur"
+      }
+    }
+  }
+}
+```
+
+Très puissant : on peut faire un **GROUP BY sur une valeur calculée**.
 
 ---
 
-## References conseillees (Docs Elastic)
+## Cas réel très important (logs)
 
-- Search API
-- Query DSL
-- Match query
-- Term query
-- Bool query
-- Bulk API
-- Mapping
-- Normalizer
+Exemple : extraire le domaine d'une URL.
+
+```json
+"script": {
+  "source": """
+    String url = doc['url.keyword'].value;
+    if (url.contains("google")) emit("google");
+    else if (url.contains("bing")) emit("bing");
+    else emit("autre");
+  """
+}
+```
+
+Puis agrégation dessus → analytics.
+
+---
+
+## Quand utiliser `emit` ?
+
+Quand on veut faire un GROUP BY sur :
+
+* une transformation
+* une catégorie
+* une tranche
+* une valeur calculée
+* un parsing (URL, email, log…)
+* une normalisation
+* une règle métier
+
+Donc :
+
+> `emit` = SQL `CASE WHEN` + `GROUP BY`
+
+---
+
+## Exercice (voir la correction dans le Correction sur le dépôt)
+
+1. Regrouper les répliques par longueur (court/moyen/long)
+2. Regrouper les années par décennie
+3. Calculer le nombre de mots par réplique puis faire la moyenne
+4. Extraire la première lettre du speaker et regrouper dessus
+5. Catégoriser les pièces : ancienne (<1600) / récente (>1600)
+
