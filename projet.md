@@ -11,9 +11,13 @@ Règles d'organisation:
 ---
 
 ## 1) Contexte
-Vous devez construire une plateforme d'analyse de films avec la stack ELK à partir du dataset: `movies.csv`
+Vous devez construire une plateforme d'analyse de films avec la stack `ELK`.
 
-Vous pouvez le récupérer depuis:
+Vous pouvez :
+1. utiliser le dataset de référence `movies.csv`,
+2. ou utiliser un dataset de votre choix **à condition qu'il soit lié aux films/cinéma** (films, casting, box-office, recommandations, etc.).
+
+Dataset de référence (assez technique) :
 - https://www.kaggle.com/datasets/akshaypawar7/millions-of-movies/versions/67?resource=download
 
 ---
@@ -22,11 +26,11 @@ Vous pouvez le récupérer depuis:
 Livrer une solution reproductible qui permet de:
 
 1. démarrer la stack ELK localement,
-2. ingérer les données films,
-3. nettoyer et typer les données de manière traçable,
-4. indexer des données exploitables dans Elasticsearch,
-5. produire des analyses et visualisations pertinentes dans Kibana,
-6. démontrer une organisation projet professionnelle (Gitflow, PR, planning poker, répartition des features).
+1. `ingérer` les données films,
+1. nettoyer (`logstash`) et typer (`mappings`) les données de manière traçable,
+1. indexer des données exploitables dans Elasticsearch,
+1. produire des analyses et visualisations pertinentes dans Kibana,
+1. démontrer une organisation projet professionnelle (Gitflow, PR, planning poker, répartition des features).
 
 En complément, vous devez produire un document d'environ 5 pages qui décrit précisément vos choix, vos étapes, vos résultats et vos limites (voir à la fin du document pour plus de précision).  
 Ce document doit impérativement contenir une partie dédiée à la documentation des données (qualité, nettoyage, impact).
@@ -39,7 +43,7 @@ Ce document doit impérativement contenir une partie dédiée à la documentatio
    - Elasticsearch
    - Kibana
    - Logstash
-2. Monter un dossier `DATA` dans le conteneur Logstash en lecture seule (`ro`).
+2. Monter un dossier `data` dans le conteneur Logstash en lecture seule (`ro`).
 3. Mettre en place au minimum deux index:
    - `movies_raw` (ingestion brute)
    - `movies_clean` (données nettoyées et typées)
@@ -64,15 +68,17 @@ Ce document doit impérativement contenir une partie dédiée à la documentatio
 - `./logs:/usr/share/logstash/logs:ro`
 
 ### 4.3 Flux attendu
-`movies.csv` -> Logstash (parse + nettoyage) -> Elasticsearch (`movies_raw`, `movies_clean`) -> Kibana (Lens + Dashboard)
+`dataset_films.csv` -> Logstash (parse + nettoyage) -> Elasticsearch (`movies_raw`, `movies_clean`) -> Kibana (Lens + Dashboard)
 
 ---
 
 ## 5) Exigences de qualité des données
 Vous devez documenter précisément le nettoyage et la normalisation.
 
-Champs du dataset à traiter (exemples):
+Champs du dataset à traiter (exemples, si vous utilisez `movies.csv`):
 - `id`, `title`, `genres`, `original_language`, `overview`, `popularity`, `production_companies`, `release_date`, `budget`, `revenue`, `runtime`, `status`, `tagline`, `vote_average`, `vote_count`, `credits`, `keywords`, `poster_path`, `backdrop_path`, `recommendations`
+
+Si vous utilisez un autre dataset cinéma, adaptez ce dictionnaire et justifiez vos choix de typage/nettoyage.
 
 Points attendus:
 1. conversion de types (`date`, `integer`, `float`, `keyword`, `text`),
@@ -107,6 +113,63 @@ Vous devez produire un fichier `docs/planning_poker.md` avec:
 4. l'estimation finale retenue,
 5. les hypothèses,
 6. la répartition des features par membre.
+
+#### Aide: déroulement recommandé d'une session
+1. Le lead présente une `user story` et ses critères d'acceptation.
+2. L'équipe pose des questions de clarification (données, dépendances, risques).
+3. Chaque membre vote en même temps avec une valeur Fibonacci (`1,2,3,5,8,13`).
+4. En cas d'écart important, les estimations extrêmes justifient leur choix.
+5. L'équipe revote jusqu'à convergence.
+6. La valeur finale et les hypothèses sont notées dans `docs/planning_poker.md`.
+
+#### Exemple de user story
+**US-03 — Ingestion nettoyée dans `movies_clean`**  
+En tant qu'analyste data, je veux indexer des données films nettoyées dans `movies_clean` afin de produire des visualisations fiables dans Kibana.
+
+**Critères d'acceptation (exemple)**
+1. `release_date` est indexé en `date`.
+2. `vote_average`, `vote_count`, `runtime`, `popularity` sont typés correctement.
+3. Les champs multi-valeurs (`genres`, `keywords`) sont normalisés.
+4. Un contrôle avant/après est documenté dans `docs/data_cleaning.md`.
+
+**Exemple d'estimation**
+1. Votes initiaux: `3, 5, 8, 5`
+2. Décision finale: `5`
+3. Hypothèse: pas de changement majeur du format CSV.
+
+#### Template à copier dans `docs/planning_poker.md`
+```md
+# Planning Poker
+
+## 1) Participants
+- Membre 1:
+- Membre 2:
+- Membre 3:
+- Membre 4:
+
+## 2) Échelle utilisée
+Fibonacci: 1, 2, 3, 5, 8, 13
+
+## 3) Stories estimées
+| ID | User Story | Votes initiaux | Estimation finale | Hypothèses | Owner |
+| --- | --- | --- | --- | --- | --- |
+| US-01 |  |  |  |  |  |
+| US-02 |  |  |  |  |  |
+| US-03 |  |  |  |  |  |
+| US-04 |  |  |  |  |  |
+
+## 4) Décisions de découpage
+- Story:
+  - Découpage:
+  - Risque:
+  - Action:
+
+## 5) Répartition finale des features
+- Membre 1:
+- Membre 2:
+- Membre 3:
+- Membre 4:
+```
 
 ### 6.4 Implication individuelle
 Chaque membre doit:
