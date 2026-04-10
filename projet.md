@@ -293,7 +293,7 @@ Le projet est validé si:
 
 ---
 
-## 12) Moteur de recherche (optionel, peu noté)
+## 12) Moteur de recherche (obligatoire, peu noté)
 Le mini moteur de recherche est obligatoire, avec une pondération faible dans la note finale.
 
 Exigences minimales:
@@ -373,3 +373,110 @@ Améliorations possibles (optionnelles):
 
 8. **Bilan, limites et améliorations** (~0,5 page)  
    Retour d'expérience, points bloquants, axes d'amélioration.
+
+---
+
+## 15) Démarche PR (guide détaillé débutant)
+
+Objectif : travailler proprement avec `dev` et des branches `feature/*`, sans se bloquer.
+
+### 15.1 Ordre conseillé de merge des features
+1. `feature/bootstrap-stack`
+2. `feature/ingestion-raw`
+
+...
+
+Pourquoi cet ordre : chaque étape dépend de la précédente (infrastructure -> data -> recherche -> visualisation -> docs).
+
+### 15.2 Étape 1 - Se synchroniser avant de commencer
+But : partir d'une base propre.
+
+```bash
+git checkout dev
+git pull
+```
+
+À vérifier :
+1. Vous êtes bien sur `dev`. (vérifier que vous êtes sur la bonne branche : `git branch`, touche `q` pour sortir)
+2. Le `git pull` ne renvoie pas d'erreur.
+
+### 15.3 Étape 2 - Créer une branche de feature
+But : isoler votre travail.
+
+```bash
+git checkout -b feature/nom-court
+```
+
+Exemple : `feature/ingestion-raw`
+
+### 15.4 Étape 3 - Développer puis commit
+But : sauvegarder un état clair.
+
+```bash
+git add .
+git commit -m "feat: ingestion raw movies"
+```
+
+Bonnes pratiques :
+1. Un commit = une idée claire.
+2. Message de commit explicite.
+
+### 15.5 Étape 4 - Pousser la branche sur GitHub
+But : rendre la branche visible pour ouvrir une PR.
+
+```bash
+git push origin feature/nom-court
+```
+
+### 15.6 Étape 5 - Ouvrir la Pull Request
+Sur GitHub :
+1. Cliquer sur `Compare & pull request`.
+2. Choisir :
+   - `base` = `dev`
+   - `compare` = `feature/nom-court`
+3. Remplir la PR :
+   - objectif,
+   - changements réalisés,
+   - comment tester,
+   - captures/logs si utile.
+
+### 15.7 Étape 6 - Faire reviewer
+1. Demander au moins 1 reviewer.
+2. Le reviewer vérifie :
+   - que la feature fonctionne,
+   - que le code est lisible,
+   - que la doc est mise à jour.
+
+### 15.8 Étape 7 - Corriger les retours
+Si on vous demande des corrections :
+
+```bash
+git add .
+git commit -m "fix: prise en compte review PR"
+git push
+```
+
+La PR se met à jour automatiquement.
+
+### 15.9 Étape 8 - Merger dans `dev`
+Quand la PR est validée :
+1. cliquer sur `Merge pull request`,
+2. supprimer la branche feature côté GitHub.
+
+Puis, en local :
+```bash
+git checkout dev
+git pull
+```
+
+### 15.10 Mini checklist avant chaque merge
+1. `docker compose up -d` fonctionne.
+2. La feature est testée.
+3. Les fichiers de documentation liés à la feature sont à jour.
+4. La PR a été relue et approuvée.
+
+### 15.11 Erreurs fréquentes à éviter
+1. Push direct sur `dev` ou `main` (interdit).
+2. PR trop grosse (préférer des PR courtes).
+3. Oublier de mettre à jour la doc.
+4. Attendre trop longtemps avant d'ouvrir la PR.
