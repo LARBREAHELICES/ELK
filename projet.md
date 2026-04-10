@@ -11,11 +11,9 @@ Règles d'organisation:
 ---
 
 ## 1) Contexte
-Vous devez construire une plateforme d'analyse de films avec la stack ELK à partir du dataset:
+Vous devez construire une plateforme d'analyse de films avec la stack ELK à partir du dataset: `movies.csv`
 
-- `DATA/archive.zip` -> `movies.csv`
-
-Si le dataset n'est pas présent, vous pouvez le récupérer depuis:
+Vous pouvez le récupérer depuis:
 - https://www.kaggle.com/datasets/akshaypawar7/millions-of-movies/versions/67?resource=download
 
 ---
@@ -30,7 +28,8 @@ Livrer une solution reproductible qui permet de:
 5. produire des analyses et visualisations pertinentes dans Kibana,
 6. démontrer une organisation projet professionnelle (Gitflow, PR, planning poker, répartition des features).
 
-En complément, vous devez produire un document d'environ 5 pages qui décrit précisément vos choix, vos étapes, vos résultats et vos limites.
+En complément, vous devez produire un document d'environ 5 pages qui décrit précisément vos choix, vos étapes, vos résultats et vos limites (voir à la fin du document pour plus de précision).  
+Ce document doit impérativement contenir une partie dédiée à la documentation des données (qualité, nettoyage, impact).
 
 ---
 
@@ -48,6 +47,7 @@ En complément, vous devez produire un document d'environ 5 pages qui décrit pr
 5. Définir dans les settings au moins un analyzer personnalisé.
 6. Livrer au moins 12 requêtes Elasticsearch commentées, dont 5 requêtes `bool`.
 7. Livrer un dashboard Kibana avec 6 à 8 visualisations.
+8. Implémenter un mini moteur de recherche (API ou UI) connecté à Elasticsearch.
 
 ---
 
@@ -87,7 +87,7 @@ Points attendus:
 
 ### 6.1 Gitflow imposé
 Branches minimales:
-- `main` : version stable / soutenance
+- `main` : version stable
 - `dev` : intégration
 - `feature/<id>-<slug>` : développement
 
@@ -156,6 +156,11 @@ Chaque membre doit:
    - documentation nettoyage
    - documentation projet
 
+8. **F8 - Moteur de recherche**
+   - mini moteur connecté à Elasticsearch
+   - recherche full-text sur les films
+   - au moins un filtre simple (langue, genre, année, etc.)
+
 ---
 
 ## 8) Ordre conseillé de réalisation
@@ -178,7 +183,9 @@ Chaque membre doit:
 5. dossier `docs/` complet,
 6. export Kibana (`.ndjson`) des visualisations/dashboard,
 7. script de démo `docs/demo_script.md`,
-8. document synthèse (~5 pages).
+8. démonstration visuelle courte (`docs/demo.gif`) montrant la démo technique,
+9. mini moteur de recherche fonctionnel,
+10. document synthèse (~5 pages).
 
 ### Documentation obligatoire
 1. `docs/data_dictionary.md`
@@ -187,12 +194,24 @@ Chaque membre doit:
 4. `docs/project_management.md`
 5. `docs/planning_poker.md`
 
+### Exigence obligatoire pour le document synthèse (~5 pages)
+Le document synthèse doit inclure explicitement :
+1. une section **Documentation des données**,
+2. les anomalies observées,
+3. les règles de nettoyage appliquées,
+4. une mesure d'impact avant/après.
+
 ---
 
-## 10) Soutenance
-1. Démo technique
-2. Lecture métier des résultats
-3. Questions/réponses
+## 10) Démonstration asynchrone (pas de soutenance)
+L'évaluation se fait sans soutenance orale.
+
+### Preuve de démonstration à déposer
+Vous devez déposer dans le repo:
+1. un **GIF animé court** (`docs/demo.gif`) qui montre la démo technique principale,
+2. un script associé (`docs/demo_script.md`) pour expliquer ce qui est montré.
+
+Recommandation: garder un GIF court (poids raisonnable) et lisible, avec un parcours clair.
 
 ---
 
@@ -201,18 +220,29 @@ Le projet est validé si:
 
 1. la stack démarre sans erreur,
 2. `movies_raw` et `movies_clean` existent et sont vérifiables,
-3. le nettoyage est documenté et mesuré,
-4. les PR et reviews sont traçables,
-5. le dashboard répond à des questions métier,
-6. la démonstration est reproductible sur une machine vierge.
+3. la documentation des données est présente, claire et exploitable,
+4. le nettoyage est documenté et mesuré,
+5. les PR et reviews sont traçables,
+6. le dashboard répond à des questions métier,
+7. le mini moteur de recherche fonctionne et est démontrable,
+8. un GIF de démonstration (`docs/demo.gif`) est présent dans le dépôt,
+9. la démonstration est reproductible sur une machine vierge.
 
 ---
 
-## 12) Bonus (optionnel)
-Si le périmètre principal est terminé:
-1. implémenter un mini moteur de recherche (API ou UI),
-2. ajouter une logique de scoring,
-3. comparer plusieurs analyzers et justifier le choix final.
+## 12) Moteur de recherche (optionel, peu noté)
+Le mini moteur de recherche est obligatoire, avec une pondération faible dans la note finale.
+
+Exigences minimales:
+1. interface API ou UI (technologie libre),
+2. recherche full-text sur un champ textuel (`title`, `overview`, etc.),
+3. au moins un filtre exact (langue, genre, année, etc.),
+4. démonstration d'usage dans `docs/demo_script.md`.
+
+Améliorations possibles (optionnelles):
+1. ajouter une logique de scoring,
+2. comparer plusieurs analyzers,
+3. ajouter une pagination avancée.
 
 ---
 
@@ -220,7 +250,8 @@ Si le périmètre principal est terminé:
 
 | Axe | Critères observables | Points |
 | --- | --- | --- |
-| Technique ELK | Stack opérationnelle, ingestion `movies_raw` et `movies_clean`, mapping explicite, requêtes DSL pertinentes, dashboard exploitable | 50 |
+| Technique ELK | Stack opérationnelle, ingestion `movies_raw` et `movies_clean`, mapping explicite, requêtes DSL pertinentes, dashboard exploitable | 45 |
+| Moteur de recherche | Mini moteur connecté à Elasticsearch, recherche + filtre, démonstration fonctionnelle | 5 |
 | Documentation data & nettoyage | Dictionnaire complet, règles de nettoyage justifiées, mesures avant/après, runbook exécutable | 20 |
 | Gestion de projet | Gitflow respecté, PR/reviews traçables, planning poker documenté, répartition claire des features | 20 |
 | Restitution & reproductibilité | Démo claire, lecture métier pertinente, projet relançable par un tiers | 10 |
@@ -228,12 +259,15 @@ Si le périmètre principal est terminé:
 
 ### Détail indicatif par axe
 
-**Technique ELK (50 pts)**
+**Technique ELK (45 pts)**
 - 10 pts : Docker Compose et services opérationnels
 - 10 pts : Ingestion brute fiable (`movies_raw`)
 - 10 pts : Nettoyage + mapping qualité (`movies_clean`)
 - 10 pts : Requêtes Elasticsearch (volume + qualité)
-- 10 pts : Dashboard Kibana (lisibilité + utilité métier)
+- 5 pts : Dashboard Kibana (lisibilité + utilité métier)
+
+**Moteur de recherche (5 pts)**
+- 5 pts : Moteur fonctionnel (recherche + au moins un filtre + démonstration)
 
 **Documentation data & nettoyage (20 pts)**
 - 8 pts : Dictionnaire de données précis
@@ -248,3 +282,31 @@ Si le périmètre principal est terminé:
 **Restitution & reproductibilité (10 pts)**
 - 5 pts : Clarté de la démonstration
 - 5 pts : Capacité à relancer le projet sans assistance
+
+---
+
+## 14) Plan du document final 
+
+1. **Contexte, objectifs et périmètre** (~0,5 page)  
+   Problème traité, objectifs techniques/métier, périmètre réalisé vs non réalisé.
+
+2. **Architecture et environnement** (~0,5 à 1 page)  
+   Schéma de la stack ELK, description du `docker-compose`, flux de données de `movies.csv` au dashboard.
+
+3. **Données et nettoyage (obligatoire)** (~1 à 1,5 page)  
+   Description des colonnes, anomalies détectées, règles Logstash appliquées, comparaison avant/après.
+
+4. **Modélisation Elasticsearch** (~0,5 à 1 page)  
+   Mapping de `movies_clean`, choix `text`/`keyword`, analyzer personnalisé et justification.
+
+5. **Requêtes et analyses** (~1 page)  
+   Requêtes principales (dont `bool`), exemples de requêtes valides/non valides, résultats obtenus.
+
+6. **Dashboard Kibana et lecture métier** (~0,5 page)  
+   Synthèse des visualisations, insights métier, limites d'interprétation.
+
+7. **Gestion de projet et collaboration** (~0,5 page)  
+   Gitflow, PR/reviews, planning poker, répartition des features.
+
+8. **Bilan, limites et améliorations** (~0,5 page)  
+   Retour d'expérience, points bloquants, axes d'amélioration.
